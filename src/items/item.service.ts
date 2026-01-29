@@ -3,36 +3,96 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Item } from './entities/item.entity';
-import { Repository } from 'typeorm';
+import { item_name, Prisma } from '@prisma/client';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { ItemPublicDto } from './dto/item-public';
 import { plainToInstance } from 'class-transformer';
-import { User } from '../user/entities/user.entity';
 import { IUserRequest } from '../user/interfaces/user-request.interface';
+import { PrismaService } from '../prisma/prisma.service';
+import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
+import {
+  ITEM_SORT_MAP,
+  ItemQueryDto,
+  ItemSortFieldEnum,
+} from './dto/item-query.dto';
+import { paginate } from '../shared/pagination/paginate';
+import { SortDirectionEnum } from '../shared/pagination/pagination-request.dto';
 
 @Injectable()
 export class ItemService {
-  constructor(
-    @InjectRepository(Item)
-    private readonly itemRepository: Repository<Item>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<ItemPublicDto[]> {
-    const items = await this.itemRepository.find({ relations: ['seller'] });
-    return plainToInstance(ItemPublicDto, items, {
+  async findAllPublic(
+    query: ItemQueryDto,
+  ): Promise<IPaginatedResponse<ItemPublicDto>> {
+    const {
+      page = 1,
+      perPage = 10,
+      sortBy = ItemSortFieldEnum.ID,
+      sortDirection = SortDirectionEnum.ASC,
+      search,
+    } = query;
+
+    const skip = (page - 1) * perPage;
+
+    const where: Prisma.itemWhereInput = {
+      isDeleted: 0,
+    };
+
+    if (search) {
+      const or: Prisma.itemWhereInput[] = [
+        {
+          description: {
+            contains: search,
+          },
+        },
+      ];
+
+      if (Object.values(item_name).includes(search as item_name)) {
+        or.push({
+          name: search as item_name,
+        });
+      }
+
+      where.OR = or;
+    }
+
+    const orderField = sortBy
+      ? ITEM_SORT_MAP[sortBy]
+      : ITEM_SORT_MAP[ItemSortFieldEnum.ID];
+
+    const [items, total] = await Promise.all([
+      this.prisma.item.findMany({
+        where,
+        include: {
+          seller: true,
+        },
+        orderBy: {
+          [orderField]: sortDirection,
+        },
+        skip,
+        take: perPage,
+      }),
+
+      this.prisma.item.count({ where }),
+    ]);
+
+    const itemDtos = plainToInstance(ItemPublicDto, items, {
       excludeExtraneousValues: true,
     });
+
+    return paginate(itemDtos, total, page, perPage);
   }
 
   async findById(id: number): Promise<ItemPublicDto> {
-    const item = await this.itemRepository.findOne({
-      where: { id },
-      relations: ['seller'],
+    const item = await this.prisma.item.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        seller: true,
+      },
     });
     if (!item) {
       throw new NotFoundException(`Item with id ${id} was not found`);
@@ -46,19 +106,18 @@ export class ItemService {
     request: IUserRequest,
     createItemDto: CreateItemDto,
   ): Promise<ItemPublicDto> {
-    const userPayload = request.user;
-    const user = await this.userRepository.findOne({
-      where: { id: userPayload.userId },
+    const { userId } = request.user;
+    const item = await this.prisma.item.create({
+      data: {
+        ...createItemDto,
+        seller: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
     });
-    if (!user) {
-      throw new NotFoundException(`User was not found`);
-    }
-
-    const savedItem = await this.itemRepository.save({
-      ...createItemDto,
-      seller: user,
-    });
-    return plainToInstance(ItemPublicDto, savedItem, {
+    return plainToInstance(ItemPublicDto, item, {
       excludeExtraneousValues: true,
     });
   }
@@ -69,8 +128,15 @@ export class ItemService {
     updateItemDto: UpdateItemDto,
   ): Promise<ItemPublicDto> {
     await this.assertUserOwnsItem(request, id);
-    await this.itemRepository.update(id, updateItemDto);
-    return plainToInstance(ItemPublicDto, this.findById(id));
+
+    const item = await this.prisma.item.update({
+      where: { id },
+      data: updateItemDto,
+    });
+
+    return plainToInstance(ItemPublicDto, item, {
+      excludeExtraneousValues: true,
+    });
   }
 
   // todo soft delete item user token
@@ -79,19 +145,32 @@ export class ItemService {
 
   async softDelete(request: IUserRequest, id: number): Promise<void> {
     await this.assertUserOwnsItem(request, id);
-    await this.itemRepository.update({ id }, { isDeleted: true });
+
+    await this.prisma.item.update({
+      where: { id },
+      data: {
+        isDeleted: 1,
+      },
+    });
   }
 
   async softDeleteItemsOfUser(userId: number): Promise<void> {
-    await this.itemRepository.update(
-      { seller: { id: userId } },
-      { isDeleted: true },
-    );
+    await this.prisma.item.updateMany({
+      where: {
+        sellerId: userId,
+      },
+      data: {
+        isDeleted: 1,
+      },
+    });
   }
 
   async delete(request: IUserRequest, id: number): Promise<void> {
     await this.assertUserOwnsItem(request, id);
-    await this.itemRepository.delete(id);
+
+    await this.prisma.item.delete({
+      where: { id },
+    });
   }
 
   async assertUserOwnsItem(
@@ -99,16 +178,20 @@ export class ItemService {
     itemId: number,
   ): Promise<void> {
     const userId = request.user.userId;
-    const item = await this.itemRepository.findOne({
+
+    const item = await this.prisma.item.findUnique({
       where: { id: itemId },
-      relations: ['seller'],
+      select: {
+        id: true,
+        sellerId: true,
+      },
     });
 
     if (!item) {
       throw new NotFoundException('Item was not found');
     }
 
-    if (!item.seller || item.seller.id !== userId) {
+    if (item.sellerId !== userId) {
       throw new UnauthorizedException('Not authorized to modify item');
     }
   }

@@ -3,10 +3,10 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   Param,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -16,14 +16,18 @@ import { AuthGuard } from '@nestjs/passport';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { ItemPublicDto } from './dto/item-public';
 import * as userRequestInterface from '../user/interfaces/user-request.interface';
+import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
+import { ItemQueryDto } from './dto/item-query.dto';
 
 @Controller('items')
 export class ItemController {
   constructor(private readonly itemsService: ItemService) {}
 
   @Get('')
-  async getAll(): Promise<ItemPublicDto[]> {
-    return this.itemsService.findAll();
+  async getAll(
+    @Query() query: ItemQueryDto,
+  ): Promise<IPaginatedResponse<ItemPublicDto>> {
+    return this.itemsService.findAllPublic(query);
   }
 
   @Get('/id/:id')

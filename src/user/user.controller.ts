@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Patch,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -12,14 +13,19 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UserPublicDto } from './dto/user-public.dto';
 import * as userRequestInterface from './interfaces/user-request.interface';
+import { UserSelfDto } from './dto/user-self.dto';
+import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
+import { UserQueryDto } from './dto/user-query.dto';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get('')
-  async getAll(): Promise<UserPublicDto[]> {
-    return this.userService.findAll();
+  @Get()
+  async getAll(
+    @Query() query: UserQueryDto,
+  ): Promise<IPaginatedResponse<UserPublicDto>> {
+    return this.userService.findAllPublic(query);
   }
 
   @Get('id/:id')
@@ -29,7 +35,9 @@ export class UserController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
-  getProfile(@Request() request: userRequestInterface.IUserRequest) {
+  getProfile(
+    @Request() request: userRequestInterface.IUserRequest,
+  ): Promise<UserSelfDto> {
     return this.userService.findSelf(request);
   }
 
@@ -38,7 +46,7 @@ export class UserController {
   async update(
     @Request() request: userRequestInterface.IUserRequest,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<UserPublicDto> {
+  ): Promise<UserSelfDto> {
     return this.userService.updateSelf(request, updateUserDto);
   }
 }

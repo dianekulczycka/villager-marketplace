@@ -1,7 +1,3 @@
-import { InjectRepository } from '@nestjs/typeorm';
-
-import { Token } from './entities/token.entity';
-import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
@@ -10,9 +6,11 @@ import { UserLoginRequestDto } from './dto/user-login-request.dto';
 import { ITokenPair } from './interfaces/token-pair.interface';
 import { IJwtPayload } from './interfaces/jwt-payload.interface';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { User } from '../user/entities/user.entity';
 import { UserPublicDto } from '../user/dto/user-public.dto';
 import { plainToInstance } from 'class-transformer';
+import { PrismaService } from '../prisma/prisma.service';
+import * as bcrypt from 'bcrypt';
+import { user } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -20,10 +18,7 @@ export class AuthService {
   private readonly refreshTokenExpirationTime: number;
 
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Token)
-    private readonly tokenRepository: Repository<Token>,
+    private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {
@@ -35,13 +30,20 @@ export class AuthService {
   }
 
   async register(registerDto: UserSignInRequestDto): Promise<UserPublicDto> {
-    const user: User = this.userRepository.create(registerDto);
-    await this.userRepository.save(user);
+    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+
+    const user: user = await this.prisma.user.create({
+      data: {
+        ...registerDto,
+        password: hashedPassword,
+      },
+    });
+
     return plainToInstance(UserPublicDto, user);
   }
 
   async login(loginDto: UserLoginRequestDto): Promise<ITokenPair> {
-    const user: User = await this.validateUser(
+    const user: user = await this.validateUser(
       loginDto.email,
       loginDto.password,
     );
@@ -55,28 +57,37 @@ export class AuthService {
     };
 
     const { accessToken, refreshToken } = this.generateTokenPair(payload);
-    await this.saveTokens(user, accessToken, refreshToken, jti);
+    await this.saveTokens(user.id, accessToken, refreshToken, jti);
     return { accessToken, refreshToken };
   }
 
   async refresh(refreshTokenDto: RefreshTokenDto): Promise<ITokenPair> {
     try {
-      const refreshToken = refreshTokenDto.refreshToken;
+      const { refreshToken } = refreshTokenDto;
 
       this.jwtService.verify<IJwtPayload>(refreshToken);
-      const tokenEntity = await this.tokenRepository.findOne({
-        where: { refreshToken, isBlocked: false },
-        relations: ['user'],
+
+      const tokenEntity = await this.prisma.token.findFirst({
+        where: {
+          refreshToken,
+          isBlocked: 0,
+        },
+        include: {
+          user: true,
+        },
       });
 
       if (!tokenEntity || tokenEntity.refreshTokenExpirationTime < new Date()) {
         throw new UnauthorizedException('Invalid or expired refresh token');
       }
 
-      tokenEntity.isBlocked = true;
-      await this.tokenRepository.save(tokenEntity);
+      await this.prisma.token.update({
+        where: { id: tokenEntity.id },
+        data: { isBlocked: 1 },
+      });
 
       const jti: string = this.generateUniqueJti();
+
       const payload: IJwtPayload = {
         userId: tokenEntity.user.id,
         email: tokenEntity.user.email,
@@ -87,7 +98,7 @@ export class AuthService {
         this.generateTokenPair(payload);
 
       await this.saveTokens(
-        tokenEntity.user,
+        tokenEntity.user.id,
         newAccessToken,
         newRefreshToken,
         jti,
@@ -97,49 +108,66 @@ export class AuthService {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
       };
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (e: any) {
-      throw new UnauthorizedException(`Invalid or expired token`);
+    } catch {
+      throw new UnauthorizedException('Invalid or expired token');
     }
   }
 
   async logout(refreshTokenDto: RefreshTokenDto): Promise<void> {
     const { refreshToken } = refreshTokenDto;
-    const tokenEntity: Token | null = await this.tokenRepository.findOne({
-      where: { refreshToken, isBlocked: false },
+
+    await this.prisma.token.updateMany({
+      where: {
+        refreshToken,
+        isBlocked: 0,
+      },
+      data: {
+        isBlocked: 1,
+      },
     });
-    if (tokenEntity) {
-      tokenEntity.isBlocked = true;
-      await this.tokenRepository.save(tokenEntity);
-    }
   }
 
   private async saveTokens(
-    user: User,
+    userId: number,
     accessToken: string,
     refreshToken: string,
     jti: string,
   ): Promise<void> {
-    const tokenEntity: Token = this.tokenRepository.create({
-      accessToken,
-      refreshToken,
-      accessTokenExpirationTime: new Date(
-        Date.now() + this.accessTokenExpirationTime * 1000,
-      ),
-      refreshTokenExpirationTime: new Date(
-        Date.now() + this.refreshTokenExpirationTime * 1000,
-      ),
-      user,
-      jti,
+    await this.prisma.token.create({
+      data: {
+        accessToken,
+        refreshToken,
+        accessTokenExpirationTime: new Date(
+          Date.now() + this.accessTokenExpirationTime * 1000,
+        ),
+        refreshTokenExpirationTime: new Date(
+          Date.now() + this.refreshTokenExpirationTime * 1000,
+        ),
+        jti,
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
     });
-    await this.tokenRepository.save(tokenEntity);
   }
 
-  private async validateUser(email: string, password: string): Promise<User> {
-    const user: User | null = await this.userRepository.findOneBy({ email });
-    if (!user || !(await user.validatePassword(password))) {
+  private async validateUser(email: string, password: string): Promise<user> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
     return user;
   }
 
