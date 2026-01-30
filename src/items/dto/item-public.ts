@@ -1,16 +1,6 @@
-import { Expose, Type } from 'class-transformer';
-import { UserPublicDto } from '../../user/dto/user-public.dto';
+import { Prisma } from '@prisma/client';
+import { ITEM_PUBLIC_SELECT } from '../const/orm/item';
 
-export class ItemPublicDto {
-  @Expose() id: number;
-  @Expose() name: string;
-  @Expose() price: number;
-  @Expose() count: number;
-  @Expose() description: string;
-  @Expose() createdAt: Date;
-  @Expose() updatedAt: Date;
-
-  @Expose()
-  @Type(() => UserPublicDto)
-  seller: UserPublicDto;
-}
+export type ItemPublicDto = Prisma.itemGetPayload<{
+  select: typeof ITEM_PUBLIC_SELECT;
+}>;

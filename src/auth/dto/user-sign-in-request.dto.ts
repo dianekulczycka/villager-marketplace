@@ -10,7 +10,7 @@ export class UserSignInRequestDto {
   password: string;
 
   @Matches(/^[A-Za-z\s]{2,}$/, {
-    message: 'Name must be gt 2 letters and contain ONLY English letters',
+    message: 'Name must be gt 2 chars and contain ONLY English letters',
   })
   username: string;
 }

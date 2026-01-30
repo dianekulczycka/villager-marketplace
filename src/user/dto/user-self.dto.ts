@@ -1,8 +1,6 @@
-import { UserPublicDto } from './user-public.dto';
-import { Exclude, Expose } from 'class-transformer';
+import { Prisma } from '@prisma/client';
+import { USER_SELF_SELECT } from '../const/orm/user';
 
-@Exclude()
-export class UserSelfDto extends UserPublicDto {
-  @Expose() isBanned: boolean;
-  @Expose() bannedAt?: Date;
-}
+export type UserSelfDto = Prisma.userGetPayload<{
+  select: typeof USER_SELF_SELECT;
+}>;

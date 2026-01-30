@@ -7,10 +7,12 @@ import { ITokenPair } from './interfaces/token-pair.interface';
 import { IJwtPayload } from './interfaces/jwt-payload.interface';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { UserPublicDto } from '../user/dto/user-public.dto';
-import { plainToInstance } from 'class-transformer';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { user } from '@prisma/client';
+import { USER_PUBLIC_SELECT } from '../user/const/orm/user';
+import { TOKEN_ACTIVE_WHERE, TOKEN_BLOCK_DATA } from './const/orm/token.select';
+import { AUTH_ERRORS } from './const/errors';
 
 @Injectable()
 export class AuthService {
@@ -32,14 +34,13 @@ export class AuthService {
   async register(registerDto: UserSignInRequestDto): Promise<UserPublicDto> {
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
-    const user: user = await this.prisma.user.create({
+    return this.prisma.user.create({
       data: {
         ...registerDto,
         password: hashedPassword,
       },
+      select: USER_PUBLIC_SELECT,
     });
-
-    return plainToInstance(UserPublicDto, user);
   }
 
   async login(loginDto: UserLoginRequestDto): Promise<ITokenPair> {
@@ -50,11 +51,7 @@ export class AuthService {
 
     const jti: string = this.generateUniqueJti();
 
-    const payload: IJwtPayload = {
-      userId: user.id,
-      email: user.email,
-      jti,
-    };
+    const payload = this.buildJwtPayload(user, jti);
 
     const { accessToken, refreshToken } = this.generateTokenPair(payload);
     await this.saveTokens(user.id, accessToken, refreshToken, jti);
@@ -68,62 +65,57 @@ export class AuthService {
       this.jwtService.verify<IJwtPayload>(refreshToken);
 
       const tokenEntity = await this.prisma.token.findFirst({
-        where: {
-          refreshToken,
-          isBlocked: 0,
-        },
-        include: {
-          user: true,
-        },
+        where: TOKEN_ACTIVE_WHERE(refreshToken),
+        include: { user: true },
       });
 
-      if (!tokenEntity || tokenEntity.refreshTokenExpirationTime < new Date()) {
-        throw new UnauthorizedException('Invalid or expired refresh token');
-      }
+      if (!tokenEntity || tokenEntity.refreshTokenExpirationTime < new Date())
+        throw new UnauthorizedException(AUTH_ERRORS.INVALID_TOKEN);
 
-      await this.prisma.token.update({
-        where: { id: tokenEntity.id },
-        data: { isBlocked: 1 },
-      });
+      const jti = this.generateUniqueJti();
+      const payload = this.buildJwtPayload(tokenEntity.user, jti);
 
-      const jti: string = this.generateUniqueJti();
-
-      const payload: IJwtPayload = {
-        userId: tokenEntity.user.id,
-        email: tokenEntity.user.email,
-        jti,
-      };
-
-      const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+      const { accessToken, refreshToken: newRefreshToken } =
         this.generateTokenPair(payload);
 
-      await this.saveTokens(
-        tokenEntity.user.id,
-        newAccessToken,
-        newRefreshToken,
-        jti,
-      );
+      await this.prisma.$transaction(async (tx) => {
+        await tx.token.update({
+          where: { id: tokenEntity.id },
+          data: TOKEN_BLOCK_DATA,
+        });
+
+        await tx.token.create({
+          data: {
+            accessToken,
+            refreshToken: newRefreshToken,
+            accessTokenExpirationTime: this.buildExpirationDate(
+              this.accessTokenExpirationTime,
+            ),
+            refreshTokenExpirationTime: this.buildExpirationDate(
+              this.refreshTokenExpirationTime,
+            ),
+            jti,
+            user: {
+              connect: { id: tokenEntity.user.id },
+            },
+          },
+        });
+      });
 
       return {
-        accessToken: newAccessToken,
+        accessToken,
         refreshToken: newRefreshToken,
       };
     } catch {
-      throw new UnauthorizedException('Invalid or expired token');
+      throw new UnauthorizedException(AUTH_ERRORS.INVALID_TOKEN);
     }
   }
 
   async logout(refreshTokenDto: RefreshTokenDto): Promise<void> {
     const { refreshToken } = refreshTokenDto;
-
     await this.prisma.token.updateMany({
-      where: {
-        refreshToken,
-        isBlocked: 0,
-      },
-      data: {
-        isBlocked: 1,
-      },
+      where: TOKEN_ACTIVE_WHERE(refreshToken),
+      data: TOKEN_BLOCK_DATA,
     });
   }
 
@@ -137,11 +129,11 @@ export class AuthService {
       data: {
         accessToken,
         refreshToken,
-        accessTokenExpirationTime: new Date(
-          Date.now() + this.accessTokenExpirationTime * 1000,
+        accessTokenExpirationTime: this.buildExpirationDate(
+          this.accessTokenExpirationTime,
         ),
-        refreshTokenExpirationTime: new Date(
-          Date.now() + this.refreshTokenExpirationTime * 1000,
+        refreshTokenExpirationTime: this.buildExpirationDate(
+          this.refreshTokenExpirationTime,
         ),
         jti,
         user: {
@@ -158,15 +150,12 @@ export class AuthService {
       where: { email },
     });
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    if (!user) throw new UnauthorizedException(AUTH_ERRORS.INVALID_CREDENTIALS);
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    if (!isPasswordValid)
+      throw new UnauthorizedException(AUTH_ERRORS.INVALID_CREDENTIALS);
 
     return user;
   }
@@ -187,6 +176,19 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
+    };
+  }
+
+  private buildExpirationDate(seconds: number): Date {
+    return new Date(Date.now() + seconds * 1000);
+  }
+
+  private buildJwtPayload(user: user, jti: string): IJwtPayload {
+    return {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      jti,
     };
   }
 }

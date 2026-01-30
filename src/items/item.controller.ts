@@ -18,6 +18,7 @@ import { ItemPublicDto } from './dto/item-public';
 import * as userRequestInterface from '../user/interfaces/user-request.interface';
 import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
 import { ItemQueryDto } from './dto/item-query.dto';
+import { SellerGuard } from '../auth/guards/role.guards';
 
 @Controller('items')
 export class ItemController {
@@ -35,7 +36,7 @@ export class ItemController {
     return this.itemsService.findById(Number(id));
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), SellerGuard)
   @Post('')
   async create(
     @Request() request: userRequestInterface.IUserRequest,
@@ -44,7 +45,7 @@ export class ItemController {
     return await this.itemsService.create(request, createItemDto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), SellerGuard)
   @Patch('id/:id')
   async update(
     @Param('id') id: string,
@@ -54,8 +55,8 @@ export class ItemController {
     return this.itemsService.update(request, Number(id), updateItemDto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Delete('id/:id')
+  @UseGuards(AuthGuard('jwt'), SellerGuard)
+  @Patch('id/:id/soft-delete')
   async softDelete(
     @Param('id') id: string,
     @Request() request: userRequestInterface.IUserRequest,

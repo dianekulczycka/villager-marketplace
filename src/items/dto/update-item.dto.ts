@@ -7,7 +7,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
-import { ItemNameEnum } from '../enums/item-name.enum';
+import { ItemNameEnum } from '../const/enums/item-name.enum';
 
 export class UpdateItemDto {
   @IsString()
@@ -15,8 +15,8 @@ export class UpdateItemDto {
   name?: ItemNameEnum;
 
   @IsNumber()
-  @Min(0.01)
-  @Max(99_999_999.99)
+  @Min(1)
+  @Max(1_000_000)
   @IsOptional()
   price?: number;
 

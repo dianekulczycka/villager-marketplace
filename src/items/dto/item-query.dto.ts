@@ -18,7 +18,7 @@ export const ITEM_SORT_MAP: Record<ItemSortFieldEnum, string> = {
   [ItemSortFieldEnum.COUNT]: 'count',
   [ItemSortFieldEnum.VIEWS]: 'views',
   [ItemSortFieldEnum.CREATED_AT]: 'createdAt',
-  [ItemSortFieldEnum.SELLER_ID]: 'seller_id',
+  [ItemSortFieldEnum.SELLER_ID]: 'sellerId',
 };
 
 export class ItemQueryDto extends PaginationRequestDto {

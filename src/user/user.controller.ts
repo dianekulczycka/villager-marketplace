@@ -16,6 +16,7 @@ import * as userRequestInterface from './interfaces/user-request.interface';
 import { UserSelfDto } from './dto/user-self.dto';
 import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
 import { UserQueryDto } from './dto/user-query.dto';
+import { BecomeSellerRequestDto } from './dto/become-seller-request';
 
 @Controller('users')
 export class UserController {
@@ -48,5 +49,14 @@ export class UserController {
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserSelfDto> {
     return this.userService.updateSelf(request, updateUserDto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('profile/become-seller')
+  becomeSeller(
+    @Request() request: userRequestInterface.IUserRequest,
+    @Body() becomeSellerRequestDto: BecomeSellerRequestDto,
+  ) {
+    return this.userService.makeUserSeller(request, becomeSellerRequestDto);
   }
 }
