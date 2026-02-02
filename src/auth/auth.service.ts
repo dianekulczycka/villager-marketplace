@@ -1,6 +1,10 @@
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserSignInRequestDto } from './dto/user-sign-in-request.dto';
 import { UserLoginRequestDto } from './dto/user-login-request.dto';
 import { ITokenPair } from './interfaces/token-pair.interface';
@@ -13,6 +17,8 @@ import { user } from '@prisma/client';
 import { USER_PUBLIC_SELECT } from '../user/const/orm/user';
 import { TOKEN_ACTIVE_WHERE, TOKEN_BLOCK_DATA } from './const/orm/token.select';
 import { AUTH_ERRORS } from './const/errors';
+import { BUYER_ICON } from '../../public/icons/icon-map';
+import { USER_ERRORS } from '../user/const/errors';
 
 @Injectable()
 export class AuthService {
@@ -37,6 +43,7 @@ export class AuthService {
     return this.prisma.user.create({
       data: {
         ...registerDto,
+        iconUrl: BUYER_ICON,
         password: hashedPassword,
       },
       select: USER_PUBLIC_SELECT,
@@ -151,9 +158,9 @@ export class AuthService {
     });
 
     if (!user) throw new UnauthorizedException(AUTH_ERRORS.INVALID_CREDENTIALS);
-
+    if (user.isDeleted)
+      throw new UnauthorizedException(AUTH_ERRORS.ACCOUNT_DELETED);
     const isPasswordValid = await bcrypt.compare(password, user.password);
-
     if (!isPasswordValid)
       throw new UnauthorizedException(AUTH_ERRORS.INVALID_CREDENTIALS);
 
@@ -177,6 +184,35 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async issueTokenPairForUser(userId: number): Promise<ITokenPair> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, role: true },
+    });
+
+    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+
+    const jti = this.generateUniqueJti();
+
+    const payload: IJwtPayload = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      jti,
+    };
+
+    const tokens = this.generateTokenPair(payload);
+
+    await this.saveTokens(
+      user.id,
+      tokens.accessToken,
+      tokens.refreshToken,
+      jti,
+    );
+
+    return tokens;
   }
 
   private buildExpirationDate(seconds: number): Date {

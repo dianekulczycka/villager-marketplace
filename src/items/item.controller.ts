@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   Patch,
@@ -12,18 +11,20 @@ import {
 } from '@nestjs/common';
 import { ItemService } from './item.service';
 import { CreateItemDto } from './dto/create-item.dto';
-import { AuthGuard } from '@nestjs/passport';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { ItemPublicDto } from './dto/item-public';
 import * as userRequestInterface from '../user/interfaces/user-request.interface';
 import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
 import { ItemQueryDto } from './dto/item-query.dto';
-import { SellerGuard } from '../auth/guards/role.guards';
+import { AllowedRolesGuard } from '../auth/guards/role.guards';
+import { user_role } from '@prisma/client';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('items')
 export class ItemController {
   constructor(private readonly itemsService: ItemService) {}
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('')
   async getAll(
     @Query() query: ItemQueryDto,
@@ -31,12 +32,13 @@ export class ItemController {
     return this.itemsService.findAllPublic(query);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('/id/:id')
   async getById(@Param('id') id: string): Promise<ItemPublicDto> {
     return this.itemsService.findById(Number(id));
   }
 
-  @UseGuards(AuthGuard('jwt'), SellerGuard)
+  @UseGuards(AuthGuard('jwt'), new AllowedRolesGuard([user_role.SELLER]))
   @Post('')
   async create(
     @Request() request: userRequestInterface.IUserRequest,
@@ -45,7 +47,14 @@ export class ItemController {
     return await this.itemsService.create(request, createItemDto);
   }
 
-  @UseGuards(AuthGuard('jwt'), SellerGuard)
+  @UseGuards(
+    AuthGuard('jwt'),
+    new AllowedRolesGuard([
+      user_role.SELLER,
+      user_role.MANAGER,
+      user_role.ADMIN,
+    ]),
+  )
   @Patch('id/:id')
   async update(
     @Param('id') id: string,
@@ -55,7 +64,14 @@ export class ItemController {
     return this.itemsService.update(request, Number(id), updateItemDto);
   }
 
-  @UseGuards(AuthGuard('jwt'), SellerGuard)
+  @UseGuards(
+    AuthGuard('jwt'),
+    new AllowedRolesGuard([
+      user_role.SELLER,
+      user_role.MANAGER,
+      user_role.ADMIN,
+    ]),
+  )
   @Patch('id/:id/soft-delete')
   async softDelete(
     @Param('id') id: string,

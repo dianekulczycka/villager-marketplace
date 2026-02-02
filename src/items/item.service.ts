@@ -2,9 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
-import { item_name, Prisma } from '@prisma/client';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { ItemPublicDto } from './dto/item-public';
@@ -16,17 +14,19 @@ import {
   ItemQueryDto,
   ItemSortFieldEnum,
 } from './dto/item-query.dto';
-import { paginate } from '../shared/pagination/paginate';
 import { SortDirectionEnum } from '../shared/pagination/pagination-request.dto';
-import { prismaPaginator } from '../shared/pagination/prisma-paginator';
+import { paginatePrisma } from '../shared/pagination/prisma-paginator';
 import { ITEM_ERRORS } from './const/errors';
 import {
+  buildItemSearchWhere,
   ITEM_OWNER_SELECT,
-  ITEM_PUBLIC_INCLUDE,
+  ITEM_PUBLIC_SELECT,
   ITEM_PUBLIC_WHERE_BASE,
   ITEM_SOFT_DELETE_DATA,
 } from './const/orm/item';
 import { allowedItemsPerSeller } from './const/enums/allowed-items-per-seller.record';
+import { ITEM_ICON_MAP } from '../../public/icons/icon-map';
+import { user_role } from '@prisma/client';
 
 @Injectable()
 export class ItemService {
@@ -35,63 +35,38 @@ export class ItemService {
   async findAllPublic(
     query: ItemQueryDto,
   ): Promise<IPaginatedResponse<ItemPublicDto>> {
-    const {
-      page = 1,
-      perPage = 10,
-      sortBy = ItemSortFieldEnum.ID,
-      sortDirection = SortDirectionEnum.ASC,
-      search,
-    } = query;
+    const orderField = ITEM_SORT_MAP[query.sortBy ?? ItemSortFieldEnum.ID];
 
-    const where: Prisma.itemWhereInput = {
-      ...ITEM_PUBLIC_WHERE_BASE,
-    };
-
-    if (search) {
-      const or: Prisma.itemWhereInput[] = [
-        {
-          description: {
-            contains: search,
-          },
-        },
-      ];
-
-      if (Object.values(item_name).includes(search as item_name)) {
-        or.push({ name: search as item_name });
-      }
-
-      where.OR = or;
-    }
-
-    const orderField = ITEM_SORT_MAP[sortBy];
-
-    const { data, total } = await prismaPaginator<ItemPublicDto>(
+    return paginatePrisma<ItemPublicDto>(
       this.prisma.item,
       {
-        where,
-        orderBy: { [orderField]: sortDirection },
-        page,
-        perPage,
-        include: ITEM_PUBLIC_INCLUDE,
+        where: {
+          ...ITEM_PUBLIC_WHERE_BASE,
+          ...buildItemSearchWhere(query.search),
+        },
+        select: ITEM_PUBLIC_SELECT,
+        orderBy: {
+          [orderField]: query.sortDirection ?? SortDirectionEnum.ASC,
+        },
       },
+      query.page,
+      query.perPage,
     );
-
-    return paginate(data, total, page, perPage);
   }
 
   async findById(id: number): Promise<ItemPublicDto> {
     const item = await this.prisma.item.findFirst({
       where: {
-        ...ITEM_PUBLIC_WHERE_BASE,
         id,
+        isDeleted: 0,
       },
-      include: ITEM_PUBLIC_INCLUDE,
+      select: ITEM_PUBLIC_SELECT,
     });
-
-    if (!item) {
-      throw new NotFoundException(ITEM_ERRORS.NOT_FOUND);
-    }
-
+    if (!item) throw new NotFoundException(ITEM_ERRORS.NOT_FOUND);
+    await this.prisma.item.update({
+      where: { id },
+      data: { views: { increment: 1 } },
+    });
     return item;
   }
 
@@ -103,8 +78,10 @@ export class ItemService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { sellerType: true },
+      select: { sellerType: true, isBanned: true },
     });
+
+    if (user?.isBanned) throw new ForbiddenException(ITEM_ERRORS.NOT_ALLOWED);
 
     if (!user?.sellerType) throw new ForbiddenException(ITEM_ERRORS.NOT_SELLER);
 
@@ -116,11 +93,10 @@ export class ItemService {
     return this.prisma.item.create({
       data: {
         ...createItemDto,
-        seller: {
-          connect: { id: userId },
-        },
+        iconUrl: ITEM_ICON_MAP[createItemDto.name],
+        seller: { connect: { id: userId } },
       },
-      include: ITEM_PUBLIC_INCLUDE,
+      select: ITEM_PUBLIC_SELECT,
     });
   }
 
@@ -129,21 +105,15 @@ export class ItemService {
     id: number,
     updateItemDto: UpdateItemDto,
   ): Promise<ItemPublicDto> {
-    await this.assertUserOwnsItem(request, id);
+    await this.assertPermission(request, id);
 
     if (updateItemDto.name) {
-      const { userId } = request.user;
-
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
+        where: { id: request.user.userId },
         select: { sellerType: true },
       });
 
-      if (!user?.sellerType)
-        throw new ForbiddenException(ITEM_ERRORS.NOT_SELLER);
-
-      const allowedItems = allowedItemsPerSeller[user.sellerType];
-
+      const allowedItems = allowedItemsPerSeller[user!.sellerType!];
       if (!allowedItems.includes(updateItemDto.name))
         throw new ForbiddenException(ITEM_ERRORS.ITEM_NOT_ALLOWED);
     }
@@ -151,49 +121,40 @@ export class ItemService {
     return this.prisma.item.update({
       where: { id },
       data: updateItemDto,
-      include: ITEM_PUBLIC_INCLUDE,
+      select: ITEM_PUBLIC_SELECT,
     });
   }
 
   // todo cron delete tokens every 40 mins from db
 
   async softDelete(request: IUserRequest, id: number): Promise<void> {
-    await this.assertUserOwnsItem(request, id);
+    await this.assertPermission(request, id);
 
-    await this.prisma.$transaction([
-      this.prisma.item.update({
-        where: { id },
-        data: ITEM_SOFT_DELETE_DATA,
-      }),
-    ]);
-  }
-
-  async softDeleteItemsOfUser(userId: number): Promise<void> {
-    await this.prisma.item.updateMany({
-      where: {
-        sellerId: userId,
-      },
+    await this.prisma.item.update({
+      where: { id },
       data: ITEM_SOFT_DELETE_DATA,
     });
   }
 
-  async assertUserOwnsItem(
-    request: IUserRequest,
-    itemId: number,
-  ): Promise<void> {
-    const userId = request.user.userId;
+  async assertPermission(request: IUserRequest, itemId: number): Promise<void> {
+    const { userId, role } = request.user;
+    if (role === user_role.ADMIN || role === user_role.MANAGER) return;
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { isBanned: true },
+    });
+
+    if (user?.isBanned) throw new ForbiddenException(ITEM_ERRORS.NOT_ALLOWED);
 
     const item = await this.prisma.item.findUnique({
       where: { id: itemId },
       select: ITEM_OWNER_SELECT,
     });
 
-    if (!item) {
-      throw new NotFoundException(ITEM_ERRORS.NOT_FOUND);
-    }
+    if (!item) throw new NotFoundException(ITEM_ERRORS.NOT_FOUND);
 
-    if (item.sellerId !== userId) {
-      throw new UnauthorizedException(ITEM_ERRORS.NOT_OWNER);
-    }
+    if (item.sellerId !== userId)
+      throw new ForbiddenException(ITEM_ERRORS.NOT_ALLOWED);
   }
 }

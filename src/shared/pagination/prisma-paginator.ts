@@ -1,38 +1,46 @@
 import { PrismaPromise } from '@prisma/client';
+import { IPaginatedResponse } from './pagination-response.interface';
 
-type PrismaDelegate = {
+export type PrismaDelegate = {
   findMany: (args: any) => PrismaPromise<any[]>;
   count: (args: any) => PrismaPromise<number>;
 };
 
-interface IParams {
-  where?: unknown;
-  orderBy?: unknown;
-  select?: unknown;
-  include?: unknown;
-  page: number;
-  perPage: number;
-}
-
-export async function prismaPaginator<T>(
-  model: PrismaDelegate,
-  params: IParams,
-): Promise<{ data: T[]; total: number }> {
-  const { where, orderBy, select, include, page, perPage } = params;
-
+export async function paginatePrisma<T>(
+  model: {
+    findMany: (args: any) => PrismaPromise<any[]>;
+    count: (args: any) => PrismaPromise<number>;
+  },
+  options: {
+    where?: any;
+    select?: any;
+    include?: any;
+    orderBy?: any;
+  },
+  page = 1,
+  perPage = 10,
+): Promise<IPaginatedResponse<T>> {
   const skip = (page - 1) * perPage;
 
   const [data, total] = await Promise.all([
     model.findMany({
-      where,
-      orderBy,
-      select,
-      include,
+      ...options,
       skip,
       take: perPage,
     }),
-    model.count({ where }),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    model.count({ where: options.where }),
   ]);
 
-  return { data: data as T[], total };
+  const pageCount = Math.ceil(total / perPage);
+
+  return {
+    data: data as T[],
+    page,
+    perPage,
+    total,
+    pageCount,
+    nextPage: page < pageCount ? page + 1 : null,
+    prevPage: page > 1 ? page - 1 : null,
+  };
 }
