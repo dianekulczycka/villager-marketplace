@@ -1,6 +1,7 @@
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -19,6 +20,7 @@ import { TOKEN_ACTIVE_WHERE, TOKEN_BLOCK_DATA } from './const/orm/token.select';
 import { AUTH_ERRORS } from './const/errors';
 import { BUYER_ICON } from '../../public/icons/icon-map';
 import { USER_ERRORS } from '../user/const/errors';
+import { hasSwearWordsInDto } from '../shared/filters/swear-words/swear-words.filter';
 
 @Injectable()
 export class AuthService {
@@ -38,6 +40,10 @@ export class AuthService {
   }
 
   async register(registerDto: UserSignInRequestDto): Promise<UserPublicDto> {
+    if (hasSwearWordsInDto(registerDto)) {
+      throw new ForbiddenException(USER_ERRORS.BAD_LANGUAGE);
+    }
+
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
     return this.prisma.user.create({
@@ -213,6 +219,16 @@ export class AuthService {
     );
 
     return tokens;
+  }
+
+  async blockTokensForUser(userId: number): Promise<void> {
+    await this.prisma.token.updateMany({
+      where: {
+        userId,
+        isBlocked: 0,
+      },
+      data: TOKEN_BLOCK_DATA,
+    });
   }
 
   private buildExpirationDate(seconds: number): Date {

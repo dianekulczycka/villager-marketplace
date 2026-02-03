@@ -15,12 +15,14 @@ export const USER_SELF_SELECT: Prisma.userSelect = {
 };
 
 export const USER_BAN_DATA = (bannedBy: string): Prisma.userUpdateInput => ({
+  isFlagged: 1,
   isBanned: 1,
   bannedBy,
   bannedAt: new Date(),
 });
 
 export const USER_UNBAN_DATA: Prisma.userUpdateInput = {
+  isFlagged: 0,
   isBanned: 0,
   bannedBy: null,
   bannedAt: null,

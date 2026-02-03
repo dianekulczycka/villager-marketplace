@@ -1,5 +1,7 @@
 import {
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -27,10 +29,17 @@ import {
 import { allowedItemsPerSeller } from './const/enums/allowed-items-per-seller.record';
 import { ITEM_ICON_MAP } from '../../public/icons/icon-map';
 import { user_role } from '@prisma/client';
+import { USER_ERRORS } from '../user/const/errors';
+import { hasSwearWordsInDto } from '../shared/filters/swear-words/swear-words.filter';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class ItemService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
+  ) {}
 
   async findAllPublic(
     query: ItemQueryDto,
@@ -76,13 +85,17 @@ export class ItemService {
   ): Promise<ItemPublicDto> {
     const { userId } = request.user;
 
+    if (hasSwearWordsInDto(createItemDto)) {
+      await this.userService.flagUser(request.user.userId);
+      throw new ForbiddenException(USER_ERRORS.BAD_LANGUAGE);
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { sellerType: true, isBanned: true },
     });
 
     if (user?.isBanned) throw new ForbiddenException(ITEM_ERRORS.NOT_ALLOWED);
-
     if (!user?.sellerType) throw new ForbiddenException(ITEM_ERRORS.NOT_SELLER);
 
     const allowedItems = allowedItemsPerSeller[user.sellerType];
@@ -107,6 +120,11 @@ export class ItemService {
   ): Promise<ItemPublicDto> {
     await this.assertPermission(request, id);
 
+    if (hasSwearWordsInDto(updateItemDto)) {
+      await this.userService.flagUser(request.user.userId);
+      throw new ForbiddenException(USER_ERRORS.BAD_LANGUAGE);
+    }
+
     if (updateItemDto.name) {
       const user = await this.prisma.user.findUnique({
         where: { id: request.user.userId },
@@ -124,8 +142,6 @@ export class ItemService {
       select: ITEM_PUBLIC_SELECT,
     });
   }
-
-  // todo cron delete tokens every 40 mins from db
 
   async softDelete(request: IUserRequest, id: number): Promise<void> {
     await this.assertPermission(request, id);

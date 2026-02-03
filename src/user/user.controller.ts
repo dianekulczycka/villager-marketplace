@@ -48,6 +48,12 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('profile/stats')
+  getProfileStats(@Request() request: userRequestInterface.IUserRequest) {
+    return this.userService.getProfileStats(request);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Patch('profile')
   async update(
     @Request() request: userRequestInterface.IUserRequest,

@@ -19,6 +19,7 @@ import { AllowedRolesGuard } from '../auth/guards/role.guards';
 import { user_role } from '@prisma/client';
 import { UpdateUserDto } from '../user/dto/update-user.dto';
 import { UserService } from '../user/user.service';
+import { ITokenPair } from '../auth/interfaces/token-pair.interface';
 
 @Controller('admin')
 export class AdminController {
@@ -26,6 +27,10 @@ export class AdminController {
     private readonly adminService: AdminService,
     private readonly userService: UserService,
   ) {}
+
+  // ----------------------------------------------------------------------------------------------------------
+  // -------------------------------------------- MANAGER -----------------------------------------------------
+  // ----------------------------------------------------------------------------------------------------------
 
   @UseGuards(
     AuthGuard('jwt'),
@@ -60,12 +65,6 @@ export class AdminController {
     return this.adminService.findBannedUsers(query);
   }
 
-  @UseGuards(AuthGuard('jwt'), new AllowedRolesGuard([user_role.ADMIN]))
-  @Get('managers')
-  findAllManagers(@Query() query: UserQueryDto) {
-    return this.adminService.findAllManagers(query);
-  }
-
   @UseGuards(
     AuthGuard('jwt'),
     new AllowedRolesGuard([user_role.MANAGER, user_role.ADMIN]),
@@ -91,12 +90,6 @@ export class AdminController {
     return this.userService.softDelete(request, Number(id));
   }
 
-  @UseGuards(AuthGuard('jwt'), new AllowedRolesGuard([user_role.ADMIN]))
-  @Delete('users/:id')
-  hardDeleteUser(@Param('id') id: string) {
-    return this.adminService.hardDeleteUser(Number(id));
-  }
-
   @UseGuards(
     AuthGuard('jwt'),
     new AllowedRolesGuard([user_role.MANAGER, user_role.ADMIN]),
@@ -118,15 +111,40 @@ export class AdminController {
     return this.adminService.unbanUser(Number(id));
   }
 
+  @UseGuards(
+    AuthGuard('jwt'),
+    new AllowedRolesGuard([user_role.MANAGER, user_role.ADMIN]),
+  )
+  @Patch('users/:id/unban')
+  unflagUser(@Param('id') id: string) {
+    return this.adminService.unflagUser(Number(id));
+  }
+
+  // ----------------------------------------------------------------------------------------------------------
+  // --------------------------------------------- ADMIN ------------------------------------------------------
+  // ----------------------------------------------------------------------------------------------------------
+
+  @UseGuards(AuthGuard('jwt'), new AllowedRolesGuard([user_role.ADMIN]))
+  @Get('managers')
+  findAllManagers(@Query() query: UserQueryDto) {
+    return this.adminService.findAllManagers(query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), new AllowedRolesGuard([user_role.ADMIN]))
+  @Delete('users/:id')
+  hardDeleteUser(@Param('id') id: string) {
+    return this.adminService.hardDeleteUser(Number(id));
+  }
+
   @UseGuards(AuthGuard('jwt'), new AllowedRolesGuard([user_role.ADMIN]))
   @Patch('users/:id/promote-manager')
-  promoteManager(@Param('id') id: string) {
-    return this.adminService.promoteManager(Number(id));
+  async promoteManager(@Param('id') id: string): Promise<ITokenPair> {
+    return await this.adminService.promoteManager(Number(id));
   }
 
   @UseGuards(AuthGuard('jwt'), new AllowedRolesGuard([user_role.ADMIN]))
   @Patch('users/:id/demote')
-  demoteManager(@Param('id') id: string) {
-    return this.adminService.demoteManager(Number(id));
+  async demoteManager(@Param('id') id: string): Promise<ITokenPair> {
+    return await this.adminService.demoteManager(Number(id));
   }
 }
