@@ -18,12 +18,17 @@ import { IPaginatedResponse } from '../shared/pagination/pagination-response.int
 import { UserQueryDto } from './dto/user-query.dto';
 import { BecomeSellerRequestDto } from './dto/become-seller-request';
 import { ITokenPair } from '../auth/interfaces/token-pair.interface';
-import { AllowedRolesGuard } from '../auth/guards/role.guards';
+import { AllowedRolesGuard } from '../auth/guards/role.guard';
 import { user_role } from '@prisma/client';
+import { AuthService } from '../auth/auth.service';
+import { AccountRecoveryRequestDto } from './dto/account-recovery-request.dto';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {}
 
   @UseGuards(AuthGuard('jwt'))
   @Get()
@@ -48,12 +53,6 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('profile/stats')
-  getProfileStats(@Request() request: userRequestInterface.IUserRequest) {
-    return this.userService.getProfileStats(request);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
   @Patch('profile')
   async update(
     @Request() request: userRequestInterface.IUserRequest,
@@ -67,7 +66,8 @@ export class UserController {
   async softDelete(
     @Request() request: userRequestInterface.IUserRequest,
   ): Promise<void> {
-    return this.userService.softDelete(request);
+    await this.userService.softDelete(request);
+    await this.authService.blockTokensForUser(request.user.userId);
   }
 
   @UseGuards(
@@ -84,9 +84,18 @@ export class UserController {
     @Request() request: userRequestInterface.IUserRequest,
     @Body() becomeSellerRequestDto: BecomeSellerRequestDto,
   ): Promise<ITokenPair> {
-    return await this.userService.makeUserSeller(
+    const userId = await this.userService.makeUserSeller(
       request,
       becomeSellerRequestDto,
     );
+    await this.authService.blockTokensForUser(userId);
+    return this.authService.issueTokenPairForUser(userId);
+  }
+
+  @Patch('account-recovery')
+  async requestRecovery(
+    @Body() accountRecoveryRequestDto: AccountRecoveryRequestDto,
+  ): Promise<void> {
+    await this.userService.requestRecovery(accountRecoveryRequestDto);
   }
 }

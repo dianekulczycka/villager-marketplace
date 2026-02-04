@@ -52,6 +52,11 @@ export const ADMIN_USER_SELECT: Prisma.userSelect = {
   deletedAt: true,
   createdAt: true,
   updatedAt: true,
+  _count: {
+    select: {
+      item: true,
+    },
+  },
 };
 
 export const ADMIN_ALL_USERS_WHERE: Prisma.userWhereInput = {

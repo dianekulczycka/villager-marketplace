@@ -164,7 +164,7 @@ export class AuthService {
     });
 
     if (!user) throw new UnauthorizedException(AUTH_ERRORS.INVALID_CREDENTIALS);
-    if (user.isDeleted)
+    if (user.isDeleted || user.isBanned)
       throw new UnauthorizedException(AUTH_ERRORS.ACCOUNT_DELETED);
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid)

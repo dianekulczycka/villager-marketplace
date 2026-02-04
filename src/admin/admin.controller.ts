@@ -15,17 +15,21 @@ import { UserQueryDto } from '../user/dto/user-query.dto';
 import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
 import * as userRequestInterface from '../user/interfaces/user-request.interface';
 import { UserAdminDto } from '../user/dto/user-admin.dto';
-import { AllowedRolesGuard } from '../auth/guards/role.guards';
+import { AllowedRolesGuard } from '../auth/guards/role.guard';
 import { user_role } from '@prisma/client';
 import { UpdateUserDto } from '../user/dto/update-user.dto';
 import { UserService } from '../user/user.service';
 import { ITokenPair } from '../auth/interfaces/token-pair.interface';
+import { AuthService } from '../auth/auth.service';
+import { MailService } from '../mail/mail.service';
 
 @Controller('admin')
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly userService: UserService,
+    private readonly authService: AuthService,
+    private readonly mailService: MailService,
   ) {}
 
   // ----------------------------------------------------------------------------------------------------------
@@ -99,7 +103,9 @@ export class AdminController {
     @Param('id') id: string,
     @Request() request: userRequestInterface.IUserRequest,
   ) {
-    return await this.adminService.banUser(Number(id), request);
+    await this.adminService.banUser(Number(id), request);
+    await this.authService.blockTokensForUser(Number(id));
+    this.mailService.notifyUser(Number(id));
   }
 
   @UseGuards(
@@ -107,17 +113,29 @@ export class AdminController {
     new AllowedRolesGuard([user_role.MANAGER, user_role.ADMIN]),
   )
   @Patch('users/:id/unban')
-  unbanUser(@Param('id') id: string) {
-    return this.adminService.unbanUser(Number(id));
+  async unbanUser(@Param('id') id: string) {
+    await this.adminService.unbanUser(Number(id));
+    await this.authService.blockTokensForUser(Number(id));
   }
 
   @UseGuards(
     AuthGuard('jwt'),
     new AllowedRolesGuard([user_role.MANAGER, user_role.ADMIN]),
   )
-  @Patch('users/:id/unban')
-  unflagUser(@Param('id') id: string) {
-    return this.adminService.unflagUser(Number(id));
+  @Patch('users/:id/unflag')
+  async unflagUser(@Param('id') id: string) {
+    await this.adminService.unflagUser(Number(id));
+    await this.authService.blockTokensForUser(Number(id));
+  }
+
+  @UseGuards(
+    AuthGuard('jwt'),
+    new AllowedRolesGuard([user_role.MANAGER, user_role.ADMIN]),
+  )
+  @Patch('users/:id/restore')
+  async restoreUser(@Param('id') id: string): Promise<ITokenPair> {
+    await this.adminService.restoreUser(Number(id));
+    return await this.authService.issueTokenPairForUser(Number(id));
   }
 
   // ----------------------------------------------------------------------------------------------------------
@@ -132,19 +150,24 @@ export class AdminController {
 
   @UseGuards(AuthGuard('jwt'), new AllowedRolesGuard([user_role.ADMIN]))
   @Delete('users/:id')
-  hardDeleteUser(@Param('id') id: string) {
-    return this.adminService.hardDeleteUser(Number(id));
+  async hardDeleteUser(@Param('id') id: string) {
+    await this.adminService.hardDeleteUser(Number(id));
+    await this.authService.blockTokensForUser(Number(id));
   }
 
   @UseGuards(AuthGuard('jwt'), new AllowedRolesGuard([user_role.ADMIN]))
   @Patch('users/:id/promote-manager')
   async promoteManager(@Param('id') id: string): Promise<ITokenPair> {
-    return await this.adminService.promoteManager(Number(id));
+    await this.adminService.promoteManager(Number(id));
+    await this.authService.blockTokensForUser(Number(id));
+    return this.authService.issueTokenPairForUser(Number(id));
   }
 
   @UseGuards(AuthGuard('jwt'), new AllowedRolesGuard([user_role.ADMIN]))
   @Patch('users/:id/demote')
   async demoteManager(@Param('id') id: string): Promise<ITokenPair> {
-    return await this.adminService.demoteManager(Number(id));
+    await this.adminService.demoteManager(Number(id));
+    await this.authService.blockTokensForUser(Number(id));
+    return this.authService.issueTokenPairForUser(Number(id));
   }
 }

@@ -1,5 +1,8 @@
 import { item_name, Prisma } from '@prisma/client';
-import { USER_PUBLIC_SELECT } from '../../../user/const/orm/user';
+import {
+  ADMIN_USER_SELECT,
+  USER_PUBLIC_SELECT,
+} from '../../../user/const/orm/user';
 
 export const ITEM_OWNER_SELECT: Prisma.itemSelect = {
   id: true,
@@ -24,6 +27,22 @@ export const ITEM_PUBLIC_SELECT: Prisma.itemSelect = {
   views: true,
   seller: {
     select: USER_PUBLIC_SELECT,
+  },
+};
+
+export const ITEM_ADMIN_SELECT: Prisma.itemSelect = {
+  id: true,
+  name: true,
+  price: true,
+  count: true,
+  description: true,
+  iconUrl: true,
+  views: true,
+  isDeleted: true,
+  createdAt: true,
+  updatedAt: true,
+  seller: {
+    select: ADMIN_USER_SELECT,
   },
 };
 

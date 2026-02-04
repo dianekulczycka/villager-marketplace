@@ -1,7 +1,5 @@
 import {
   ForbiddenException,
-  forwardRef,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -21,6 +19,7 @@ import { paginatePrisma } from '../shared/pagination/prisma-paginator';
 import { ITEM_ERRORS } from './const/errors';
 import {
   buildItemSearchWhere,
+  ITEM_ADMIN_SELECT,
   ITEM_OWNER_SELECT,
   ITEM_PUBLIC_SELECT,
   ITEM_PUBLIC_WHERE_BASE,
@@ -28,32 +27,45 @@ import {
 } from './const/orm/item';
 import { allowedItemsPerSeller } from './const/enums/allowed-items-per-seller.record';
 import { ITEM_ICON_MAP } from '../../public/icons/icon-map';
-import { user_role } from '@prisma/client';
+import { Prisma, user_role } from '@prisma/client';
 import { USER_ERRORS } from '../user/const/errors';
 import { hasSwearWordsInDto } from '../shared/filters/swear-words/swear-words.filter';
-import { UserService } from '../user/user.service';
+import { ModerationService } from '../moderation/moderation.service';
 
 @Injectable()
 export class ItemService {
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(forwardRef(() => UserService))
-    private readonly userService: UserService,
+    private readonly moderationService: ModerationService,
   ) {}
 
   async findAllPublic(
     query: ItemQueryDto,
+    request: IUserRequest,
   ): Promise<IPaginatedResponse<ItemPublicDto>> {
     const orderField = ITEM_SORT_MAP[query.sortBy ?? ItemSortFieldEnum.ID];
+    const role = request.user.role;
+
+    const where: Prisma.itemWhereInput =
+      role === user_role.ADMIN || role === user_role.MANAGER
+        ? {
+            ...buildItemSearchWhere(query.search),
+          }
+        : {
+            ...ITEM_PUBLIC_WHERE_BASE,
+            ...buildItemSearchWhere(query.search),
+          };
+
+    const select =
+      role === user_role.ADMIN || role === user_role.MANAGER
+        ? ITEM_ADMIN_SELECT
+        : ITEM_PUBLIC_SELECT;
 
     return paginatePrisma<ItemPublicDto>(
       this.prisma.item,
       {
-        where: {
-          ...ITEM_PUBLIC_WHERE_BASE,
-          ...buildItemSearchWhere(query.search),
-        },
-        select: ITEM_PUBLIC_SELECT,
+        where,
+        select,
         orderBy: {
           [orderField]: query.sortDirection ?? SortDirectionEnum.ASC,
         },
@@ -63,20 +75,44 @@ export class ItemService {
     );
   }
 
-  async findById(id: number): Promise<ItemPublicDto> {
+  async findById(id: number, request: IUserRequest): Promise<ItemPublicDto> {
+    const role = request.user.role;
+
+    const where: Prisma.itemWhereInput =
+      role === user_role.ADMIN || role === user_role.MANAGER
+        ? { id }
+        : { id, isDeleted: 0 };
+
+    const select =
+      role === user_role.ADMIN || role === user_role.MANAGER
+        ? ITEM_ADMIN_SELECT
+        : ITEM_PUBLIC_SELECT;
+
     const item = await this.prisma.item.findFirst({
-      where: {
-        id,
-        isDeleted: 0,
-      },
-      select: ITEM_PUBLIC_SELECT,
+      where,
+      select,
     });
+
     if (!item) throw new NotFoundException(ITEM_ERRORS.NOT_FOUND);
+
     await this.prisma.item.update({
       where: { id },
       data: { views: { increment: 1 } },
     });
+
     return item;
+  }
+
+  async findMyItems(request: IUserRequest): Promise<ItemPublicDto[]> {
+    const userId = request.user.userId;
+
+    return this.prisma.item.findMany({
+      where: {
+        sellerId: userId,
+        isDeleted: 0,
+      },
+      select: ITEM_PUBLIC_SELECT,
+    });
   }
 
   async create(
@@ -86,16 +122,15 @@ export class ItemService {
     const { userId } = request.user;
 
     if (hasSwearWordsInDto(createItemDto)) {
-      await this.userService.flagUser(request.user.userId);
+      await this.moderationService.flagUser(request.user.userId);
       throw new ForbiddenException(USER_ERRORS.BAD_LANGUAGE);
     }
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { sellerType: true, isBanned: true },
+      select: { sellerType: true },
     });
 
-    if (user?.isBanned) throw new ForbiddenException(ITEM_ERRORS.NOT_ALLOWED);
     if (!user?.sellerType) throw new ForbiddenException(ITEM_ERRORS.NOT_SELLER);
 
     const allowedItems = allowedItemsPerSeller[user.sellerType];
@@ -121,7 +156,7 @@ export class ItemService {
     await this.assertPermission(request, id);
 
     if (hasSwearWordsInDto(updateItemDto)) {
-      await this.userService.flagUser(request.user.userId);
+      await this.moderationService.flagUser(request.user.userId);
       throw new ForbiddenException(USER_ERRORS.BAD_LANGUAGE);
     }
 
@@ -155,13 +190,6 @@ export class ItemService {
   async assertPermission(request: IUserRequest, itemId: number): Promise<void> {
     const { userId, role } = request.user;
     if (role === user_role.ADMIN || role === user_role.MANAGER) return;
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { isBanned: true },
-    });
-
-    if (user?.isBanned) throw new ForbiddenException(ITEM_ERRORS.NOT_ALLOWED);
 
     const item = await this.prisma.item.findUnique({
       where: { id: itemId },

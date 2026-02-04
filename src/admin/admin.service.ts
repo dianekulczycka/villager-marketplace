@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { UserQueryDto } from '../user/dto/user-query.dto';
 import { IUserRequest } from '../user/interfaces/user-request.interface';
 import { UserAdminDto } from '../user/dto/user-admin.dto';
-import { ITokenPair } from '../auth/interfaces/token-pair.interface';
 import { UserService } from '../user/user.service';
 import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
 
@@ -46,15 +45,19 @@ export class AdminService {
     return await this.userService.hardDeleteUser(userId);
   }
 
-  async promoteManager(userId: number): Promise<ITokenPair> {
+  async promoteManager(userId: number): Promise<void> {
     return await this.userService.promoteManager(userId);
   }
 
-  async demoteManager(userId: number): Promise<ITokenPair> {
+  async demoteManager(userId: number): Promise<void> {
     return await this.userService.demoteManager(userId);
   }
 
   async unflagUser(userId: number): Promise<void> {
     await this.userService.unflagUser(userId);
+  }
+
+  async restoreUser(userId: number): Promise<void> {
+    await this.userService.restoreUser(userId);
   }
 }

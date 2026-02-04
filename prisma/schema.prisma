@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model item {
+  id          Int       @id @default(autoincrement())
+  name        item_name
+  price       Int
+  count       Int
+  description String?   @db.VarChar(255)
+  iconUrl     String?   @db.VarChar(255)
+  views       Int       @default(0)
+  isDeleted   Int       @default(0) @db.TinyInt
+  createdAt   DateTime  @default(now()) @db.DateTime(6)
+  updatedAt   DateTime  @default(now()) @db.DateTime(6)
+  sellerId    Int
+  seller      user     @relation(fields: [sellerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_7e5265b54c312941a5cef5a9379")
+
+  @@index([sellerId], map: "FK_7e5265b54c312941a5cef5a9379")
+}
+
+model token {
+  id                         Int      @id @default(autoincrement())
+  accessToken                String   @db.VarChar(255)
+  refreshToken               String   @db.VarChar(255)
+  accessTokenExpirationTime  DateTime @db.DateTime(0)
+  refreshTokenExpirationTime DateTime @db.DateTime(0)
+  isBlocked                  Int      @default(0) @db.TinyInt
+  jti                        String   @db.VarChar(255)
+  userId                     Int
+  user                       user    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_94f168faad896c0786646fa3d4a")
+
+  @@index([userId], map: "FK_94f168faad896c0786646fa3d4a")
+  @@unique([jti])
+}
+
+model user {
+  id         Int              @id @default(autoincrement())
+  email      String           @unique(map: "IDX_e12875dfb3b1d92d7d7c5377e2") @db.VarChar(255)
+  password   String           @db.VarChar(255)
+  username   String           @db.VarChar(255)
+  role       user_role        @default(BUYER)
+  iconUrl    String?          @db.VarChar(255)
+  sellerType user_sellerType?
+  isBanned   Int              @default(0) @db.TinyInt
+  bannedBy   String?          @db.VarChar(255)
+  bannedAt   DateTime?        @db.DateTime(0)
+  isFlagged  Int              @default(0) @db.TinyInt
+  createdAt  DateTime         @default(now()) @db.DateTime(6)
+  updatedAt  DateTime         @default(now()) @db.DateTime(6)
+  isDeleted  Int              @default(0) @db.TinyInt
+  deletedAt  DateTime?        @db.DateTime(0)
+  deletedBy  String?          @db.VarChar(255)
+  item       item[]
+  token      token[]
+}
+
+enum item_name {
+  wheat
+  beetroot
+  carrot
+  potato
+  pumpkin_block
+  watermelon_block
+  raw_chicken
+  raw_pork
+  raw_rabbit
+  coal
+  raw_beef
+  raw_mutton
+  dried_kelp_block
+  sweet_berries
+  string
+  raw_cod
+  raw_salmon
+  tropical_fish
+  pufferfish
+  boat
+  paper
+  book
+  ink_sac
+  book_and_quill
+  label
+  map
+  compass
+  item_frame
+  iron_boots
+  iron_chestplate
+  iron_helmet
+  iron_leggings
+  iron_ingot
+  lava_bucket
+  diamond_chestplate
+  diamond_helmet
+  shield
+  diamond_axe
+  diamond_sword
+  iron_axe
+  iron_sword
+  stone_axe
+  stone_shovel
+  stone_pickaxe
+  stone_hoe
+  bow
+  arrow
+  crossbow
+  tripwire_hook
+  stick
+  scissors
+  lapis_block
+  blue_carpet
+  white_carpet
+  red_carpet
+  green_carpet
+  blue_bed
+  red_bed
+  yellow_bed
+  white_banner
+  white_wool
+  black_wool
+  brown_wool
+  leather
+  leather_boots
+  leather_helmet
+  leather_leggings
+  leather_chestplate
+  flint
+  leather_horse_armor
+  leather_horse_saddle
+  rotten_flesh
+  gold_ingot
+  rabbit_foot
+  glowstone_block
+  ender_pearl
+  glass_bottle
+  clay
+  brick
+  chiseled_stone_brick
+  stone_brick
+  quartz
+  chiseled_quartz_brick
+}
+
+enum user_sellerType {
+  ARMORER
+  BUTCHER
+  CARTOGRAPHER
+  CLERIC
+  FARMER
+  FISHERMAN
+  FLETCHER
+  LEATHERWORKER
+  LIBRARIAN
+  MASON
+  SHEPHERD
+  TOOLSMITH
+  WEAPONSMITH
+}
+
+enum user_role {
+  BUYER
+  SELLER
+  MANAGER
+  ADMIN
+}

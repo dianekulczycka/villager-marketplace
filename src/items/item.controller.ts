@@ -16,7 +16,7 @@ import { ItemPublicDto } from './dto/item-public';
 import * as userRequestInterface from '../user/interfaces/user-request.interface';
 import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
 import { ItemQueryDto } from './dto/item-query.dto';
-import { AllowedRolesGuard } from '../auth/guards/role.guards';
+import { AllowedRolesGuard } from '../auth/guards/role.guard';
 import { user_role } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -28,14 +28,26 @@ export class ItemController {
   @Get('')
   async getAll(
     @Query() query: ItemQueryDto,
+    @Request() request: userRequestInterface.IUserRequest,
   ): Promise<IPaginatedResponse<ItemPublicDto>> {
-    return this.itemsService.findAllPublic(query);
+    return this.itemsService.findAllPublic(query, request);
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('/id/:id')
-  async getById(@Param('id') id: string): Promise<ItemPublicDto> {
-    return this.itemsService.findById(Number(id));
+  @Get('id/:id')
+  async getById(
+    @Param('id') id: string,
+    @Request() request: userRequestInterface.IUserRequest,
+  ): Promise<ItemPublicDto> {
+    return this.itemsService.findById(Number(id), request);
+  }
+
+  @UseGuards(AuthGuard('jwt'), new AllowedRolesGuard([user_role.SELLER]))
+  @Get('my')
+  async getMyItems(
+    @Request() request: userRequestInterface.IUserRequest,
+  ): Promise<ItemPublicDto[]> {
+    return this.itemsService.findMyItems(request);
   }
 
   @UseGuards(AuthGuard('jwt'), new AllowedRolesGuard([user_role.SELLER]))

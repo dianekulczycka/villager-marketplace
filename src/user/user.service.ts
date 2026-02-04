@@ -35,8 +35,6 @@ import {
   USER_UNBAN_DATA,
 } from './const/orm/user';
 import { USER_ERRORS } from './const/errors';
-import { ITokenPair } from '../auth/interfaces/token-pair.interface';
-import { AuthService } from '../auth/auth.service';
 import { ITEM_SOFT_DELETE_DATA } from '../items/const/orm/item';
 import {
   BUYER_ICON,
@@ -45,14 +43,17 @@ import {
 } from '../../public/icons/icon-map';
 import { hasSwearWordsInDto } from '../shared/filters/swear-words/swear-words.filter';
 import { UserAdminDto } from './dto/user-admin.dto';
-import { MailService } from '../shared/mail/mail.service';
+import {
+  AccountRecoveryRequestDto,
+  AccountRecoveryRequestEnum,
+} from './dto/account-recovery-request.dto';
+import { ModerationService } from '../moderation/moderation.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly authService: AuthService,
-    private readonly mailService: MailService,
+    private readonly moderationService: ModerationService,
   ) {}
 
   // ----------------------------------------------------------------------------------------------------------
@@ -118,7 +119,7 @@ export class UserService {
     const { userId, role } = request.user;
 
     if (hasSwearWordsInDto(updateUserDto)) {
-      await this.flagUser(request.user.userId);
+      await this.moderationService.flagUser(request.user.userId);
       throw new ForbiddenException(USER_ERRORS.BAD_LANGUAGE);
     }
 
@@ -132,8 +133,6 @@ export class UserService {
 
     if (role === user_role.BUYER || role === user_role.SELLER) {
       if (!isSelf) throw new ForbiddenException(USER_ERRORS.NOT_ALLOWED_UPDATE);
-      if (target.isBanned)
-        throw new ForbiddenException(USER_ERRORS.NOT_ALLOWED_UPDATE);
     }
 
     if (role === user_role.MANAGER) {
@@ -203,7 +202,7 @@ export class UserService {
   async makeUserSeller(
     request: IUserRequest,
     becomeSellerRequestDto: BecomeSellerRequestDto,
-  ): Promise<ITokenPair> {
+  ): Promise<number> {
     const userId = request.user.userId;
 
     const user = await this.prisma.user.findUnique({
@@ -237,8 +236,11 @@ export class UserService {
       }),
     ]);
 
-    await this.authService.blockTokensForUser(userId);
-    return this.authService.issueTokenPairForUser(userId);
+    return userId;
+  }
+
+  async requestRecovery(accountRecoveryRequestDto: AccountRecoveryRequestDto) {
+    await this.moderationService.requestRecovery(accountRecoveryRequestDto);
   }
 
   // --------------------------------------------------------------------------------------------------------
@@ -326,9 +328,6 @@ export class UserService {
       where: { id: userId },
       data: USER_BAN_DATA(request.user.email),
     });
-
-    this.mailService.notifyUsers(userId);
-    await this.authService.blockTokensForUser(userId);
   }
 
   async unbanUser(userId: number): Promise<void> {
@@ -343,36 +342,6 @@ export class UserService {
       where: { id: userId },
       data: USER_UNBAN_DATA,
     });
-
-    await this.authService.blockTokensForUser(userId);
-    this.mailService.notifyUsers(userId);
-  }
-
-  async flagUser(userId: number): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { isFlagged: true, email: true },
-    });
-
-    if (!user) return;
-
-    if (user.isFlagged === 1) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: USER_BAN_DATA(user.email),
-      });
-
-      await this.authService.blockTokensForUser(userId);
-      return;
-    }
-
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { isFlagged: 1 },
-    });
-
-    await this.authService.blockTokensForUser(userId);
-    this.mailService.notifyManagersAboutFlaggedUser(userId);
   }
 
   async unflagUser(userId: number): Promise<void> {
@@ -382,13 +351,11 @@ export class UserService {
         isFlagged: 0,
       },
     });
-    await this.authService.blockTokensForUser(userId);
-    this.mailService.notifyUsers(userId);
   }
 
-  async promoteManager(userId: number): Promise<ITokenPair> {
+  async promoteManager(userId: number): Promise<void> {
     const user = await this.prisma.user.findFirst({
-      where: { id: userId, isDeleted: 0, isBanned: 0 },
+      where: { id: userId },
       select: { role: true },
     });
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
@@ -410,12 +377,9 @@ export class UserService {
         },
       }),
     ]);
-
-    await this.authService.blockTokensForUser(userId);
-    return this.authService.issueTokenPairForUser(userId);
   }
 
-  async demoteManager(userId: number): Promise<ITokenPair> {
+  async demoteManager(userId: number): Promise<void> {
     const user = await this.prisma.user.findFirst({
       where: { id: userId, isDeleted: 0 },
       select: { role: true },
@@ -432,9 +396,26 @@ export class UserService {
         iconUrl: BUYER_ICON,
       },
     });
+  }
 
-    await this.authService.blockTokensForUser(userId);
-    return this.authService.issueTokenPairForUser(userId);
+  async restoreUser(userId: number): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { isDeleted: true },
+    });
+
+    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+    if (!user.isDeleted)
+      throw new BadRequestException(USER_ERRORS.USER_NOT_DELETED);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        isDeleted: 0,
+        deletedAt: null,
+        deletedBy: null,
+      },
+    });
   }
 
   // -------------------------------------------- DELETE -----------------------------------------------------
@@ -448,83 +429,5 @@ export class UserService {
         where: { id: userId },
       }),
     ]);
-  }
-
-  // ----------------------------------------------------------------------------------------------------------
-  // --------------------------------------------- STATS ------------------------------------------------------
-  // ----------------------------------------------------------------------------------------------------------
-
-  async getProfileStats(request: IUserRequest) {
-    const { userId, role } = request.user;
-    if (role === user_role.SELLER) {
-      const [totalItems, activeItems, viewsAgg, mostViewedItem] =
-        await this.prisma.$transaction([
-          this.prisma.item.count({
-            where: { sellerId: userId },
-          }),
-
-          this.prisma.item.count({
-            where: { sellerId: userId, isDeleted: 0 },
-          }),
-
-          this.prisma.item.aggregate({
-            where: { sellerId: userId },
-            _sum: { views: true },
-          }),
-
-          this.prisma.item.findFirst({
-            where: { sellerId: userId },
-            orderBy: { views: 'desc' },
-            select: {
-              id: true,
-              name: true,
-              views: true,
-            },
-          }),
-        ]);
-
-      return {
-        totalItems,
-        activeItems,
-        totalViews: viewsAgg._sum.views ?? 0,
-        mostViewedItem,
-      };
-    }
-
-    if (role === user_role.ADMIN || role === user_role.MANAGER) {
-      const [totalUsers, totalSellers, totalFlagged, totalBanned, totalItems] =
-        await this.prisma.$transaction([
-          this.prisma.user.count({
-            where: { isDeleted: 0 },
-          }),
-
-          this.prisma.user.count({
-            where: { role: user_role.SELLER, isDeleted: 0 },
-          }),
-
-          this.prisma.user.count({
-            where: ADMIN_FLAGGED_USERS_WHERE,
-          }),
-
-          this.prisma.user.count({
-            where: ADMIN_BANNED_USERS_WHERE,
-          }),
-
-          this.prisma.item.count({
-            where: { isDeleted: 0 },
-          }),
-        ]);
-
-      return {
-        totalUsers,
-        totalSellers,
-        totalFlagged,
-        totalBanned,
-        totalItems,
-      };
-    }
-    return {
-      totalItems: 0,
-    };
   }
 }
