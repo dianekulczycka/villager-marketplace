@@ -43,10 +43,7 @@ import {
 } from '../../public/icons/icon-map';
 import { hasSwearWordsInDto } from '../shared/filters/swear-words/swear-words.filter';
 import { UserAdminDto } from './dto/user-admin.dto';
-import {
-  AccountRecoveryRequestDto,
-  AccountRecoveryRequestEnum,
-} from './dto/account-recovery-request.dto';
+import { AccountRecoveryRequestDto } from './dto/account-recovery-request.dto';
 import { ModerationService } from '../moderation/moderation.service';
 
 @Injectable()
