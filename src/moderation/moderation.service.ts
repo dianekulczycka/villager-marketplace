@@ -36,6 +36,8 @@ export class ModerationService {
       });
 
       await this.authService.blockTokensForUser(userId);
+      await this.mailService.notifyManagersBanned(userId);
+      await this.mailService.notifyUserBanned(userId);
       return;
     }
 
@@ -45,7 +47,8 @@ export class ModerationService {
     });
 
     await this.authService.blockTokensForUser(userId);
-    this.mailService.notifyManagersAboutFlaggedUser(userId);
+    await this.mailService.notifyManagersFlagged(userId);
+    await this.mailService.notifyUserFlagged(userId);
   }
 
   async requestRecovery(
@@ -63,18 +66,14 @@ export class ModerationService {
         if (!user.isBanned)
           throw new BadRequestException(USER_ERRORS.USER_NOT_BANNED);
 
-        this.mailService.notifyManagersAboutRecoveryRequest(
-          accountRecoveryRequestDto,
-        );
+        await this.mailService.sendRecoveryRequest(accountRecoveryRequestDto);
         break;
 
       case AccountRecoveryRequestEnum.UNDELETE:
         if (!user.isDeleted)
           throw new BadRequestException(USER_ERRORS.USER_NOT_DELETED);
 
-        this.mailService.notifyManagersAboutRecoveryRequest(
-          accountRecoveryRequestDto,
-        );
+        await this.mailService.sendRecoveryRequest(accountRecoveryRequestDto);
         break;
 
       default:

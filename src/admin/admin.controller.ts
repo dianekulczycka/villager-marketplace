@@ -19,7 +19,6 @@ import { AllowedRolesGuard } from '../auth/guards/role.guard';
 import { user_role } from '@prisma/client';
 import { UpdateUserDto } from '../user/dto/update-user.dto';
 import { UserService } from '../user/user.service';
-import { ITokenPair } from '../auth/interfaces/token-pair.interface';
 import { AuthService } from '../auth/auth.service';
 import { MailService } from '../mail/mail.service';
 
@@ -105,7 +104,7 @@ export class AdminController {
   ) {
     await this.adminService.banUser(Number(id), request);
     await this.authService.blockTokensForUser(Number(id));
-    this.mailService.notifyUser(Number(id));
+    await this.mailService.notifyUserBanned(Number(id));
   }
 
   @UseGuards(
@@ -116,6 +115,7 @@ export class AdminController {
   async unbanUser(@Param('id') id: string) {
     await this.adminService.unbanUser(Number(id));
     await this.authService.blockTokensForUser(Number(id));
+    await this.mailService.sendRecoveryApproved(Number(id));
   }
 
   @UseGuards(
@@ -126,6 +126,7 @@ export class AdminController {
   async unflagUser(@Param('id') id: string) {
     await this.adminService.unflagUser(Number(id));
     await this.authService.blockTokensForUser(Number(id));
+    await this.mailService.sendRecoveryApproved(Number(id));
   }
 
   @UseGuards(
@@ -133,8 +134,9 @@ export class AdminController {
     new AllowedRolesGuard([user_role.MANAGER, user_role.ADMIN]),
   )
   @Patch('users/:id/restore')
-  async restoreUser(@Param('id') id: string): Promise<ITokenPair> {
+  async restoreUser(@Param('id') id: string): Promise<void> {
     await this.adminService.restoreUser(Number(id));
+    await this.mailService.sendRecoveryApproved(Number(id));
     return await this.authService.issueTokenPairForUser(Number(id));
   }
 
@@ -157,7 +159,7 @@ export class AdminController {
 
   @UseGuards(AuthGuard('jwt'), new AllowedRolesGuard([user_role.ADMIN]))
   @Patch('users/:id/promote-manager')
-  async promoteManager(@Param('id') id: string): Promise<ITokenPair> {
+  async promoteManager(@Param('id') id: string): Promise<void> {
     await this.adminService.promoteManager(Number(id));
     await this.authService.blockTokensForUser(Number(id));
     return this.authService.issueTokenPairForUser(Number(id));
@@ -165,7 +167,7 @@ export class AdminController {
 
   @UseGuards(AuthGuard('jwt'), new AllowedRolesGuard([user_role.ADMIN]))
   @Patch('users/:id/demote')
-  async demoteManager(@Param('id') id: string): Promise<ITokenPair> {
+  async demoteManager(@Param('id') id: string): Promise<void> {
     await this.adminService.demoteManager(Number(id));
     await this.authService.blockTokensForUser(Number(id));
     return this.authService.issueTokenPairForUser(Number(id));

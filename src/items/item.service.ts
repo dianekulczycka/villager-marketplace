@@ -76,17 +76,15 @@ export class ItemService {
   }
 
   async findById(id: number, request: IUserRequest): Promise<ItemPublicDto> {
-    const role = request.user.role;
+    const { userId, role } = request.user;
 
-    const where: Prisma.itemWhereInput =
-      role === user_role.ADMIN || role === user_role.MANAGER
-        ? { id }
-        : { id, isDeleted: 0 };
+    const isAdmin = role === user_role.ADMIN || role === user_role.MANAGER;
 
-    const select =
-      role === user_role.ADMIN || role === user_role.MANAGER
-        ? ITEM_ADMIN_SELECT
-        : ITEM_PUBLIC_SELECT;
+    const where: Prisma.itemWhereInput = isAdmin
+      ? { id }
+      : { id, isDeleted: 0 };
+
+    const select = isAdmin ? ITEM_ADMIN_SELECT : ITEM_PUBLIC_SELECT;
 
     const item = await this.prisma.item.findFirst({
       where,
@@ -95,11 +93,13 @@ export class ItemService {
 
     if (!item) throw new NotFoundException(ITEM_ERRORS.NOT_FOUND);
 
-    await this.prisma.item.update({
-      where: { id },
-      data: { views: { increment: 1 } },
-    });
-
+    const isOwner = item.seller.id === userId;
+    if (!isOwner && !isAdmin) {
+      await this.prisma.item.update({
+        where: { id },
+        data: { views: { increment: 1 } },
+      });
+    }
     return item;
   }
 

@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum } from 'class-validator';
+import { IsEmail, IsEnum, IsString } from 'class-validator';
 
 export enum AccountRecoveryRequestEnum {
   UNBAN = 'UNBAN',
@@ -10,4 +10,6 @@ export class AccountRecoveryRequestDto {
   actionType: AccountRecoveryRequestEnum;
   @IsEmail()
   email: string;
+  @IsString()
+  text: string;
 }

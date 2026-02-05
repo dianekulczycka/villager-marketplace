@@ -10,7 +10,6 @@ import { UserSignInRequestDto } from './dto/user-sign-in-request.dto';
 import { UserLoginRequestDto } from './dto/user-login-request.dto';
 import { ITokenPair } from './interfaces/token-pair.interface';
 import { IJwtPayload } from './interfaces/jwt-payload.interface';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { UserPublicDto } from '../user/dto/user-public.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -24,8 +23,8 @@ import { hasSwearWordsInDto } from '../shared/filters/swear-words/swear-words.fi
 
 @Injectable()
 export class AuthService {
-  private readonly accessTokenExpirationTime: number;
-  private readonly refreshTokenExpirationTime: number;
+  public readonly accessTokenExpirationTime: number;
+  public readonly refreshTokenExpirationTime: number;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -71,10 +70,8 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async refresh(refreshTokenDto: RefreshTokenDto): Promise<ITokenPair> {
+  async refresh(refreshToken: string): Promise<ITokenPair> {
     try {
-      const { refreshToken } = refreshTokenDto;
-
       this.jwtService.verify<IJwtPayload>(refreshToken);
 
       const tokenEntity = await this.prisma.token.findFirst({
@@ -114,18 +111,13 @@ export class AuthService {
           },
         });
       });
-
-      return {
-        accessToken,
-        refreshToken: newRefreshToken,
-      };
+      return { accessToken, refreshToken: newRefreshToken };
     } catch {
       throw new UnauthorizedException(AUTH_ERRORS.INVALID_TOKEN);
     }
   }
 
-  async logout(refreshTokenDto: RefreshTokenDto): Promise<void> {
-    const { refreshToken } = refreshTokenDto;
+  async logout(refreshToken: string): Promise<void> {
     await this.prisma.token.updateMany({
       where: TOKEN_ACTIVE_WHERE(refreshToken),
       data: TOKEN_BLOCK_DATA,
@@ -192,7 +184,7 @@ export class AuthService {
     };
   }
 
-  async issueTokenPairForUser(userId: number): Promise<ITokenPair> {
+  async issueTokenPairForUser(userId: number): Promise<void> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, email: true, role: true },
@@ -217,8 +209,6 @@ export class AuthService {
       tokens.refreshToken,
       jti,
     );
-
-    return tokens;
   }
 
   async blockTokensForUser(userId: number): Promise<void> {

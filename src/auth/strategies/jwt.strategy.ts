@@ -2,8 +2,9 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-import { IJwtPayload } from './interfaces/jwt-payload.interface';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
+import { IJwtPayload } from '../interfaces/jwt-payload.interface';
+import { Request } from 'express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -15,7 +16,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!jwtSecret) throw new Error('JWT_SECRET is not defined');
 
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: Request): string | null => {
+          const cookies = req.cookies as Record<string, string> | undefined;
+          return cookies?.accessToken ?? null;
+        },
+      ]),
       ignoreExpiration: false,
       secretOrKey: jwtSecret,
     });

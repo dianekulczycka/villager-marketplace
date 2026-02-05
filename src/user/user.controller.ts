@@ -17,7 +17,6 @@ import { UserSelfDto } from './dto/user-self.dto';
 import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
 import { UserQueryDto } from './dto/user-query.dto';
 import { BecomeSellerRequestDto } from './dto/become-seller-request';
-import { ITokenPair } from '../auth/interfaces/token-pair.interface';
 import { AllowedRolesGuard } from '../auth/guards/role.guard';
 import { user_role } from '@prisma/client';
 import { AuthService } from '../auth/auth.service';
@@ -83,7 +82,7 @@ export class UserController {
   async becomeSeller(
     @Request() request: userRequestInterface.IUserRequest,
     @Body() becomeSellerRequestDto: BecomeSellerRequestDto,
-  ): Promise<ITokenPair> {
+  ): Promise<void> {
     const userId = await this.userService.makeUserSeller(
       request,
       becomeSellerRequestDto,

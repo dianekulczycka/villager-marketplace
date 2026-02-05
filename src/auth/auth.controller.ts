@@ -1,9 +1,8 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import express from 'express';
 import { AuthService } from './auth.service';
 import { UserSignInRequestDto } from './dto/user-sign-in-request.dto';
 import { UserLoginRequestDto } from './dto/user-login-request.dto';
-import { ITokenPair } from './interfaces/token-pair.interface';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { UserPublicDto } from '../user/dto/user-public.dto';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -19,19 +18,61 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() loginDto: UserLoginRequestDto): Promise<ITokenPair> {
-    return this.authService.login(loginDto);
+  async login(
+    @Body() loginDto: UserLoginRequestDto,
+    @Res({ passthrough: true }) res: express.Response,
+  ): Promise<void> {
+    const { accessToken, refreshToken } =
+      await this.authService.login(loginDto);
+
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: this.authService.accessTokenExpirationTime * 1000,
+    });
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: this.authService.refreshTokenExpirationTime * 1000,
+    });
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Post('refresh')
-  async refresh(@Body() refreshTokenDto: RefreshTokenDto): Promise<ITokenPair> {
-    return this.authService.refresh(refreshTokenDto);
+  async refresh(
+    @Req() req: express.Request,
+    @Res({ passthrough: true }) res: express.Response,
+  ): Promise<void> {
+    const refreshToken: string = req.cookies.refreshToken as string;
+    const tokens = await this.authService.refresh(refreshToken);
+
+    res.cookie('accessToken', tokens.accessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: this.authService.accessTokenExpirationTime * 1000,
+    });
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: this.authService.refreshTokenExpirationTime * 1000,
+    });
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Post('logout')
-  async logout(@Body() refreshTokenDto: RefreshTokenDto): Promise<void> {
-    return this.authService.logout(refreshTokenDto);
+  async logout(
+    @Req() req: express.Request,
+    @Res({ passthrough: true }) res: express.Response,
+  ): Promise<void> {
+    const refreshToken: string = req.cookies.refreshToken as string;
+    await this.authService.logout(refreshToken);
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
   }
 }
