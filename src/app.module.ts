@@ -7,12 +7,16 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AdminModule } from './admin/admin.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CleanUpJobModule } from './shared/jobs/clean-up.job/clean-up.job.module';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
-import { RestrictedUserGuard } from './auth/guards/restricted-user.guard';
 import { StatsModule } from './stats/stats.module';
 import { ModerationService } from './moderation/moderation.service';
 import { MailModule } from './mail/mail.module';
+import { ModerationInterceptor } from './moderation/moderation.interceptor.service';
+import { RestrictedUserGuard } from './shared/guards/restricted-user.guard';
+import { ModerationModule } from './moderation/moderation.module';
+import { SecurityModule } from './security/security.module';
+import { TokenService } from './security/token/token.service';
 
 @Module({
   imports: [
@@ -28,6 +32,8 @@ import { MailModule } from './mail/mail.module';
     CleanUpJobModule,
     MailModule,
     StatsModule,
+    ModerationModule,
+    SecurityModule,
   ],
   providers: [
     {
@@ -38,7 +44,12 @@ import { MailModule } from './mail/mail.module';
       provide: APP_GUARD,
       useClass: RestrictedUserGuard,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ModerationInterceptor,
+    },
     ModerationService,
+    TokenService,
   ],
   controllers: [],
 })

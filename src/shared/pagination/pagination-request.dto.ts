@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum SortDirectionEnum {
@@ -17,6 +17,7 @@ export class PaginationRequestDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
+  @Max(50)
   perPage = 10;
 
   @IsOptional()

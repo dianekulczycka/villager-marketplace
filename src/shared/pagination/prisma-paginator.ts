@@ -1,11 +1,6 @@
 import { PrismaPromise } from '@prisma/client';
 import { IPaginatedResponse } from './pagination-response.interface';
 
-export type PrismaDelegate = {
-  findMany: (args: any) => PrismaPromise<any[]>;
-  count: (args: any) => PrismaPromise<number>;
-};
-
 export async function paginatePrisma<T>(
   model: {
     findMany: (args: any) => PrismaPromise<any[]>;

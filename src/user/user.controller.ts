@@ -2,11 +2,15 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Param,
   Patch,
   Query,
   Request,
+  Res,
   UseGuards,
+  UseInterceptors,
+  UsePipes,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -17,16 +21,21 @@ import { UserSelfDto } from './dto/user-self.dto';
 import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
 import { UserQueryDto } from './dto/user-query.dto';
 import { BecomeSellerRequestDto } from './dto/become-seller-request';
-import { AllowedRolesGuard } from '../auth/guards/role.guard';
+import { AllowedRolesGuard } from '../auth/guards/allowed-roles.guard';
 import { user_role } from '@prisma/client';
-import { AuthService } from '../auth/auth.service';
-import { AccountRecoveryRequestDto } from './dto/account-recovery-request.dto';
+import express from 'express';
+import { Roles } from '../auth/guards/allowed-roles.decorator';
+import { ModerationPipe } from '../moderation/moderation.pipe.service';
+import { ModerationInterceptor } from '../moderation/moderation.interceptor.service';
+import { TokenService } from '../security/token/token.service';
+import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';
 
+@ApiErrorResponses()
 @Controller('users')
 export class UserController {
   constructor(
     private readonly userService: UserService,
-    private readonly authService: AuthService,
+    private readonly tokenService: TokenService,
   ) {}
 
   @UseGuards(AuthGuard('jwt'))
@@ -52,6 +61,8 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @UsePipes(new ModerationPipe(['username']))
+  @UseInterceptors(ModerationInterceptor)
   @Patch('profile')
   async update(
     @Request() request: userRequestInterface.IUserRequest,
@@ -61,40 +72,31 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @HttpCode(204)
   @Patch('profile/soft-delete')
   async softDelete(
     @Request() request: userRequestInterface.IUserRequest,
   ): Promise<void> {
     await this.userService.softDelete(request);
-    await this.authService.blockTokensForUser(request.user.userId);
+    await this.tokenService.blockTokensForUser(request.user.userId);
   }
 
-  @UseGuards(
-    AuthGuard('jwt'),
-    new AllowedRolesGuard([
-      user_role.BUYER,
-      user_role.SELLER,
-      user_role.MANAGER,
-      user_role.ADMIN,
-    ]),
-  )
+  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @Roles(user_role.BUYER, user_role.SELLER, user_role.MANAGER, user_role.ADMIN)
+  @HttpCode(204)
   @Patch('profile/become-seller')
   async becomeSeller(
     @Request() request: userRequestInterface.IUserRequest,
     @Body() becomeSellerRequestDto: BecomeSellerRequestDto,
+    @Res({ passthrough: true }) res: express.Response,
   ): Promise<void> {
     const userId = await this.userService.makeUserSeller(
       request,
       becomeSellerRequestDto,
     );
-    await this.authService.blockTokensForUser(userId);
-    return this.authService.issueTokenPairForUser(userId);
-  }
-
-  @Patch('account-recovery')
-  async requestRecovery(
-    @Body() accountRecoveryRequestDto: AccountRecoveryRequestDto,
-  ): Promise<void> {
-    await this.userService.requestRecovery(accountRecoveryRequestDto);
+    await this.tokenService.blockTokensForUser(userId);
+    const { accessToken, refreshToken } =
+      await this.tokenService.issueTokenPairForUser(userId);
+    this.tokenService.setAuthCookies(res, accessToken, refreshToken);
   }
 }

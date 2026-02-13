@@ -1,4 +1,4 @@
-import { EmailEnum } from './enums/email.enum';
+import { EmailEnum } from '../enums/email.enum';
 
 export type IEmailData = {
   subject: string;

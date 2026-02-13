@@ -1,20 +1,53 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+  UseInterceptors,
+  UsePipes,
+} from '@nestjs/common';
 import express from 'express';
 import { AuthService } from './auth.service';
 import { UserSignInRequestDto } from './dto/user-sign-in-request.dto';
 import { UserLoginRequestDto } from './dto/user-login-request.dto';
 import { UserPublicDto } from '../user/dto/user-public.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { AccountRecoveryRequestDto } from '../user/dto/account-recovery-request.dto';
+import { ModerationService } from '../moderation/moderation.service';
+import { MailService } from '../mail/mail.service';
+import { ModerationInterceptor } from '../moderation/moderation.interceptor.service';
+import { ModerationPipe } from '../moderation/moderation.pipe.service';
+import { TokenService } from '../security/token/token.service';
+import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';
 
+@ApiErrorResponses()
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly moderationService: ModerationService,
+    private readonly mailService: MailService,
+    private readonly tokenService: TokenService,
+  ) {}
 
+  @UsePipes(new ModerationPipe(['username']))
+  @UseInterceptors(ModerationInterceptor)
   @Post('register')
   async register(
     @Body() registerDto: UserSignInRequestDto,
+    @Res({ passthrough: true }) res: express.Response,
   ): Promise<UserPublicDto> {
-    return this.authService.register(registerDto);
+    const user = await this.authService.register(registerDto);
+    const { email, password } = registerDto;
+    const { accessToken, refreshToken } = await this.authService.login({
+      email,
+      password,
+    });
+    this.tokenService.setAuthCookies(res, accessToken, refreshToken);
+    return user;
   }
 
   @Post('login')
@@ -24,44 +57,21 @@ export class AuthController {
   ): Promise<void> {
     const { accessToken, refreshToken } =
       await this.authService.login(loginDto);
-
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      maxAge: this.authService.accessTokenExpirationTime * 1000,
-    });
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      maxAge: this.authService.refreshTokenExpirationTime * 1000,
-    });
+    this.tokenService.setAuthCookies(res, accessToken, refreshToken);
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @HttpCode(204)
   @Post('refresh')
   async refresh(
     @Req() req: express.Request,
     @Res({ passthrough: true }) res: express.Response,
   ): Promise<void> {
-    const refreshToken: string = req.cookies.refreshToken as string;
-    const tokens = await this.authService.refresh(refreshToken);
+    const oldRefreshToken: string = req.cookies.refreshToken as string;
+    const { accessToken, refreshToken } =
+      await this.authService.refresh(oldRefreshToken);
 
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      maxAge: this.authService.accessTokenExpirationTime * 1000,
-    });
-
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      maxAge: this.authService.refreshTokenExpirationTime * 1000,
-    });
+    this.tokenService.setAuthCookies(res, accessToken, refreshToken);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -72,7 +82,17 @@ export class AuthController {
   ): Promise<void> {
     const refreshToken: string = req.cookies.refreshToken as string;
     await this.authService.logout(refreshToken);
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
+    this.tokenService.clearAuthCookies(res);
+  }
+
+  @HttpCode(204)
+  @Post('recovery-request')
+  async requestRecovery(
+    @Body() accountRecoveryRequestDto: AccountRecoveryRequestDto,
+  ): Promise<void> {
+    const data = await this.moderationService.requestRecovery(
+      accountRecoveryRequestDto,
+    );
+    await this.mailService.sendRecoveryRequest(data);
   }
 }

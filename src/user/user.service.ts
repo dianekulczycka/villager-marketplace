@@ -21,6 +21,12 @@ import { paginatePrisma } from '../shared/pagination/prisma-paginator';
 
 import { BecomeSellerRequestDto } from './dto/become-seller-request';
 import {
+  BUYER_ICON,
+  MANAGER_ICON,
+  USER_ICON_MAP,
+} from '../../public/icons/icon-map';
+import { UserAdminDto } from './dto/user-admin.dto';
+import {
   ADMIN_ALL_USERS_WHERE,
   ADMIN_BANNED_USERS_WHERE,
   ADMIN_FLAGGED_USERS_WHERE,
@@ -33,25 +39,13 @@ import {
   USER_SELF_SELECT,
   USER_SOFT_DELETE_DATA,
   USER_UNBAN_DATA,
-} from './const/orm/user';
-import { USER_ERRORS } from './const/errors';
-import { ITEM_SOFT_DELETE_DATA } from '../items/const/orm/item';
-import {
-  BUYER_ICON,
-  MANAGER_ICON,
-  USER_ICON_MAP,
-} from '../../public/icons/icon-map';
-import { hasSwearWordsInDto } from '../shared/filters/swear-words/swear-words.filter';
-import { UserAdminDto } from './dto/user-admin.dto';
-import { AccountRecoveryRequestDto } from './dto/account-recovery-request.dto';
-import { ModerationService } from '../moderation/moderation.service';
+} from '../prisma/helpers/user.helpers';
+import { USER_ERRORS } from '../shared/errors/user.errors';
+import { ITEM_SOFT_DELETE_DATA } from '../prisma/helpers/item.helpers';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly moderationService: ModerationService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   // ----------------------------------------------------------------------------------------------------------
   // ---------------------------------------------- USER ------------------------------------------------------
@@ -115,17 +109,13 @@ export class UserService {
   ): Promise<UserSelfDto> {
     const { userId, role } = request.user;
 
-    if (hasSwearWordsInDto(updateUserDto)) {
-      await this.moderationService.flagUser(request.user.userId);
-      throw new ForbiddenException(USER_ERRORS.BAD_LANGUAGE);
-    }
-
     const target = await this.prisma.user.findUnique({
       where: { id: targetUserId },
       select: { role: true, isBanned: true },
     });
 
     if (!target) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+
     const isSelf = userId === targetUserId;
 
     if (role === user_role.BUYER || role === user_role.SELLER) {
@@ -234,10 +224,6 @@ export class UserService {
     ]);
 
     return userId;
-  }
-
-  async requestRecovery(accountRecoveryRequestDto: AccountRecoveryRequestDto) {
-    await this.moderationService.requestRecovery(accountRecoveryRequestDto);
   }
 
   // --------------------------------------------------------------------------------------------------------
@@ -402,8 +388,7 @@ export class UserService {
     });
 
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
-    if (!user.isDeleted)
-      throw new BadRequestException(USER_ERRORS.USER_NOT_DELETED);
+    if (!user.isDeleted) throw new BadRequestException(USER_ERRORS.NOT_DELETED);
 
     await this.prisma.user.update({
       where: { id: userId },

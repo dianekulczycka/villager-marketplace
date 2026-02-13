@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { IUserRequest } from '../user/interfaces/user-request.interface';
 import { user_role } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+import { ProfileStats } from './interfaces/stats.interface';
 import {
   ADMIN_BANNED_USERS_WHERE,
   ADMIN_FLAGGED_USERS_WHERE,
-} from '../user/const/orm/user';
-import { PrismaService } from '../prisma/prisma.service';
-import { ProfileStats } from './interfaces/stats.interface';
+} from '../prisma/helpers/user.helpers';
 
 @Injectable()
 export class StatsService {

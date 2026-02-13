@@ -16,7 +16,8 @@ import {
 } from './dto/item-query.dto';
 import { SortDirectionEnum } from '../shared/pagination/pagination-request.dto';
 import { paginatePrisma } from '../shared/pagination/prisma-paginator';
-import { ITEM_ERRORS } from './const/errors';
+import { ITEM_ICON_MAP } from '../../public/icons/icon-map';
+import { Prisma, user_role } from '@prisma/client';
 import {
   buildItemSearchWhere,
   ITEM_ADMIN_SELECT,
@@ -24,20 +25,14 @@ import {
   ITEM_PUBLIC_SELECT,
   ITEM_PUBLIC_WHERE_BASE,
   ITEM_SOFT_DELETE_DATA,
-} from './const/orm/item';
-import { allowedItemsPerSeller } from './const/enums/allowed-items-per-seller.record';
-import { ITEM_ICON_MAP } from '../../public/icons/icon-map';
-import { Prisma, user_role } from '@prisma/client';
-import { USER_ERRORS } from '../user/const/errors';
-import { hasSwearWordsInDto } from '../shared/filters/swear-words/swear-words.filter';
-import { ModerationService } from '../moderation/moderation.service';
+} from '../prisma/helpers/item.helpers';
+import { ITEM_ERRORS } from '../shared/errors/item.errors';
+import { allowedItemsPerSeller } from './enums/allowed-items-per-seller.record';
+import { USER_ERRORS } from '../shared/errors/user.errors';
 
 @Injectable()
 export class ItemService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly moderationService: ModerationService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async findAllPublic(
     query: ItemQueryDto,
@@ -121,22 +116,17 @@ export class ItemService {
   ): Promise<ItemPublicDto> {
     const { userId } = request.user;
 
-    if (hasSwearWordsInDto(createItemDto)) {
-      await this.moderationService.flagUser(request.user.userId);
-      throw new ForbiddenException(USER_ERRORS.BAD_LANGUAGE);
-    }
-
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { sellerType: true },
     });
 
-    if (!user?.sellerType) throw new ForbiddenException(ITEM_ERRORS.NOT_SELLER);
+    if (!user?.sellerType) throw new ForbiddenException(USER_ERRORS.NOT_SELLER);
 
     const allowedItems = allowedItemsPerSeller[user.sellerType];
 
     if (!allowedItems.includes(createItemDto.name))
-      throw new ForbiddenException(ITEM_ERRORS.ITEM_NOT_ALLOWED);
+      throw new ForbiddenException(ITEM_ERRORS.NOT_ALLOWED);
 
     return this.prisma.item.create({
       data: {
@@ -155,11 +145,6 @@ export class ItemService {
   ): Promise<ItemPublicDto> {
     await this.assertPermission(request, id);
 
-    if (hasSwearWordsInDto(updateItemDto)) {
-      await this.moderationService.flagUser(request.user.userId);
-      throw new ForbiddenException(USER_ERRORS.BAD_LANGUAGE);
-    }
-
     if (updateItemDto.name) {
       const user = await this.prisma.user.findUnique({
         where: { id: request.user.userId },
@@ -168,7 +153,7 @@ export class ItemService {
 
       const allowedItems = allowedItemsPerSeller[user!.sellerType!];
       if (!allowedItems.includes(updateItemDto.name))
-        throw new ForbiddenException(ITEM_ERRORS.ITEM_NOT_ALLOWED);
+        throw new ForbiddenException(ITEM_ERRORS.NOT_ALLOWED);
     }
 
     return this.prisma.item.update({

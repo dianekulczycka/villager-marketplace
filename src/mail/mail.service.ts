@@ -7,9 +7,9 @@ import * as handlebars from 'handlebars';
 import { emailConstants, IEmailData } from './const/email.constants';
 import { PrismaService } from '../prisma/prisma.service';
 import { user_role } from '@prisma/client';
-import { USER_ERRORS } from '../user/const/errors';
 import { AccountRecoveryRequestDto } from '../user/dto/account-recovery-request.dto';
 import { ConfigService } from '@nestjs/config';
+import { USER_ERRORS } from '../shared/errors/user.errors';
 
 @Injectable()
 export class MailService {
@@ -19,7 +19,6 @@ export class MailService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -74,7 +73,6 @@ export class MailService {
 
     const html = await this.renderTemplate(emailData.template, context);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
     await this.transporter.sendMail({
       to,
       subject: emailData.subject,

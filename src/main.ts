@@ -32,10 +32,9 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('Villager Marketplace API')
-    .setDescription('API for selling items')
+    .setTitle('Villager marketplace API')
     .setVersion('1.0.0')
-    .addTag('items', 'users')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
