@@ -28,11 +28,11 @@ import { ModerationInterceptor } from '../moderation/moderation.interceptor.serv
 import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';
 
 @ApiErrorResponses()
+@UseGuards(AuthGuard('jwt'))
 @Controller('items')
 export class ItemController {
   constructor(private readonly itemsService: ItemService) {}
 
-  @UseGuards(AuthGuard('jwt'))
   @Get('')
   async getAll(
     @Query() query: ItemQueryDto,
@@ -41,7 +41,6 @@ export class ItemController {
     return this.itemsService.findAllPublic(query, request);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get('id/:id')
   async getById(
     @Param('id') id: string,
@@ -50,7 +49,7 @@ export class ItemController {
     return this.itemsService.findById(Number(id), request);
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.SELLER)
   @Get('my')
   async getMyItems(
@@ -59,7 +58,7 @@ export class ItemController {
     return this.itemsService.findMyItems(request);
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.SELLER)
   @UsePipes(new ModerationPipe(['description']))
   @UseInterceptors(ModerationInterceptor)
@@ -71,7 +70,7 @@ export class ItemController {
     return await this.itemsService.create(request, createItemDto);
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.SELLER, user_role.MANAGER, user_role.ADMIN)
   @UsePipes(new ModerationPipe(['description']))
   @UseInterceptors(ModerationInterceptor)
@@ -84,7 +83,7 @@ export class ItemController {
     return this.itemsService.update(request, Number(id), updateItemDto);
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.SELLER, user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
   @Patch('id/:id/soft-delete')

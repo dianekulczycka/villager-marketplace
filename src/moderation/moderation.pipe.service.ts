@@ -1,6 +1,5 @@
 import { ForbiddenException, PipeTransform } from '@nestjs/common';
 import { hasSwearWords } from '../shared/filters/swear-words.filter';
-import { USER_ERRORS } from '../shared/errors/user.errors';
 
 export class ModerationPipe<
   T extends Record<string, unknown>,

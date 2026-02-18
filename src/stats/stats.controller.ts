@@ -5,10 +5,10 @@ import * as userRequestInterface from '../user/interfaces/user-request.interface
 import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';
 
 @ApiErrorResponses()
+@UseGuards(AuthGuard('jwt'))
 @Controller('users/profile/stats')
 export class StatsController {
   constructor(private readonly statsService: StatsService) {}
-  @UseGuards(AuthGuard('jwt'))
   @Get('')
   getProfileStats(@Request() request: userRequestInterface.IUserRequest) {
     return this.statsService.getProfileStats(request);

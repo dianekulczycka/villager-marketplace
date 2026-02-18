@@ -31,6 +31,7 @@ import { TokenService } from '../security/token/token.service';
 import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';
 
 @ApiErrorResponses()
+@UseGuards(AuthGuard('jwt'))
 @Controller('users')
 export class UserController {
   constructor(
@@ -38,7 +39,6 @@ export class UserController {
     private readonly tokenService: TokenService,
   ) {}
 
-  @UseGuards(AuthGuard('jwt'))
   @Get()
   async getAll(
     @Query() query: UserQueryDto,
@@ -46,13 +46,11 @@ export class UserController {
     return this.userService.findAllPublic(query);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get('id/:id')
   async getById(@Param('id') id: string): Promise<UserPublicDto> {
     return this.userService.findById(Number(id));
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get('profile')
   getProfile(
     @Request() request: userRequestInterface.IUserRequest,
@@ -60,7 +58,6 @@ export class UserController {
     return this.userService.findSelf(request);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @UsePipes(new ModerationPipe(['username']))
   @UseInterceptors(ModerationInterceptor)
   @Patch('profile')
@@ -71,7 +68,6 @@ export class UserController {
     return this.userService.update(request, request.user.userId, updateUserDto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @HttpCode(204)
   @Patch('profile/soft-delete')
   async softDelete(
@@ -81,7 +77,7 @@ export class UserController {
     await this.tokenService.blockTokensForUser(request.user.userId);
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.BUYER, user_role.SELLER, user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
   @Patch('profile/become-seller')

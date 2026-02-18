@@ -21,7 +21,6 @@ import { Prisma, user_role } from '@prisma/client';
 import {
   buildItemSearchWhere,
   ITEM_ADMIN_SELECT,
-  ITEM_OWNER_SELECT,
   ITEM_PUBLIC_SELECT,
   ITEM_PUBLIC_WHERE_BASE,
   ITEM_SOFT_DELETE_DATA,
@@ -150,9 +149,13 @@ export class ItemService {
         where: { id: request.user.userId },
         select: { sellerType: true },
       });
-      const allowedItems = allowedItemsPerSeller[user!.sellerType!];
-      if (!allowedItems.includes(updateItemDto.name))
+      if (!user || !user.sellerType) {
+        throw new ForbiddenException(USER_ERRORS.NOT_SELLER);
+      }
+      const allowedItems = allowedItemsPerSeller[user.sellerType];
+      if (!allowedItems.includes(updateItemDto.name)) {
         throw new ForbiddenException(ITEM_ERRORS.NOT_ALLOWED);
+      }
     }
     return this.prisma.item.update({
       where: { id },

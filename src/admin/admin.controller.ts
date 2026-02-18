@@ -29,6 +29,7 @@ import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.deco
 import { UserSelfDto } from '../user/dto/user-self.dto';
 
 @ApiErrorResponses()
+@UseGuards(AuthGuard('jwt'))
 @Controller('admin')
 export class AdminController {
   constructor(
@@ -42,7 +43,7 @@ export class AdminController {
   // -------------------------------------------- MANAGER -----------------------------------------------------
   // ----------------------------------------------------------------------------------------------------------
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @Get('users')
   async getAllUsers(
@@ -51,7 +52,7 @@ export class AdminController {
     return this.adminService.findAllUsers(query);
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @Get('users/flagged')
   async getFlaggedUsers(
@@ -60,7 +61,7 @@ export class AdminController {
     return this.adminService.findFlaggedUsers(query);
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @Get('users/banned')
   async getBannedUsers(
@@ -69,7 +70,7 @@ export class AdminController {
     return this.adminService.findBannedUsers(query);
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @Patch('users/:id')
   updateUserByAdmin(
@@ -80,7 +81,7 @@ export class AdminController {
     return this.userService.update(request, Number(id), updateUserDto);
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
   @Patch('users/:id/soft-delete')
@@ -91,7 +92,7 @@ export class AdminController {
     return this.userService.softDelete(request, Number(id));
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
   @Patch('users/:id/ban')
@@ -104,7 +105,7 @@ export class AdminController {
     await this.mailService.notifyUserBanned(Number(id));
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
   @Patch('users/:id/unban')
@@ -114,7 +115,7 @@ export class AdminController {
     await this.mailService.sendRecoveryApproved(Number(id));
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
   @Patch('users/:id/unflag')
@@ -124,7 +125,7 @@ export class AdminController {
     await this.mailService.sendRecoveryApproved(Number(id));
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
   @Patch('users/:id/restore')
@@ -144,14 +145,14 @@ export class AdminController {
   // --------------------------------------------- ADMIN ------------------------------------------------------
   // ----------------------------------------------------------------------------------------------------------
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.ADMIN)
   @Get('managers')
   findAllManagers(@Query() query: UserQueryDto) {
     return this.adminService.findAllManagers(query);
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.ADMIN)
   @HttpCode(204)
   @Delete('users/:id')
@@ -160,7 +161,7 @@ export class AdminController {
     await this.tokenService.blockTokensForUser(Number(id));
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.ADMIN)
   @HttpCode(204)
   @Patch('users/:id/promote-manager')
@@ -176,7 +177,7 @@ export class AdminController {
     this.tokenService.setAuthCookies(res, accessToken, refreshToken);
   }
 
-  @UseGuards(AuthGuard('jwt'), AllowedRolesGuard)
+  @UseGuards(AllowedRolesGuard)
   @Roles(user_role.ADMIN)
   @HttpCode(204)
   @Patch('users/:id/demote')

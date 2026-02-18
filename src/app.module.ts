@@ -6,7 +6,6 @@ import { UserModule } from './user/user.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AdminModule } from './admin/admin.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { CleanUpJobModule } from './shared/jobs/clean-up.job/clean-up.job.module';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
 import { StatsModule } from './stats/stats.module';
@@ -19,6 +18,7 @@ import { SecurityModule } from './security/security.module';
 import { TokenService } from './security/token/token.service';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { RequestDetailsLoggerInteceptor } from './shared/interceptors/request-details-logger.inteceptor';
+import { CleanUpJobModule } from './shared/jobs/clean-up.job.module';
 
 @Module({
   imports: [

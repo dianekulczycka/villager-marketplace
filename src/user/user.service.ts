@@ -89,7 +89,7 @@ export class UserService {
 
   async findSelf(request: IUserRequest): Promise<UserSelfDto> {
     const { userId } = request.user;
-    const user = await this.prisma.user.findFirst({
+    const user = await this.prisma.user.findUnique({
       where: {
         isDeleted: 0,
         id: userId,
@@ -109,14 +109,14 @@ export class UserService {
     targetUserId: number,
     updateUserDto: UpdateUserDto,
   ): Promise<UserSelfDto> {
-    const userIdToDelete = targetUserId ?? request.user.userId;
+    targetUserId = targetUserId ?? request.user.userId;
     const target = await this.prisma.user.findUnique({
-      where: { id: userIdToDelete },
+      where: { id: targetUserId },
       select: { role: true },
     });
 
     if (!target) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
-    canModifyUser(request, userIdToDelete, target.role);
+    canModifyUser(request, targetUserId, target.role);
 
     return this.prisma.user.update({
       where: { id: targetUserId },
@@ -129,26 +129,26 @@ export class UserService {
     request: IUserRequest,
     targetUserId?: number,
   ): Promise<void> {
-    const userIdToDelete = targetUserId ?? request.user.userId;
+    targetUserId = targetUserId ?? request.user.userId;
     const target = await this.prisma.user.findUnique({
-      where: { id: userIdToDelete },
+      where: { id: targetUserId },
       select: { role: true },
     });
 
     if (!target) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
-    canModifyUser(request, userIdToDelete, target.role);
+    canModifyUser(request, targetUserId, target.role);
 
     await this.prisma.$transaction([
       this.prisma.user.update({
-        where: { id: userIdToDelete },
+        where: { id: targetUserId },
         data: USER_SOFT_DELETE_DATA(request.user.email),
       }),
       this.prisma.token.updateMany({
-        where: { userId: userIdToDelete },
+        where: { userId: targetUserId },
         data: TOKEN_BLOCK_DATA,
       }),
       this.prisma.item.updateMany({
-        where: { sellerId: userIdToDelete },
+        where: { sellerId: targetUserId },
         data: ITEM_SOFT_DELETE_DATA,
       }),
     ]);
