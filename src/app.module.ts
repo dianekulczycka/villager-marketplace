@@ -18,6 +18,7 @@ import { ModerationModule } from './moderation/moderation.module';
 import { SecurityModule } from './security/security.module';
 import { TokenService } from './security/token/token.service';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { RequestDetailsLoggerInteceptor } from './shared/interceptors/request-details-logger.inteceptor';
 
 @Module({
   imports: [
@@ -59,6 +60,10 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestDetailsLoggerInteceptor,
     },
     ModerationService,
     TokenService,
