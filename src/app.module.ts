@@ -17,12 +17,20 @@ import { RestrictedUserGuard } from './shared/guards/restricted-user.guard';
 import { ModerationModule } from './moderation/moderation.module';
 import { SecurityModule } from './security/security.module';
 import { TokenService } from './security/token/token.service';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60000,
+        limit: 60,
+      },
+    ]),
     ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
@@ -47,6 +55,10 @@ import { TokenService } from './security/token/token.service';
     {
       provide: APP_INTERCEPTOR,
       useClass: ModerationInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
     ModerationService,
     TokenService,

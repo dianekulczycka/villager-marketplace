@@ -22,6 +22,7 @@ import { ModerationInterceptor } from '../moderation/moderation.interceptor.serv
 import { ModerationPipe } from '../moderation/moderation.pipe.service';
 import { TokenService } from '../security/token/token.service';
 import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 
 @ApiErrorResponses()
 @Controller('auth')
@@ -33,6 +34,7 @@ export class AuthController {
     private readonly tokenService: TokenService,
   ) {}
 
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @UsePipes(new ModerationPipe(['username']))
   @UseInterceptors(ModerationInterceptor)
   @Post('register')
@@ -50,6 +52,7 @@ export class AuthController {
     return user;
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('login')
   async login(
     @Body() loginDto: UserLoginRequestDto,
@@ -60,6 +63,7 @@ export class AuthController {
     this.tokenService.setAuthCookies(res, accessToken, refreshToken);
   }
 
+  @SkipThrottle()
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(204)
   @Post('refresh')
@@ -85,6 +89,7 @@ export class AuthController {
     this.tokenService.clearAuthCookies(res);
   }
 
+  @Throttle({ default: { limit: 1, ttl: 60000 } })
   @HttpCode(204)
   @Post('recovery-request')
   async requestRecovery(
