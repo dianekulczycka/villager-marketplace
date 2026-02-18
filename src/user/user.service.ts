@@ -42,6 +42,8 @@ import {
 } from '../prisma/helpers/user.helpers';
 import { USER_ERRORS } from '../shared/errors/user.errors';
 import { ITEM_SOFT_DELETE_DATA } from '../prisma/helpers/item.helpers';
+import { TOKEN_BLOCK_DATA } from '../prisma/helpers/token.helpers';
+import { canModifyUser } from '../shared/helpers/permission.helpers';
 
 @Injectable()
 export class UserService {
@@ -107,33 +109,14 @@ export class UserService {
     targetUserId: number,
     updateUserDto: UpdateUserDto,
   ): Promise<UserSelfDto> {
-    const { userId, role } = request.user;
-
+    const userIdToDelete = targetUserId ?? request.user.userId;
     const target = await this.prisma.user.findUnique({
-      where: { id: targetUserId },
-      select: { role: true, isBanned: true },
+      where: { id: userIdToDelete },
+      select: { role: true },
     });
 
     if (!target) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
-
-    const isSelf = userId === targetUserId;
-
-    if (role === user_role.BUYER || role === user_role.SELLER) {
-      if (!isSelf) throw new ForbiddenException(USER_ERRORS.NOT_ALLOWED_UPDATE);
-    }
-
-    if (role === user_role.MANAGER) {
-      if (
-        !isSelf &&
-        (target.role === user_role.ADMIN || target.role === user_role.MANAGER)
-      ) {
-        throw new ForbiddenException(USER_ERRORS.NOT_ALLOWED_UPDATE);
-      }
-    }
-
-    if (role === user_role.ADMIN) {
-      if (isSelf) throw new ForbiddenException(USER_ERRORS.NOT_ALLOWED_UPDATE);
-    }
+    canModifyUser(request, userIdToDelete, target.role);
 
     return this.prisma.user.update({
       where: { id: targetUserId },
@@ -146,44 +129,29 @@ export class UserService {
     request: IUserRequest,
     targetUserId?: number,
   ): Promise<void> {
-    const actorId = request.user.userId;
-    const actorRole = request.user.role;
-
-    const userIdToDelete = targetUserId ?? actorId;
-    const isSelf = actorId === userIdToDelete;
-
+    const userIdToDelete = targetUserId ?? request.user.userId;
     const target = await this.prisma.user.findUnique({
       where: { id: userIdToDelete },
       select: { role: true },
     });
 
     if (!target) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+    canModifyUser(request, userIdToDelete, target.role);
 
-    if (actorRole === user_role.BUYER || actorRole === user_role.SELLER) {
-      if (!isSelf) {
-        throw new ForbiddenException(USER_ERRORS.NOT_ALLOWED_UPDATE);
-      }
-    }
-
-    if (actorRole === user_role.MANAGER) {
-      if (
-        target.role === user_role.ADMIN ||
-        target.role === user_role.MANAGER
-      ) {
-        throw new ForbiddenException(USER_ERRORS.NOT_ALLOWED_UPDATE);
-      }
-    }
-
-    if (actorRole === user_role.ADMIN) {
-      if (isSelf) {
-        throw new ForbiddenException(USER_ERRORS.NOT_ALLOWED_UPDATE);
-      }
-    }
-
-    await this.prisma.user.update({
-      where: { id: userIdToDelete },
-      data: USER_SOFT_DELETE_DATA(request.user.email),
-    });
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userIdToDelete },
+        data: USER_SOFT_DELETE_DATA(request.user.email),
+      }),
+      this.prisma.token.updateMany({
+        where: { userId: userIdToDelete },
+        data: TOKEN_BLOCK_DATA,
+      }),
+      this.prisma.item.updateMany({
+        where: { sellerId: userIdToDelete },
+        data: ITEM_SOFT_DELETE_DATA,
+      }),
+    ]);
   }
 
   async makeUserSeller(
@@ -406,6 +374,9 @@ export class UserService {
     await this.prisma.$transaction([
       this.prisma.item.deleteMany({
         where: { sellerId: userId },
+      }),
+      this.prisma.token.deleteMany({
+        where: { userId },
       }),
       this.prisma.user.delete({
         where: { id: userId },

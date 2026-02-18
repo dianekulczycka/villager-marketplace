@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
+import { Prisma } from '@prisma/client';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -16,7 +17,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     if (Array.isArray(msg)) return msg.map(String).join(', ');
 
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     const text = String(msg);
     const lines: string[] = text
       .split('\n')
@@ -25,28 +25,50 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     return lines[lines.length - 1] ?? 'Internal server error';
   }
 
-  catch(exception: any, host: ArgumentsHost): void {
+  catch(exception: unknown, host: ArgumentsHost): void {
     // In certain situations `httpAdapter` might not be available in the
     // constructor method, thus we should resolve it here.
     const { httpAdapter } = this.httpAdapterHost;
 
     const ctx = host.switchToHttp();
 
-    const httpStatus =
+    let httpStatus =
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
+    let message: string;
+
+    if (exception instanceof HttpException) {
+      const res = exception.getResponse() as any;
+      message = this.cleanMessage(res?.message ?? exception.message);
+    } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+      switch (exception.code) {
+        case 'P2002':
+          httpStatus = HttpStatus.CONFLICT;
+          message = 'Resource already exists';
+          break;
+        case 'P2025':
+          httpStatus = HttpStatus.NOT_FOUND;
+          message = 'Resource not found';
+          break;
+        default:
+          httpStatus = HttpStatus.BAD_REQUEST;
+          message = 'Db error';
+      }
+    } else {
+      message = 'Unexpected server error';
+    }
+
+    if (httpStatus === HttpStatus.INTERNAL_SERVER_ERROR) {
+      console.error(exception);
+    }
+
     const responseBody = {
       statusCode: httpStatus,
       timestamp: new Date().toISOString(),
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       path: httpAdapter.getRequestUrl(ctx.getRequest()),
-
-      errors: this.cleanMessage(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        exception.response?.message || exception.message,
-      ),
+      errors: message,
     };
 
     httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus);

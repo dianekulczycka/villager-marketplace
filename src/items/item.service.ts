@@ -29,6 +29,7 @@ import {
 import { ITEM_ERRORS } from '../shared/errors/item.errors';
 import { allowedItemsPerSeller } from './enums/allowed-items-per-seller.record';
 import { USER_ERRORS } from '../shared/errors/user.errors';
+import { canModifyItem } from '../shared/helpers/permission.helpers';
 
 @Injectable()
 export class ItemService {
@@ -143,19 +144,16 @@ export class ItemService {
     id: number,
     updateItemDto: UpdateItemDto,
   ): Promise<ItemPublicDto> {
-    await this.assertPermission(request, id);
-
+    await canModifyItem(this.prisma, request, id);
     if (updateItemDto.name) {
       const user = await this.prisma.user.findUnique({
         where: { id: request.user.userId },
         select: { sellerType: true },
       });
-
       const allowedItems = allowedItemsPerSeller[user!.sellerType!];
       if (!allowedItems.includes(updateItemDto.name))
         throw new ForbiddenException(ITEM_ERRORS.NOT_ALLOWED);
     }
-
     return this.prisma.item.update({
       where: { id },
       data: updateItemDto,
@@ -164,26 +162,10 @@ export class ItemService {
   }
 
   async softDelete(request: IUserRequest, id: number): Promise<void> {
-    await this.assertPermission(request, id);
-
+    await canModifyItem(this.prisma, request, id);
     await this.prisma.item.update({
       where: { id },
       data: ITEM_SOFT_DELETE_DATA,
     });
-  }
-
-  async assertPermission(request: IUserRequest, itemId: number): Promise<void> {
-    const { userId, role } = request.user;
-    if (role === user_role.ADMIN || role === user_role.MANAGER) return;
-
-    const item = await this.prisma.item.findUnique({
-      where: { id: itemId },
-      select: ITEM_OWNER_SELECT,
-    });
-
-    if (!item) throw new NotFoundException(ITEM_ERRORS.NOT_FOUND);
-
-    if (item.sellerId !== userId)
-      throw new ForbiddenException(ITEM_ERRORS.NOT_ALLOWED);
   }
 }
