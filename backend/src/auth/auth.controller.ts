@@ -53,6 +53,7 @@ export class AuthController {
   }
 
   @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @HttpCode(201)
   @Post('login')
   async login(
     @Body() loginDto: UserLoginRequestDto,

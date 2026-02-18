@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import { ItemModule } from './items/item.module';
 import { UserModule } from './user/user.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AdminModule } from './admin/admin.module';
@@ -19,6 +18,7 @@ import { TokenService } from './security/token/token.service';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { RequestDetailsLoggerInteceptor } from './shared/interceptors/request-details-logger.inteceptor';
 import { CleanUpJobModule } from './shared/jobs/clean-up.job.module';
+import { ItemModule } from './item/item.module';
 
 @Module({
   imports: [

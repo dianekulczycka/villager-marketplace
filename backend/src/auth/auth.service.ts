@@ -5,11 +5,11 @@ import { UserPublicDto } from '../user/dto/user-public.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { user } from '@prisma/client';
-import { BUYER_ICON } from '../../public/icons/icon-map';
 import { TokenService } from '../security/token/token.service';
 import { USER_PUBLIC_SELECT } from '../prisma/helpers/user.helpers';
 import { ITokenPair } from '../shared/interfaces/token-pair.interface';
 import { AUTH_ERRORS } from '../shared/errors/auth.errors';
+import { BUYER_ICON } from '../shared/helpers/icon-map.helper';
 
 @Injectable()
 export class AuthService {

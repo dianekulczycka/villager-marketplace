@@ -16,7 +16,6 @@ import {
 } from './dto/item-query.dto';
 import { SortDirectionEnum } from '../shared/pagination/pagination-request.dto';
 import { paginatePrisma } from '../shared/pagination/prisma-paginator';
-import { ITEM_ICON_MAP } from '../../public/icons/icon-map';
 import { Prisma, user_role } from '@prisma/client';
 import {
   buildItemSearchWhere,
@@ -29,6 +28,7 @@ import { ITEM_ERRORS } from '../shared/errors/item.errors';
 import { allowedItemsPerSeller } from './enums/allowed-items-per-seller.record';
 import { USER_ERRORS } from '../shared/errors/user.errors';
 import { canModifyItem } from '../shared/helpers/permission.helpers';
+import { ITEM_ICON_MAP } from '../shared/helpers/icon-map.helper';
 
 @Injectable()
 export class ItemService {

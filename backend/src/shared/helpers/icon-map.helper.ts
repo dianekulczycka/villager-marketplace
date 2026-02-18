@@ -1,5 +1,5 @@
-import { ItemNameEnum } from '../../src/items/enums/item-name.enum';
-import { SellerTypeEnum } from '../../src/user/enums/seller-type.enum';
+import { ItemNameEnum } from '../../item/enums/item-name.enum';
+import { SellerTypeEnum } from '../../user/enums/seller-type.enum';
 
 export const ITEM_ICON_MAP: Record<ItemNameEnum, string> = {
   [ItemNameEnum.WHEAT]: 'wheat.png',

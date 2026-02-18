@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -20,11 +19,6 @@ import { SortDirectionEnum } from '../shared/pagination/pagination-request.dto';
 import { paginatePrisma } from '../shared/pagination/prisma-paginator';
 
 import { BecomeSellerRequestDto } from './dto/become-seller-request';
-import {
-  BUYER_ICON,
-  MANAGER_ICON,
-  USER_ICON_MAP,
-} from '../../public/icons/icon-map';
 import { UserAdminDto } from './dto/user-admin.dto';
 import {
   ADMIN_ALL_USERS_WHERE,
@@ -44,6 +38,11 @@ import { USER_ERRORS } from '../shared/errors/user.errors';
 import { ITEM_SOFT_DELETE_DATA } from '../prisma/helpers/item.helpers';
 import { TOKEN_BLOCK_DATA } from '../prisma/helpers/token.helpers';
 import { canModifyUser } from '../shared/helpers/permission.helpers';
+import {
+  BUYER_ICON,
+  MANAGER_ICON,
+  USER_ICON_MAP,
+} from '../shared/helpers/icon-map.helper';
 
 @Injectable()
 export class UserService {
