@@ -1,0 +1,1153 @@
+{
+  "info": {
+    "_postman_id": "b93f6d93-f777-4b59-a6fd-fba192e368d2",
+    "name": "nest-villagermp",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "37153193"
+  },
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "localhost:3003/auth/register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"example@gmail.com\",\r\n    \"password\": \"rootroot1\",\r\n    \"username\": \"oleg\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/auth/register",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/auth/login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const accessToken = pm.cookies.get(\"accessToken\");\r",
+                  "const refreshToken = pm.cookies.get(\"refreshToken\");\r",
+                  "\r",
+                  "if (accessToken) {\r",
+                  "    pm.environment.set(\"accessToken\", accessToken);\r",
+                  "}\r",
+                  "\r",
+                  "if (refreshToken) {\r",
+                  "    pm.environment.set(\"refreshToken\", refreshToken);\r",
+                  "}\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"example@gmail.com\",\r\n    \"password\": \"rootroot1\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/auth/login",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/auth/refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "pm.environment.set(\"accessToken\", response.accessToken);\r",
+                  "pm.environment.set(\"refreshToken\", response.refreshToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"refreshToken\": \"{{refreshToken}}\"\r\n} ",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/auth/refresh",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/auth/logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"refreshToken\": \"{{refreshToken}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/auth/logout",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/auth/account-recovery",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"example@gmail.com\",\r\n    \"actionType\": \"UNBAN\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/auth/account-recovery",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "auth",
+                "account-recovery"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "users",
+      "item": [
+        {
+          "name": "localhost:3003/users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "localhost:3003/users",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/users/id/1",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "localhost:3003/users/id/5",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "users",
+                "id",
+                "5"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/users/profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "localhost:3003/users/profile",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "users",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/users/profile/stats",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "localhost:3003/users/profile/stats",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "users",
+                "profile",
+                "stats"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/users/profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"super oleg\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/users/profile",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "users",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/users/profile/soft-delete",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/users/profile/soft-delete",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "users",
+                "profile",
+                "soft-delete"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/users/profile/become-seller",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "pm.environment.set(\"accessToken\", response.accessToken);\r",
+                  "pm.environment.set(\"refreshToken\", response.refreshToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"sellerType\": \"LEATHERWORKER\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/users/profile/become-seller",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "users",
+                "profile",
+                "become-seller"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "items",
+      "item": [
+        {
+          "name": "localhost:3003/items",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "localhost:3003/items",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "items"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/items/id/3",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "localhost:3003/items/id/3",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "items",
+                "id",
+                "3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/items/my",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "localhost:3003/items/my",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "items",
+                "my"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/items",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"leather\",\r\n    \"price\": 4.5,\r\n    \"count\": 64,\r\n    \"description\": \"leatherleatherleather\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/items",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "items"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/items/id/3",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"count\": 23\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/items/id/3",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "items",
+                "id",
+                "3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/items/1/soft-delete",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "localhost:3003/items/id/3/soft-delete",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "items",
+                "id",
+                "3",
+                "soft-delete"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "admin",
+      "item": [
+        {
+          "name": "localhost:3003/admin/users",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "localhost:3003/admin/users",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/admin/users/flagged",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "localhost:3003/admin/users/flagged",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "users",
+                "flagged"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/admin/users/banned",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "localhost:3003/admin/users/banned",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "users",
+                "banned"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/admin/users/managers",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "localhost:3003/admin/managers",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "managers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/admin/users/3",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"test\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/admin/users/3",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "users",
+                "3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/admin/users/3/soft-delete",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "localhost:3003/admin/users/3/soft-delete",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "users",
+                "3",
+                "soft-delete"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/admin/users/3/restore",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "localhost:3003/admin/users/3/restore",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "users",
+                "3",
+                "restore"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/admin/users/3",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "localhost:3003/admin/users/3",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "users",
+                "3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/admin/users/3/ban",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "localhost:3003/admin/users/5/ban",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "users",
+                "5",
+                "ban"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/admin/users/3/unban",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "localhost:3003/admin/users/4/unban",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "users",
+                "4",
+                "unban"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/admin/users/4/unflag",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "localhost:3003/admin/users/4/unflag",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "users",
+                "4",
+                "unflag"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/admin/users/4/promote-manager",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "localhost:3003/admin/users/4/promote-manager",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "users",
+                "4",
+                "promote-manager"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/admin/users/4/demote",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "localhost:3003/admin/users/4/demote",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "users",
+                "4",
+                "demote"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
