@@ -49,6 +49,14 @@ export class ItemController {
     return this.itemsService.findById(Number(id), request);
   }
 
+  @Post('id/:id/views')
+  async incrementViews(
+    @Param('id') id: string,
+    @Request() request: userRequestInterface.IUserRequest,
+  ) {
+    await this.itemsService.incrementViews(Number(id), request);
+  }
+
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.SELLER)
   @Get('my')

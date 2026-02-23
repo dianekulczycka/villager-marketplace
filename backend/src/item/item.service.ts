@@ -20,6 +20,7 @@ import { Prisma, user_role } from '@prisma/client';
 import {
   buildItemSearchWhere,
   ITEM_ADMIN_SELECT,
+  ITEM_PUBLIC_DETAILED_SELECT,
   ITEM_PUBLIC_SELECT,
   ITEM_PUBLIC_WHERE_BASE,
   ITEM_SOFT_DELETE_DATA,
@@ -29,6 +30,7 @@ import { allowedItemsPerSeller } from './enums/allowed-items-per-seller.record';
 import { USER_ERRORS } from '../shared/errors/user.errors';
 import { canModifyItem } from '../shared/helpers/permission.helpers';
 import { ITEM_ICON_MAP } from '../shared/helpers/icon-map.helper';
+import { ItemPublicDetailedDto } from './dto/item-public-detailed.dto';
 
 @Injectable()
 export class ItemService {
@@ -70,7 +72,24 @@ export class ItemService {
     );
   }
 
-  async findById(id: number, request: IUserRequest): Promise<ItemPublicDto> {
+  async findById(
+    id: number,
+    request: IUserRequest,
+  ): Promise<ItemPublicDetailedDto> {
+    const { item } = await this.getItemForUser(id, request);
+    return item;
+  }
+
+  async incrementViews(id: number, request: IUserRequest): Promise<void> {
+    const { isAdmin, isOwner } = await this.getItemForUser(id, request);
+    if (isAdmin || isOwner) return;
+    await this.prisma.item.update({
+      where: { id },
+      data: { views: { increment: 1 } },
+    });
+  }
+
+  private async getItemForUser(id: number, request: IUserRequest) {
     const { userId, role } = request.user;
 
     const isAdmin = role === user_role.ADMIN || role === user_role.MANAGER;
@@ -79,7 +98,7 @@ export class ItemService {
       ? { id }
       : { id, isDeleted: 0 };
 
-    const select = isAdmin ? ITEM_ADMIN_SELECT : ITEM_PUBLIC_SELECT;
+    const select = isAdmin ? ITEM_ADMIN_SELECT : ITEM_PUBLIC_DETAILED_SELECT;
 
     const item = await this.prisma.item.findFirst({
       where,
@@ -88,14 +107,11 @@ export class ItemService {
 
     if (!item) throw new NotFoundException(ITEM_ERRORS.NOT_FOUND);
 
-    const isOwner = item.seller.id === userId;
-    if (!isOwner && !isAdmin) {
-      await this.prisma.item.update({
-        where: { id },
-        data: { views: { increment: 1 } },
-      });
-    }
-    return item;
+    return {
+      item,
+      isAdmin,
+      isOwner: item.seller.id === userId,
+    };
   }
 
   async findMyItems(request: IUserRequest): Promise<ItemPublicDto[]> {
