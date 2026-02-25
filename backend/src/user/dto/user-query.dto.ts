@@ -1,5 +1,5 @@
-import { PaginationRequestDto } from '../../shared/pagination/pagination-request.dto';
 import { IsEnum, IsOptional } from 'class-validator';
+import { SortQueryDto } from '../../shared/pagination/sort-query.dto';
 
 export enum UserSortFieldEnum {
   ID = 'id',
@@ -15,8 +15,8 @@ export const USER_SORT_MAP: Record<UserSortFieldEnum, string> = {
   [UserSortFieldEnum.CREATED_AT]: 'createdAt',
 };
 
-export class UserQueryDto extends PaginationRequestDto {
+export class UserQueryDto extends SortQueryDto<UserSortFieldEnum> {
   @IsOptional()
   @IsEnum(UserSortFieldEnum)
-  sortBy?: UserSortFieldEnum;
+  declare sortBy?: UserSortFieldEnum;
 }

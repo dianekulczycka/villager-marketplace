@@ -16,9 +16,8 @@ import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UserPublicDto } from './dto/user-public.dto';
-import * as userRequestInterface from './interfaces/user-request.interface';
 import { UserSelfDto } from './dto/user-self.dto';
-import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
+import { PaginationResponse } from '../shared/pagination/pagination-response.interface';
 import { UserQueryDto } from './dto/user-query.dto';
 import { BecomeSellerRequestDto } from './dto/become-seller-request';
 import { AllowedRolesGuard } from '../auth/guards/allowed-roles.guard';
@@ -29,6 +28,7 @@ import { ModerationPipe } from '../moderation/moderation.pipe.service';
 import { ModerationInterceptor } from '../moderation/moderation.interceptor.service';
 import { TokenService } from '../security/token/token.service';
 import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';
+import * as userRequestInterface from './interfaces/user-request.interface';
 
 @ApiErrorResponses()
 @UseGuards(AuthGuard('jwt'))
@@ -42,7 +42,7 @@ export class UserController {
   @Get()
   async getAll(
     @Query() query: UserQueryDto,
-  ): Promise<IPaginatedResponse<UserPublicDto>> {
+  ): Promise<PaginationResponse<UserPublicDto>> {
     return this.userService.findAllPublic(query);
   }
 
@@ -53,7 +53,7 @@ export class UserController {
 
   @Get('profile')
   getProfile(
-    @Request() request: userRequestInterface.IUserRequest,
+    @Request() request: userRequestInterface.UserRequest,
   ): Promise<UserSelfDto> {
     return this.userService.findSelf(request);
   }
@@ -62,7 +62,7 @@ export class UserController {
   @UseInterceptors(ModerationInterceptor)
   @Patch('profile')
   async update(
-    @Request() request: userRequestInterface.IUserRequest,
+    @Request() request: userRequestInterface.UserRequest,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserSelfDto> {
     return this.userService.update(request, request.user.userId, updateUserDto);
@@ -71,18 +71,18 @@ export class UserController {
   @HttpCode(204)
   @Patch('profile/soft-delete')
   async softDelete(
-    @Request() request: userRequestInterface.IUserRequest,
+    @Request() request: userRequestInterface.UserRequest,
   ): Promise<void> {
     await this.userService.softDelete(request);
     await this.tokenService.blockTokensForUser(request.user.userId);
   }
 
   @UseGuards(AllowedRolesGuard)
-  @Roles(user_role.BUYER, user_role.SELLER, user_role.MANAGER, user_role.ADMIN)
+  @Roles(user_role.BUYER)
   @HttpCode(204)
   @Patch('profile/become-seller')
   async becomeSeller(
-    @Request() request: userRequestInterface.IUserRequest,
+    @Request() request: userRequestInterface.UserRequest,
     @Body() becomeSellerRequestDto: BecomeSellerRequestDto,
     @Res({ passthrough: true }) res: express.Response,
   ): Promise<void> {

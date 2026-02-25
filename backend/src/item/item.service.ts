@@ -6,9 +6,9 @@ import {
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { ItemPublicDto } from './dto/item-public';
-import { IUserRequest } from '../user/interfaces/user-request.interface';
+import { UserRequest } from '../user/interfaces/user-request.interface';
 import { PrismaService } from '../prisma/prisma.service';
-import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
+import { PaginationResponse } from '../shared/pagination/pagination-response.interface';
 import {
   ITEM_SORT_MAP,
   ItemQueryDto,
@@ -38,18 +38,20 @@ export class ItemService {
 
   async findAllPublic(
     query: ItemQueryDto,
-    request: IUserRequest,
-  ): Promise<IPaginatedResponse<ItemPublicDto>> {
+    request: UserRequest,
+  ): Promise<PaginationResponse<ItemPublicDto>> {
     const orderField = ITEM_SORT_MAP[query.sortBy ?? ItemSortFieldEnum.ID];
     const role = request.user.role;
 
     const where: Prisma.itemWhereInput =
       role === user_role.ADMIN || role === user_role.MANAGER
         ? {
+            ...(query.sellerId && { sellerId: query.sellerId }),
             ...buildItemSearchWhere(query.search),
           }
         : {
             ...ITEM_PUBLIC_WHERE_BASE,
+            ...(query.sellerId && { sellerId: query.sellerId }),
             ...buildItemSearchWhere(query.search),
           };
 
@@ -74,13 +76,13 @@ export class ItemService {
 
   async findById(
     id: number,
-    request: IUserRequest,
+    request: UserRequest,
   ): Promise<ItemPublicDetailedDto> {
     const { item } = await this.getItemForUser(id, request);
     return item;
   }
 
-  async incrementViews(id: number, request: IUserRequest): Promise<void> {
+  async incrementViews(id: number, request: UserRequest): Promise<void> {
     const { isAdmin, isOwner } = await this.getItemForUser(id, request);
     if (isAdmin || isOwner) return;
     await this.prisma.item.update({
@@ -89,7 +91,7 @@ export class ItemService {
     });
   }
 
-  private async getItemForUser(id: number, request: IUserRequest) {
+  private async getItemForUser(id: number, request: UserRequest) {
     const { userId, role } = request.user;
 
     const isAdmin = role === user_role.ADMIN || role === user_role.MANAGER;
@@ -114,7 +116,7 @@ export class ItemService {
     };
   }
 
-  async findMyItems(request: IUserRequest): Promise<ItemPublicDto[]> {
+  async findMyItems(request: UserRequest): Promise<ItemPublicDto[]> {
     const userId = request.user.userId;
 
     return this.prisma.item.findMany({
@@ -127,7 +129,7 @@ export class ItemService {
   }
 
   async create(
-    request: IUserRequest,
+    request: UserRequest,
     createItemDto: CreateItemDto,
   ): Promise<ItemPublicDto> {
     const { userId } = request.user;
@@ -155,7 +157,7 @@ export class ItemService {
   }
 
   async update(
-    request: IUserRequest,
+    request: UserRequest,
     id: number,
     updateItemDto: UpdateItemDto,
   ): Promise<ItemPublicDto> {
@@ -180,7 +182,7 @@ export class ItemService {
     });
   }
 
-  async softDelete(request: IUserRequest, id: number): Promise<void> {
+  async softDelete(request: UserRequest, id: number): Promise<void> {
     await canModifyItem(this.prisma, request, id);
     await this.prisma.item.update({
       where: { id },

@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { user_role } from '@prisma/client';
-import { IUserRequest } from '../../user/interfaces/user-request.interface';
+import { UserRequest } from '../../user/interfaces/user-request.interface';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from './allowed-roles.decorator';
 import { AUTH_ERRORS } from '../../shared/errors/auth.errors';
@@ -22,7 +22,7 @@ export class AllowedRolesGuard implements CanActivate {
 
     if (!roles?.length) return true;
 
-    const req = ctx.switchToHttp().getRequest<Request & IUserRequest>();
+    const req = ctx.switchToHttp().getRequest<Request & UserRequest>();
     const user = req.user;
 
     if (!user || !roles.includes(user.role)) {

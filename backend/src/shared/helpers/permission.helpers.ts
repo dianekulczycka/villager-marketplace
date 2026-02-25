@@ -1,4 +1,4 @@
-import { IUserRequest } from '../../user/interfaces/user-request.interface';
+import { UserRequest } from '../../user/interfaces/user-request.interface';
 import { user_role } from '@prisma/client';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { USER_ERRORS } from '../errors/user.errors';
@@ -6,7 +6,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { ITEM_ERRORS } from '../errors/item.errors';
 
 export function canModifyUser(
-  request: IUserRequest,
+  request: UserRequest,
   targetId: number,
   targetRole: user_role,
 ) {
@@ -37,7 +37,7 @@ export function canModifyUser(
 
 export async function canModifyItem(
   prisma: PrismaService,
-  request: IUserRequest,
+  request: UserRequest,
   itemId: number,
 ) {
   const { userId, role } = request.user;

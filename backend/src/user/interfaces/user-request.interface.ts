@@ -1,5 +1,5 @@
-import { IJwtPayload } from '../../shared/interfaces/jwt-payload.interface';
+import { JwtPayload } from '../../shared/interfaces/jwt-payload.interface';
 
-export interface IUserRequest extends Request {
-  user: IJwtPayload;
+export interface UserRequest extends Request {
+  user: JwtPayload;
 }

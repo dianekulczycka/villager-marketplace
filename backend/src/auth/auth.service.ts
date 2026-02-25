@@ -7,7 +7,7 @@ import * as bcrypt from 'bcrypt';
 import { user } from '@prisma/client';
 import { TokenService } from '../security/token/token.service';
 import { USER_PUBLIC_SELECT } from '../prisma/helpers/user.helpers';
-import { ITokenPair } from '../shared/interfaces/token-pair.interface';
+import { TokenPair } from '../shared/interfaces/token-pair.interface';
 import { AUTH_ERRORS } from '../shared/errors/auth.errors';
 import { BUYER_ICON } from '../shared/helpers/icon-map.helper';
 
@@ -31,7 +31,7 @@ export class AuthService {
     });
   }
 
-  async login(loginDto: UserLoginRequestDto): Promise<ITokenPair> {
+  async login(loginDto: UserLoginRequestDto): Promise<TokenPair> {
     const user: user = await this.validateUser(
       loginDto.email,
       loginDto.password,
@@ -40,7 +40,7 @@ export class AuthService {
     return this.tokenService.issueTokenPairForUser(user.id);
   }
 
-  async refresh(refreshToken: string): Promise<ITokenPair> {
+  async refresh(refreshToken: string): Promise<TokenPair> {
     return this.tokenService.refreshTokenPair(refreshToken);
   }
 

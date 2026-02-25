@@ -6,6 +6,5 @@ export const AUTH_ERRORS = {
   AUTH_REQUIRED: 'Authentication required',
   ACCOUNT_DELETED:
     'Account is deleted or banned. Contact managers using recovery request',
-  FORBIDDEN_BY_ROLE: (r: user_role | user_role[]) =>
-    `${[].concat(r as any).join(', ')} not allowed`,
+  FORBIDDEN_BY_ROLE: (role: user_role) => `${role} not allowed`,
 };

@@ -14,7 +14,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { AdminService } from './admin.service';
 import { UserQueryDto } from '../user/dto/user-query.dto';
-import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
+import { PaginationResponse } from '../shared/pagination/pagination-response.interface';
 import * as userRequestInterface from '../user/interfaces/user-request.interface';
 import { UserAdminDto } from '../user/dto/user-admin.dto';
 import { AllowedRolesGuard } from '../auth/guards/allowed-roles.guard';
@@ -48,7 +48,7 @@ export class AdminController {
   @Get('users')
   async getAllUsers(
     @Query() query: UserQueryDto,
-  ): Promise<IPaginatedResponse<UserAdminDto>> {
+  ): Promise<PaginationResponse<UserAdminDto>> {
     return this.adminService.findAllUsers(query);
   }
 
@@ -57,7 +57,7 @@ export class AdminController {
   @Get('users/flagged')
   async getFlaggedUsers(
     @Query() query: UserQueryDto,
-  ): Promise<IPaginatedResponse<UserAdminDto>> {
+  ): Promise<PaginationResponse<UserAdminDto>> {
     return this.adminService.findFlaggedUsers(query);
   }
 
@@ -66,7 +66,7 @@ export class AdminController {
   @Get('users/banned')
   async getBannedUsers(
     @Query() query: UserQueryDto,
-  ): Promise<IPaginatedResponse<UserAdminDto>> {
+  ): Promise<PaginationResponse<UserAdminDto>> {
     return this.adminService.findBannedUsers(query);
   }
 
@@ -75,7 +75,7 @@ export class AdminController {
   @Patch('users/:id')
   updateUserByAdmin(
     @Param('id') id: string,
-    @Request() request: userRequestInterface.IUserRequest,
+    @Request() request: userRequestInterface.UserRequest,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserSelfDto> {
     return this.userService.update(request, Number(id), updateUserDto);
@@ -87,7 +87,7 @@ export class AdminController {
   @Patch('users/:id/soft-delete')
   async softDeleteUserByAdmin(
     @Param('id') id: string,
-    @Request() request: userRequestInterface.IUserRequest,
+    @Request() request: userRequestInterface.UserRequest,
   ): Promise<void> {
     return this.userService.softDelete(request, Number(id));
   }
@@ -98,7 +98,7 @@ export class AdminController {
   @Patch('users/:id/ban')
   async banUser(
     @Param('id') id: string,
-    @Request() request: userRequestInterface.IUserRequest,
+    @Request() request: userRequestInterface.UserRequest,
   ) {
     await this.adminService.banUser(Number(id), request);
     await this.tokenService.blockTokensForUser(Number(id));

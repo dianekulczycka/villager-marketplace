@@ -17,15 +17,15 @@ import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { ItemPublicDto } from './dto/item-public';
 import * as userRequestInterface from '../user/interfaces/user-request.interface';
-import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
+import { PaginationResponse } from '../shared/pagination/pagination-response.interface';
 import { ItemQueryDto } from './dto/item-query.dto';
 import { AllowedRolesGuard } from '../auth/guards/allowed-roles.guard';
-import { user_role } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/guards/allowed-roles.decorator';
 import { ModerationPipe } from '../moderation/moderation.pipe.service';
 import { ModerationInterceptor } from '../moderation/moderation.interceptor.service';
 import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';
+import { user_role } from '@prisma/client';
 
 @ApiErrorResponses()
 @UseGuards(AuthGuard('jwt'))
@@ -36,15 +36,15 @@ export class ItemController {
   @Get('')
   async getAll(
     @Query() query: ItemQueryDto,
-    @Request() request: userRequestInterface.IUserRequest,
-  ): Promise<IPaginatedResponse<ItemPublicDto>> {
+    @Request() request: userRequestInterface.UserRequest,
+  ): Promise<PaginationResponse<ItemPublicDto>> {
     return this.itemsService.findAllPublic(query, request);
   }
 
   @Get('id/:id')
   async getById(
     @Param('id') id: string,
-    @Request() request: userRequestInterface.IUserRequest,
+    @Request() request: userRequestInterface.UserRequest,
   ): Promise<ItemPublicDto> {
     return this.itemsService.findById(Number(id), request);
   }
@@ -52,8 +52,8 @@ export class ItemController {
   @Post('id/:id/views')
   async incrementViews(
     @Param('id') id: string,
-    @Request() request: userRequestInterface.IUserRequest,
-  ) {
+    @Request() request: userRequestInterface.UserRequest,
+  ): Promise<void> {
     await this.itemsService.incrementViews(Number(id), request);
   }
 
@@ -61,7 +61,7 @@ export class ItemController {
   @Roles(user_role.SELLER)
   @Get('my')
   async getMyItems(
-    @Request() request: userRequestInterface.IUserRequest,
+    @Request() request: userRequestInterface.UserRequest,
   ): Promise<ItemPublicDto[]> {
     return this.itemsService.findMyItems(request);
   }
@@ -72,7 +72,7 @@ export class ItemController {
   @UseInterceptors(ModerationInterceptor)
   @Post('')
   async create(
-    @Request() request: userRequestInterface.IUserRequest,
+    @Request() request: userRequestInterface.UserRequest,
     @Body() createItemDto: CreateItemDto,
   ): Promise<ItemPublicDto> {
     return await this.itemsService.create(request, createItemDto);
@@ -85,7 +85,7 @@ export class ItemController {
   @Patch('id/:id')
   async update(
     @Param('id') id: string,
-    @Request() request: userRequestInterface.IUserRequest,
+    @Request() request: userRequestInterface.UserRequest,
     @Body() updateItemDto: UpdateItemDto,
   ): Promise<ItemPublicDto> {
     return this.itemsService.update(request, Number(id), updateItemDto);
@@ -97,7 +97,7 @@ export class ItemController {
   @Patch('id/:id/soft-delete')
   async softDelete(
     @Param('id') id: string,
-    @Request() request: userRequestInterface.IUserRequest,
+    @Request() request: userRequestInterface.UserRequest,
   ): Promise<void> {
     return this.itemsService.softDelete(request, Number(id));
   }

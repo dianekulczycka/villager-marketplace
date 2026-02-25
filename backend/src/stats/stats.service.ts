@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IUserRequest } from '../user/interfaces/user-request.interface';
+import { UserRequest } from '../user/interfaces/user-request.interface';
 import { user_role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProfileStats } from './interfaces/stats.interface';
@@ -7,12 +7,13 @@ import {
   ADMIN_BANNED_USERS_WHERE,
   ADMIN_FLAGGED_USERS_WHERE,
 } from '../prisma/helpers/user.helpers';
+import { AUTH_ERRORS } from '../shared/errors/auth.errors';
 
 @Injectable()
 export class StatsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getProfileStats(request: IUserRequest): Promise<ProfileStats> {
+  async getProfileStats(request: UserRequest): Promise<ProfileStats> {
     const { userId, role } = request.user;
 
     if (role === user_role.SELLER) {
@@ -61,10 +62,6 @@ export class StatsService {
         totalItems,
       };
     }
-
-    return {
-      role: user_role.BUYER,
-      totalItems: 0,
-    };
+    throw new Error(AUTH_ERRORS.FORBIDDEN_BY_ROLE(role));
   }
 }

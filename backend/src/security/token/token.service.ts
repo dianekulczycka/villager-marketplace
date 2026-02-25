@@ -8,9 +8,9 @@ import { ConfigService } from '@nestjs/config';
 import { user } from '@prisma/client';
 import express from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ITokenPair } from '../../shared/interfaces/token-pair.interface';
+import { TokenPair } from '../../shared/interfaces/token-pair.interface';
 import { USER_ERRORS } from '../../shared/errors/user.errors';
-import { IJwtPayload } from '../../shared/interfaces/jwt-payload.interface';
+import { JwtPayload } from '../../shared/interfaces/jwt-payload.interface';
 import {
   TOKEN_ACTIVE_WHERE,
   TOKEN_BLOCK_DATA,
@@ -60,7 +60,7 @@ export class TokenService {
     });
   }
 
-  async issueTokenPairForUser(userId: number): Promise<ITokenPair> {
+  async issueTokenPairForUser(userId: number): Promise<TokenPair> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, email: true, role: true },
@@ -69,7 +69,7 @@ export class TokenService {
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
 
     const jti = this.generateUniqueJti();
-    const payload: IJwtPayload = {
+    const payload: JwtPayload = {
       userId: user.id,
       email: user.email,
       role: user.role,
@@ -88,9 +88,9 @@ export class TokenService {
     return tokens;
   }
 
-  async refreshTokenPair(refreshToken: string): Promise<ITokenPair> {
+  async refreshTokenPair(refreshToken: string): Promise<TokenPair> {
     try {
-      this.jwtService.verify<IJwtPayload>(refreshToken);
+      this.jwtService.verify<JwtPayload>(refreshToken);
 
       const tokenEntity = await this.prisma.token.findFirst({
         where: TOKEN_ACTIVE_WHERE(refreshToken),
@@ -172,7 +172,7 @@ export class TokenService {
     res.clearCookie('refreshToken');
   }
 
-  private generateTokenPair(payload: IJwtPayload): ITokenPair {
+  private generateTokenPair(payload: JwtPayload): TokenPair {
     const accessToken: string = this.jwtService.sign(payload, {
       expiresIn: `${this.accessTokenExpirationTime}s`,
     });
@@ -195,7 +195,7 @@ export class TokenService {
     return new Date(Date.now() + seconds * 1000);
   }
 
-  private buildJwtPayload(user: user, jti: string): IJwtPayload {
+  private buildJwtPayload(user: user, jti: string): JwtPayload {
     return {
       userId: user.id,
       email: user.email,

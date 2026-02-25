@@ -18,7 +18,7 @@ export class PaginationRequestDto {
   @IsInt()
   @Min(1)
   @Max(50)
-  perPage = 10;
+  perPage = 12;
 
   @IsOptional()
   @IsEnum(SortDirectionEnum)

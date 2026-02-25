@@ -6,9 +6,9 @@ import {
 import { Prisma, user_role } from '@prisma/client';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserPublicDto } from './dto/user-public.dto';
-import { IUserRequest } from './interfaces/user-request.interface';
+import { UserRequest } from './interfaces/user-request.interface';
 import { UserSelfDto } from './dto/user-self.dto';
-import { IPaginatedResponse } from '../shared/pagination/pagination-response.interface';
+import { PaginationResponse } from '../shared/pagination/pagination-response.interface';
 import {
   USER_SORT_MAP,
   UserQueryDto,
@@ -56,7 +56,7 @@ export class UserService {
 
   async findAllPublic(
     query: UserQueryDto,
-  ): Promise<IPaginatedResponse<UserPublicDto>> {
+  ): Promise<PaginationResponse<UserPublicDto>> {
     const orderField = USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.ID];
     const where: Prisma.userWhereInput = {
       ...USER_PUBLIC_WHERE_BASE,
@@ -86,7 +86,7 @@ export class UserService {
     return user;
   }
 
-  async findSelf(request: IUserRequest): Promise<UserSelfDto> {
+  async findSelf(request: UserRequest): Promise<UserSelfDto> {
     const { userId } = request.user;
     const user = await this.prisma.user.findUnique({
       where: {
@@ -104,7 +104,7 @@ export class UserService {
   // -------------------------------------------- PATCH -----------------------------------------------------
 
   async update(
-    request: IUserRequest,
+    request: UserRequest,
     targetUserId: number,
     updateUserDto: UpdateUserDto,
   ): Promise<UserSelfDto> {
@@ -124,10 +124,7 @@ export class UserService {
     });
   }
 
-  async softDelete(
-    request: IUserRequest,
-    targetUserId?: number,
-  ): Promise<void> {
+  async softDelete(request: UserRequest, targetUserId?: number): Promise<void> {
     targetUserId = targetUserId ?? request.user.userId;
     const target = await this.prisma.user.findUnique({
       where: { id: targetUserId },
@@ -154,7 +151,7 @@ export class UserService {
   }
 
   async makeUserSeller(
-    request: IUserRequest,
+    request: UserRequest,
     becomeSellerRequestDto: BecomeSellerRequestDto,
   ): Promise<number> {
     const userId = request.user.userId;
@@ -165,10 +162,6 @@ export class UserService {
     });
 
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
-
-    if (user.role === user_role.ADMIN || user.role === user_role.MANAGER) {
-      throw new BadRequestException(USER_ERRORS.CANNOT_BECOME_SELLER);
-    }
 
     await this.prisma.$transaction([
       ...(user.role === user_role.SELLER
@@ -201,7 +194,7 @@ export class UserService {
 
   async findAllUsers(
     query: UserQueryDto,
-  ): Promise<IPaginatedResponse<UserAdminDto>> {
+  ): Promise<PaginationResponse<UserAdminDto>> {
     const orderField = USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.ID];
 
     return paginatePrisma<UserAdminDto>(
@@ -218,7 +211,7 @@ export class UserService {
 
   async findFlaggedUsers(
     query: UserQueryDto,
-  ): Promise<IPaginatedResponse<UserAdminDto>> {
+  ): Promise<PaginationResponse<UserAdminDto>> {
     const orderField = USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.ID];
     return paginatePrisma<UserAdminDto>(
       this.prisma.user,
@@ -234,7 +227,7 @@ export class UserService {
 
   async findBannedUsers(
     query: UserQueryDto,
-  ): Promise<IPaginatedResponse<UserAdminDto>> {
+  ): Promise<PaginationResponse<UserAdminDto>> {
     const orderField = USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.ID];
 
     return paginatePrisma<UserAdminDto>(
@@ -266,7 +259,7 @@ export class UserService {
 
   // -------------------------------------------- PATCH -----------------------------------------------------
 
-  async banUser(userId: number, request: IUserRequest): Promise<void> {
+  async banUser(userId: number, request: UserRequest): Promise<void> {
     const user = await this.prisma.user.findFirst({
       where: { id: userId, isDeleted: 0 },
       select: { id: true },

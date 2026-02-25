@@ -52,7 +52,7 @@ export class AuthController {
     return user;
   }
 
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle({ default: { limit: 60, ttl: 60000 } })
   @HttpCode(201)
   @Post('login')
   async login(
@@ -65,7 +65,6 @@ export class AuthController {
   }
 
   @SkipThrottle()
-  @UseGuards(AuthGuard('jwt'))
   @HttpCode(204)
   @Post('refresh')
   async refresh(

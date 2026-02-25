@@ -1,5 +1,5 @@
 import { PrismaPromise } from '@prisma/client';
-import { IPaginatedResponse } from './pagination-response.interface';
+import { PaginationResponse } from './pagination-response.interface';
 
 export async function paginatePrisma<T>(
   model: {
@@ -14,7 +14,7 @@ export async function paginatePrisma<T>(
   },
   page = 1,
   perPage = 10,
-): Promise<IPaginatedResponse<T>> {
+): Promise<PaginationResponse<T>> {
   const skip = (page - 1) * perPage;
 
   const [data, total] = await Promise.all([

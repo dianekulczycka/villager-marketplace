@@ -1,5 +1,6 @@
-import { IsEnum, IsOptional } from 'class-validator';
-import { PaginationRequestDto } from '../../shared/pagination/pagination-request.dto';
+import { IsEnum, IsInt, IsOptional, Min } from 'class-validator';
+import { SortQueryDto } from '../../shared/pagination/sort-query.dto';
+import { Type } from 'class-transformer';
 
 export enum ItemSortFieldEnum {
   ID = 'id',
@@ -21,8 +22,13 @@ export const ITEM_SORT_MAP: Record<ItemSortFieldEnum, string> = {
   [ItemSortFieldEnum.SELLER_ID]: 'sellerId',
 };
 
-export class ItemQueryDto extends PaginationRequestDto {
+export class ItemQueryDto extends SortQueryDto<ItemSortFieldEnum> {
   @IsOptional()
   @IsEnum(ItemSortFieldEnum)
-  sortBy?: ItemSortFieldEnum;
+  declare sortBy?: ItemSortFieldEnum;
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  sellerId?: number;
 }

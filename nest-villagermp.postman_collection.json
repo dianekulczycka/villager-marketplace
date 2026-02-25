@@ -70,7 +70,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"email\": \"example@gmail.com\",\r\n    \"password\": \"rootroot1\"\r\n}",
+              "raw": "{\r\n    \"email\": \"admin@gmail.com\",\r\n    \"password\": \"rootroot2\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -110,14 +110,7 @@
           ],
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "POST",
             "header": [],
@@ -148,14 +141,7 @@
           "name": "localhost:3003/auth/logout",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "POST",
             "header": [],
@@ -235,14 +221,7 @@
           "name": "localhost:3003/users",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "GET",
             "header": [],
@@ -263,19 +242,12 @@
           "name": "localhost:3003/users/id/1",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "localhost:3003/users/id/5",
+              "raw": "localhost:3003/users/id/6",
               "host": [
                 "localhost"
               ],
@@ -283,7 +255,7 @@
               "path": [
                 "users",
                 "id",
-                "5"
+                "6"
               ]
             }
           },
@@ -293,14 +265,7 @@
           "name": "localhost:3003/users/profile",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "GET",
             "header": [],
@@ -322,14 +287,7 @@
           "name": "localhost:3003/users/profile/stats",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "GET",
             "header": [],
@@ -352,14 +310,7 @@
           "name": "localhost:3003/users/profile",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "PATCH",
             "header": [],
@@ -390,14 +341,7 @@
           "name": "localhost:3003/users/profile/soft-delete",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "PATCH",
             "header": [],
@@ -444,14 +388,7 @@
           ],
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "PATCH",
             "header": [],
@@ -488,14 +425,7 @@
           "name": "localhost:3003/items",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "GET",
             "header": [],
@@ -516,14 +446,7 @@
           "name": "localhost:3003/items/id/3",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "GET",
             "header": [],
@@ -546,14 +469,7 @@
           "name": "localhost:3003/items/my",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "GET",
             "header": [],
@@ -575,14 +491,7 @@
           "name": "localhost:3003/items",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "POST",
             "header": [],
@@ -612,14 +521,7 @@
           "name": "localhost:3003/items/id/3",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "PATCH",
             "header": [],
@@ -651,14 +553,7 @@
           "name": "localhost:3003/items/1/soft-delete",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "PATCH",
             "header": [],
@@ -690,14 +585,7 @@
           },
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "GET",
             "header": [],
@@ -726,14 +614,7 @@
           },
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "GET",
             "header": [],
@@ -763,14 +644,7 @@
           },
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "GET",
             "header": [],
@@ -800,14 +674,7 @@
           },
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "GET",
             "header": [],
@@ -833,14 +700,7 @@
           "name": "localhost:3003/admin/users/3",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "PATCH",
             "header": [],
@@ -872,14 +732,7 @@
           "name": "localhost:3003/admin/users/3/soft-delete",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "PATCH",
             "header": [],
@@ -907,14 +760,7 @@
           "name": "localhost:3003/admin/users/3/restore",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "PATCH",
             "header": [],
@@ -942,14 +788,7 @@
           "name": "localhost:3003/admin/users/3",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "DELETE",
             "header": [],
@@ -976,14 +815,7 @@
           "name": "localhost:3003/admin/users/3/ban",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "PATCH",
             "header": [],
@@ -1011,14 +843,7 @@
           "name": "localhost:3003/admin/users/3/unban",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "PATCH",
             "header": [],
@@ -1046,14 +871,7 @@
           "name": "localhost:3003/admin/users/4/unflag",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "PATCH",
             "header": [],
@@ -1081,14 +899,7 @@
           "name": "localhost:3003/admin/users/4/promote-manager",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "PATCH",
             "header": [],
@@ -1116,14 +927,7 @@
           "name": "localhost:3003/admin/users/4/demote",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "PATCH",
             "header": [],

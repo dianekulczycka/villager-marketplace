@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
-import { IUserRequest } from '../user/interfaces/user-request.interface';
+import { UserRequest } from '../user/interfaces/user-request.interface';
 import { hasSwearWords } from '../shared/filters/swear-words.filter';
 import { TokenService } from '../security/token/token.service';
 
@@ -19,7 +19,7 @@ export class ModerationInterceptor implements NestInterceptor {
   ) {}
 
   async intercept(ctx: ExecutionContext, next: CallHandler) {
-    const req = ctx.switchToHttp().getRequest<Request & IUserRequest>();
+    const req = ctx.switchToHttp().getRequest<Request & UserRequest>();
     const userId = req.user?.userId;
 
     if (!userId) return next.handle();

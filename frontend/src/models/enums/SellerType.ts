@@ -1,0 +1,7 @@
+export type SellerType = 'ARMORER' | 'BUTCHER'
+  | 'CARTOGRAPHER' | 'CLERIC'
+  | 'FARMER' | 'FISHERMAN'
+  | 'FLETCHER' |'LEATHERWORKER'
+  | 'LIBRARIAN' | 'MASON'
+  | 'SHEPHERD' | 'TOOLSMITH'
+  | 'WEAPONSMITH';

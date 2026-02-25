@@ -1,6 +1,6 @@
 import { user_role } from '@prisma/client';
 
-export interface IJwtPayload {
+export interface JwtPayload {
   userId: number;
   email: string;
   role: user_role;

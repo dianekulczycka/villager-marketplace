@@ -44,13 +44,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       message = this.cleanMessage(res?.message ?? exception.message);
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       switch (exception.code) {
-        case 'P2002':
+        case 'P2002': {
           httpStatus = HttpStatus.CONFLICT;
-          message = 'Resource already exists';
+          message = 'Already exists';
           break;
+        }
         case 'P2025':
           httpStatus = HttpStatus.NOT_FOUND;
-          message = 'Resource not found';
+          message = 'Not found';
           break;
         default:
           httpStatus = HttpStatus.BAD_REQUEST;

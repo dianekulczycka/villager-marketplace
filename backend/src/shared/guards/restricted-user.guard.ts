@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
-import { IUserRequest } from '../../user/interfaces/user-request.interface';
+import { UserRequest } from '../../user/interfaces/user-request.interface';
 import { USER_ERRORS } from '../errors/user.errors';
 
 @Injectable()
@@ -16,7 +16,7 @@ export class RestrictedUserGuard implements CanActivate {
   constructor(private readonly prisma: PrismaService) {}
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
-    const req = ctx.switchToHttp().getRequest<Request & IUserRequest>();
+    const req = ctx.switchToHttp().getRequest<Request & UserRequest>();
     const userId = req.user?.userId;
 
     if (!userId) return true;
