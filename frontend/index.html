@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="http://localhost:3003/icons/village.webp" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title> Village </title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="app-loader">
+      <div class="spinner"></div>
+    </div>
+    <style>
+        #app-loader::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+        }
+
+        #app-loader {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: url("http://localhost:3003/bg/bg.jpg");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            z-index: 9999;
+        }
+
+        .spinner {
+            width: 5em;
+            height: 5em;
+            border: 7px solid rgba(156, 39, 176, 0.15);
+            border-top-color: #9c27b0;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
