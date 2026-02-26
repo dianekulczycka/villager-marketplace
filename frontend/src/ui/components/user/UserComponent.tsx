@@ -45,7 +45,7 @@ const UserComponent: FC<Props> = ({ user }) => {
             {user.sellerType}
           </Typography>
           <Typography variant="caption" color="text.secondary" display="block">
-            Since {user.createdAt.slice(0, 10)}
+            Since {new Date(user.createdAt).toLocaleString()}
           </Typography>
         </Box>
       </CardContent>

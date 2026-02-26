@@ -3,7 +3,7 @@ import type { UserSelfView } from '../../models/user/UserSelfView.ts';
 import { AuthContext } from '../context/auth.context.ts';
 import { Outlet, useLocation } from 'react-router';
 import { getMe } from '../../services/fetch/user.service.ts';
-import { publicRoutes } from '../../services/api.endpoints.ts';
+import { publicRoutes } from '../../routes/routes.ts';
 
 export const AuthProvider: FC = () => {
   const [user, setUser] = useState<UserSelfView | null>(null);
@@ -30,7 +30,7 @@ export const AuthProvider: FC = () => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, isLoaded }}>
+    <AuthContext.Provider value={{ user, setUser, loadUser, isLoaded }}>
       <Outlet />
     </AuthContext.Provider>
   );

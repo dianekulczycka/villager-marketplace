@@ -15,7 +15,7 @@ export const HeaderComponent: FC = () => {
       await logout();
     } finally {
       setUser(null);
-      navigate(routes.auth.login);
+      navigate(`${routes.auth.root}/${routes.auth.login}`);
     }
   };
 
@@ -65,7 +65,7 @@ export const HeaderComponent: FC = () => {
         <>
           <Avatar
             component={RouterLink}
-            to={routes.users.me}
+            to={`${routes.users.root}/${routes.users.me}`}
             src={`http://localhost:3003/icons/user/${user.iconUrl}`}
             alt={user.username}
             sx={{

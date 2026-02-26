@@ -99,7 +99,7 @@ const ItemComponent: FC<Props> = ({ item }) => {
               {item.seller.sellerType}
             </Typography>
             <Typography variant="caption" color="text.secondary" display="block">
-              Since {item.seller.createdAt.slice(0, 10)}
+              Since {new Date(item.seller.createdAt).toLocaleString()}
             </Typography>
           </Box>
         </Box>

@@ -61,9 +61,10 @@ export class ItemController {
   @Roles(user_role.SELLER)
   @Get('my')
   async getMyItems(
+    @Query() query: ItemQueryDto,
     @Request() request: userRequestInterface.UserRequest,
-  ): Promise<ItemPublicDto[]> {
-    return this.itemsService.findMyItems(request);
+  ): Promise<PaginationResponse<ItemPublicDto>> {
+    return this.itemsService.findMyItems(query, request);
   }
 
   @UseGuards(AllowedRolesGuard)

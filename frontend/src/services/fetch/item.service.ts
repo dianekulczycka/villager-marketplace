@@ -8,7 +8,7 @@ import type { UpdateItemDto } from '../../models/item/UpdateItemDto.ts';
 import type { ItemQueryParams } from '../../models/item/ItemQueryParams.ts';
 
 export const getAll = async (
-  params?: ItemQueryParams
+  params?: ItemQueryParams,
 ): Promise<PaginationRes<ItemView>> => {
   const { data } = await api.get(endpoints.items.root, { params });
   return data;
@@ -23,8 +23,9 @@ export const increaseViews = async (id: number): Promise<void> => {
   await api.post(endpoints.items.increaseViews(id));
 };
 
-export const getMy = async (): Promise<void> => {
-  await api.post(endpoints.items.my);
+export const getMy = async (params?: ItemQueryParams): Promise<PaginationRes<ItemView>> => {
+  const { data } = await api.get(endpoints.items.my, { params });
+  return data;
 };
 
 export const post = async (dto: CreateItemDto): Promise<ItemView> => {
@@ -32,8 +33,8 @@ export const post = async (dto: CreateItemDto): Promise<ItemView> => {
   return data;
 };
 
-export const update = async (dto: UpdateItemDto): Promise<ItemView> => {
-  const { data } = await api.patch(endpoints.items.root, dto);
+export const update = async (id: number, dto: UpdateItemDto): Promise<ItemView> => {
+  const { data } = await api.patch(`${endpoints.items.root}/${id}`, dto);
   return data;
 };
 

@@ -45,9 +45,3 @@ export const endpoints = {
     demote: (id: number) => `${roots.admin}/${id}/demote`,
   },
 } as const;
-
-export const publicRoutes = [
-  endpoints.auth.register,
-  endpoints.auth.login,
-  endpoints.auth.recovery,
-];

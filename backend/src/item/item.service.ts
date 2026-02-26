@@ -116,16 +116,18 @@ export class ItemService {
     };
   }
 
-  async findMyItems(request: UserRequest): Promise<ItemPublicDto[]> {
+  async findMyItems(
+    query: ItemQueryDto,
+    request: UserRequest,
+  ): Promise<PaginationResponse<ItemPublicDto>> {
     const userId = request.user.userId;
-
-    return this.prisma.item.findMany({
-      where: {
+    return this.findAllPublic(
+      {
+        ...query,
         sellerId: userId,
-        isDeleted: 0,
       },
-      select: ITEM_PUBLIC_SELECT,
-    });
+      request,
+    );
   }
 
   async create(

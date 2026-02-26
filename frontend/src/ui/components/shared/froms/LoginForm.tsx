@@ -7,14 +7,13 @@ import { loginSchema } from '../../../../validation/auth.schema.ts';
 import type { LoginReq } from '../../../../models/auth/LoginReq.ts';
 import { useAuth } from '../../../../store/helpers/useAuth.ts';
 import { login } from '../../../../services/fetch/auth.service.ts';
-import { getMe } from '../../../../services/fetch/user.service.ts';
 import ErrorComponent from '../../error/ErrorComponent.tsx';
 import { routes } from '../../../../routes/routes.ts';
 
 const LoginForm: FC = () => {
   const navigate = useNavigate();
-  const [error, setError] = useState<string>('');
-  const { setUser } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const { loadUser } = useAuth();
 
   const {
     register,
@@ -27,8 +26,7 @@ const LoginForm: FC = () => {
   const onSubmit = async (data: LoginReq) => {
     try {
       await login(data);
-      const me = await getMe();
-      setUser(me);
+      loadUser();
       navigate(routes.items.root);
     } catch (e) {
       if (e instanceof Error) {

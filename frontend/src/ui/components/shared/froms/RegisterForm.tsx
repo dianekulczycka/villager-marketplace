@@ -11,7 +11,8 @@ import { routes } from '../../../../routes/routes.ts';
 
 const RegisterForm: FC = () => {
   const navigate = useNavigate();
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+
   const {
     register,
     handleSubmit,

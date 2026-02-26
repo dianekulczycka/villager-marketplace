@@ -11,6 +11,7 @@ import ItemDetailsPage from '../ui/pages/items/ItemDetailsPage.tsx';
 import UsersPage from '../ui/pages/users/UsersPage.tsx';
 import ErrorPage404 from '../ui/pages/error/ErrorPage404.tsx';
 import { routes } from './routes.ts';
+import UserProfilePage from '../ui/pages/users/UserProfilePage.tsx';
 
 export const router = createBrowserRouter([
   {
@@ -43,7 +44,7 @@ export const router = createBrowserRouter([
             path: routes.users.root,
             children: [
               { index: true, element: <UsersPage /> },
-              { path: routes.users.byId, element: <ItemsPage /> },
+              { path: routes.users.me, element: <UserProfilePage /> },
             ],
           },
           {
