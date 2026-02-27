@@ -1,22 +1,17 @@
 import { type FC } from 'react';
 import { AppBar, Avatar, Button, Link, Toolbar } from '@mui/material';
-import { logout } from '../../../services/fetch/auth.service.ts';
 import { useAuth } from '../../../store/helpers/useAuth.ts';
 import { Link as RouterLink, useNavigate } from 'react-router';
 import ErrorComponent from '../error/ErrorComponent.tsx';
 import { routes } from '../../../routes/routes.ts';
 
 export const HeaderComponent: FC = () => {
-  const { user, setUser } = useAuth();
+  const { user, logoutUser } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    try {
-      await logout();
-    } finally {
-      setUser(null);
-      navigate(`${routes.auth.root}/${routes.auth.login}`);
-    }
+    logoutUser();
+    navigate(`${routes.auth.root}/${routes.auth.login}`);
   };
 
   if (!user) return <ErrorComponent error="no user" />;
@@ -66,7 +61,7 @@ export const HeaderComponent: FC = () => {
           <Avatar
             component={RouterLink}
             to={`${routes.users.root}/${routes.users.me}`}
-            src={`http://localhost:3003/icons/user/${user.iconUrl}`}
+            src={routes.icons.user(user.iconUrl)}
             alt={user.username}
             sx={{
               width: 42,

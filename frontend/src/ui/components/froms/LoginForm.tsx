@@ -1,20 +1,18 @@
-import { type FC, useState } from 'react';
+import { type FC } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { alpha, Box, Button, TextField, Typography } from '@mui/material';
-import { loginSchema } from '../../../../validation/auth.schema.ts';
-import type { LoginReq } from '../../../../models/auth/LoginReq.ts';
-import { useAuth } from '../../../../store/helpers/useAuth.ts';
-import { login } from '../../../../services/fetch/auth.service.ts';
-import ErrorComponent from '../../error/ErrorComponent.tsx';
-import { routes } from '../../../../routes/routes.ts';
+import type { LoginReq } from '../../../models/auth/LoginReq.ts';
+import { loginSchema } from '../../../validation/auth.schema.ts';
+import ErrorComponent from '../error/ErrorComponent.tsx';
 
-const LoginForm: FC = () => {
-  const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
-  const { loadUser } = useAuth();
+interface Props {
+  onLogin: (data: LoginReq) => Promise<void>;
+  error: string | null;
+}
 
+const LoginForm: FC<Props> = ({ onLogin, error }) => {
   const {
     register,
     handleSubmit,
@@ -22,18 +20,6 @@ const LoginForm: FC = () => {
   } = useForm<LoginReq>({
     resolver: zodResolver(loginSchema),
   });
-
-  const onSubmit = async (data: LoginReq) => {
-    try {
-      await login(data);
-      loadUser();
-      navigate(routes.items.root);
-    } catch (e) {
-      if (e instanceof Error) {
-        setError(e.message);
-      }
-    }
-  };
 
   return (
     <Box sx={(theme) => ({
@@ -49,7 +35,7 @@ const LoginForm: FC = () => {
     })}>
       <Typography variant="h5"> Log in </Typography>
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onLogin)}
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -72,8 +58,14 @@ const LoginForm: FC = () => {
         />
         <Button variant="outlined" type="submit">Log in</Button>
       </form>
+
+
       <Typography variant="caption"> Don't have an account? <Link to="/auth/register"> Register </Link></Typography>
+
+
       {error && <ErrorComponent error={error} />}
+
+
     </Box>
   );
 };

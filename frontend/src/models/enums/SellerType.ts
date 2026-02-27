@@ -1,7 +1,18 @@
-export type SellerType = 'ARMORER' | 'BUTCHER'
-  | 'CARTOGRAPHER' | 'CLERIC'
-  | 'FARMER' | 'FISHERMAN'
-  | 'FLETCHER' |'LEATHERWORKER'
-  | 'LIBRARIAN' | 'MASON'
-  | 'SHEPHERD' | 'TOOLSMITH'
-  | 'WEAPONSMITH';
+export const SellerTypes = {
+  ARMORER: 'ARMORER',
+  BUTCHER: 'BUTCHER',
+  CARTOGRAPHER: 'CARTOGRAPHER',
+  CLERIC: 'CLERIC',
+  FARMER: 'FARMER',
+  FISHERMAN: 'FISHERMAN',
+  FLETCHER: 'FLETCHER',
+  LEATHERWORKER: 'LEATHERWORKER',
+  LIBRARIAN: 'LIBRARIAN',
+  MASON: 'MASON',
+  SHEPHERD: 'SHEPHERD',
+  TOOLSMITH: 'TOOLSMITH',
+  WEAPONSMITH: 'WEAPONSMITH',
+} as const;
+
+export type SellerType =
+  typeof SellerTypes[keyof typeof SellerTypes];

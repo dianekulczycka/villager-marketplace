@@ -1,7 +1,7 @@
 import { type FC } from 'react';
-import UserComponent from './UserComponent.tsx';
 import type { UserPublicView } from '../../../models/user/UserPublicView.ts';
 import { Box } from '@mui/material';
+import UserCard from './UserCard.tsx';
 
 interface Props {
   users: UserPublicView[];
@@ -19,7 +19,7 @@ const UsersComponent: FC<Props> = ({ users }) => {
         gap: 3,
       }}>
       {
-        users.map((user) => <UserComponent key={user.id} user={user} />)
+        users.map((user) => <UserCard key={user.id} user={user} variant="L" />)
       }
     </Box>
   );

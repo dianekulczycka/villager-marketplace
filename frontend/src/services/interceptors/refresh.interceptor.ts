@@ -7,12 +7,18 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config;
+    const status = error.response?.status;
+    const url = error.config?.url;
 
-    if (error.response?.status !== 401) {
+    if (status !== 401) {
       return Promise.reject(error);
     }
 
-    if (originalRequest.url?.includes(endpoints.auth.refresh)) {
+    if (url?.includes(endpoints.auth.login)) {
+      return Promise.reject(error);
+    }
+
+    if (url?.includes(endpoints.auth.refresh)) {
       window.location.href = endpoints.auth.login;
       return Promise.reject(error);
     }
@@ -28,12 +34,11 @@ api.interceptors.response.use(
       }
       await refreshPromise;
       refreshPromise = null;
-
       return api(originalRequest);
     } catch (e) {
       refreshPromise = null;
       window.location.href = endpoints.auth.login;
       return Promise.reject(e);
     }
-  }
+  },
 );

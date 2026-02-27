@@ -1,18 +1,18 @@
-import { type FC, useState } from 'react';
+import { type FC } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { alpha, Box, Button, TextField, Typography } from '@mui/material';
-import type { RegisterReq } from '../../../../models/auth/RegisterReq.ts';
-import { registerSchema } from '../../../../validation/auth.schema.ts';
-import { signIn } from '../../../../services/fetch/auth.service.ts';
-import ErrorComponent from '../../error/ErrorComponent.tsx';
-import { routes } from '../../../../routes/routes.ts';
+import type { RegisterReq } from '../../../models/auth/RegisterReq.ts';
+import { registerSchema } from '../../../validation/auth.schema.ts';
+import ErrorComponent from '../error/ErrorComponent.tsx';
 
-const RegisterForm: FC = () => {
-  const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
+interface Props {
+  onRegister: (data: RegisterReq) => Promise<void>;
+  error: string | null;
+}
 
+const RegisterForm: FC<Props> = ({ onRegister, error }) => {
   const {
     register,
     handleSubmit,
@@ -20,17 +20,6 @@ const RegisterForm: FC = () => {
   } = useForm<RegisterReq>({
     resolver: zodResolver(registerSchema),
   });
-
-  const onSubmit = async (data: RegisterReq) => {
-    try {
-      await signIn(data);
-      navigate(routes.items.root);
-    } catch (e) {
-      if (e instanceof Error) {
-        setError(e.message);
-      }
-    }
-  };
 
   return (
     <Box sx={(theme) => ({
@@ -46,7 +35,7 @@ const RegisterForm: FC = () => {
     })}>
       <Typography variant="h5"> Register </Typography>
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onRegister)}
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -77,8 +66,11 @@ const RegisterForm: FC = () => {
         />
         <Button variant="outlined" type="submit">Register</Button>
       </form>
+
       <Typography variant="caption"> Have an account? <Link to="/auth/login"> Log in </Link></Typography>
+
       {error && <ErrorComponent error={error} />}
+
     </Box>
   );
 };

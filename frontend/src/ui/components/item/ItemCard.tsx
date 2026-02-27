@@ -2,12 +2,13 @@ import { type FC } from 'react';
 import { Box, Card, CardContent, CardMedia, Chip, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import type { ItemView } from '../../../models/item/ItemView.ts';
+import { routes } from '../../../routes/routes.ts';
 
 interface Props {
   item: ItemView;
 }
 
-const ItemComponent: FC<Props> = ({ item }) => {
+const ItemCard: FC<Props> = ({ item }) => {
   return (
     <Card
       component={RouterLink}
@@ -28,7 +29,7 @@ const ItemComponent: FC<Props> = ({ item }) => {
       <CardMedia
         component="img"
         height="200"
-        image={`http://localhost:3003/icons/item/${item.iconUrl}`}
+        image={routes.icons.item(item.iconUrl)}
         alt={item.name}
         sx={{
           objectFit: 'cover',
@@ -58,4 +59,4 @@ const ItemComponent: FC<Props> = ({ item }) => {
 };
 
 
-export default ItemComponent;
+export default ItemCard;

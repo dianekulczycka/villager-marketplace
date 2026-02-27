@@ -4,7 +4,7 @@ export function useFetch<T>(
   fetcher: () => Promise<T>,
   deps: unknown[] = [],
 ) {
-  const [data, setData] = useState<T | null>(null);
+  const [paginatedData, setPaginatedData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,7 +13,7 @@ export function useFetch<T>(
       setLoading(true);
       setError(null);
       const result = await fetcher();
-      setData(result);
+      setPaginatedData(result);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -29,5 +29,5 @@ export function useFetch<T>(
     run();
   }, deps);
 
-  return { data, loading, error, refetch: run };
+  return { paginatedData, loading, error, refetch: run };
 }

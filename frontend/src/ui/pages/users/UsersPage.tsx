@@ -5,8 +5,7 @@ import { getAll } from '../../../services/fetch/user.service.ts';
 import { NumberParam, StringParam, useQueryParams, withDefault } from 'use-query-params';
 import type { UserSortField } from '../../../models/enums/UserSortField.ts';
 import { useFetch } from '../../../hooks/useFetch.ts';
-import ErrorComponent from '../../components/error/ErrorComponent.tsx';
-import PreloaderComponent from '../../components/shared/PreloaderComponent.tsx';
+import DataStateComponent from '../../components/shared/DataStateComponent.tsx';
 
 const UsersPage: FC = () => {
   const [query, setQuery] = useQueryParams({
@@ -17,7 +16,7 @@ const UsersPage: FC = () => {
     search: StringParam,
   });
 
-  const { data, loading, error } = useFetch(
+  const { paginatedData, loading, error } = useFetch(
     () =>
       getAll({
         page: query.page,
@@ -33,19 +32,19 @@ const UsersPage: FC = () => {
     setQuery({ page: newPage });
   };
 
-  if (loading) return <PreloaderComponent />;
-  if (error) return <ErrorComponent error={error} />;
-  if (!data) return <ErrorComponent error="no data" />;
-
   return (
-    <>
-      <UsersComponent users={data.data} />
-      <PaginationComponent
-        page={data.page}
-        pageCount={data.pageCount}
-        onChange={handlePageChange}
-      />
-    </>
+    <DataStateComponent data={paginatedData} error={error} loading={loading}>
+      {paginatedData &&
+        <>
+          <UsersComponent users={paginatedData.data} />
+          <PaginationComponent
+            page={paginatedData.page}
+            pageCount={paginatedData.pageCount}
+            onChange={handlePageChange}
+          />
+        </>
+      }
+    </DataStateComponent>
   );
 };
 

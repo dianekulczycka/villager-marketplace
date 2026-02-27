@@ -1,13 +1,14 @@
 import { type FC } from 'react';
 import { Box, Card, Chip, Typography } from '@mui/material';
 import type { ItemDetailedView } from '../../../models/item/ItemDetailedView.ts';
-import { Link as RouterLink } from 'react-router';
+import UserCard from '../user/UserCard.tsx';
+import { routes } from '../../../routes/routes.ts';
 
 interface Props {
   item: ItemDetailedView;
 }
 
-const ItemComponent: FC<Props> = ({ item }) => {
+const ItemDetailsCard: FC<Props> = ({ item }) => {
   return (
     <Card
       sx={{
@@ -29,7 +30,7 @@ const ItemComponent: FC<Props> = ({ item }) => {
       >
         <Box
           component="img"
-          src={`http://localhost:3003/icons/item/${item.iconUrl}`}
+          src={routes.icons.item(item.iconUrl)}
           alt={item.name}
           sx={{
             width: '100%',
@@ -62,51 +63,13 @@ const ItemComponent: FC<Props> = ({ item }) => {
           )}
           <Chip sx={{ mt: 1 }} size="small" label={`views: ${item.views}`} />
         </Box>
-        <Box
-          component={RouterLink}
-          to={`/items?sellerId=${item.seller.id}`}
-          sx={{
-            textDecoration: 'none',
-            p: 2,
-            color: 'inherit',
-            borderRadius: 3,
-            overflow: 'hidden',
-            transition: '0.2s',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.5,
-            '&:hover': {
-              boxShadow: 6,
-            },
-          }}
-        >
-          <Box
-            component="img"
-            src={`http://localhost:3003/icons/user/${item.seller.iconUrl}`}
-            alt={item.seller.username}
-            sx={{
-              width: 42,
-              height: 42,
-              borderRadius: '50%',
-              objectFit: 'cover',
-            }}
-          />
-          <Box>
-            <Typography variant="body2" fontWeight={600}>
-              {item.seller.username}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {item.seller.sellerType}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Since {new Date(item.seller.createdAt).toLocaleString()}
-            </Typography>
-          </Box>
-        </Box>
+
+        <UserCard user={item.seller} variant="S" />
+
       </Box>
     </Card>
   );
 };
 
 
-export default ItemComponent;
+export default ItemDetailsCard;

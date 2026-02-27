@@ -5,6 +5,7 @@ export interface AuthContext {
   user: UserSelfView | null;
   setUser: (user: UserSelfView | null) => void;
   loadUser: () => void;
+  logoutUser: () => void;
   isLoaded: boolean
 }
 
@@ -12,5 +13,6 @@ export const AuthContext = createContext<AuthContext>({
   user: null,
   setUser: () => {},
   loadUser: () => {},
+  logoutUser: () => {},
   isLoaded: false,
 });

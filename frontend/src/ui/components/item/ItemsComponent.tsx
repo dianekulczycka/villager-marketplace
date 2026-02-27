@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import ItemComponent from './ItemComponent.tsx';
+import ItemCard from './ItemCard.tsx';
 import { Box } from '@mui/material';
 import type { ItemView } from '../../../models/item/ItemView.ts';
 
@@ -19,7 +19,7 @@ const ItemsComponent: FC<Props> = ({ items }) => {
         gap: 3,
       }}>
       {
-        items.map((item) => <ItemComponent key={item.id} item={item} />)
+        items.map((item) => <ItemCard key={item.id} item={item} />)
       }
     </Box>
   );

@@ -5,8 +5,7 @@ import { NumberParam, StringParam, useQueryParams, withDefault } from 'use-query
 import { getAll } from '../../../services/fetch/item.service.ts';
 import type { ItemSortField } from '../../../models/enums/ItemSortField.ts';
 import { useFetch } from '../../../hooks/useFetch.ts';
-import PreloaderComponent from '../../components/shared/PreloaderComponent.tsx';
-import ErrorComponent from '../../components/error/ErrorComponent.tsx';
+import DataStateComponent from '../../components/shared/DataStateComponent.tsx';
 
 const ItemsPage: FC = () => {
   const [query, setQuery] = useQueryParams({
@@ -18,7 +17,7 @@ const ItemsPage: FC = () => {
     sellerId: NumberParam,
   });
 
-  const { data, loading, error } = useFetch(
+  const { paginatedData, loading, error } = useFetch(
     () =>
       getAll({
         page: query.page,
@@ -26,7 +25,7 @@ const ItemsPage: FC = () => {
         sortBy: query.sortBy as ItemSortField | undefined,
         sortDirection: query.sortDirection as 'ASC' | 'DESC' | undefined,
         search: query.search ?? undefined,
-        sellerId: query.sellerId ?? undefined
+        sellerId: query.sellerId ?? undefined,
       }),
     [query],
   );
@@ -35,20 +34,23 @@ const ItemsPage: FC = () => {
     setQuery({ page: newPage });
   };
 
-  if (loading) return <PreloaderComponent />;
-  if (error) return <ErrorComponent error={error} />;
-  if (!data) return <ErrorComponent error="no data" />;
-  if (data.data.length <= 0) return <ErrorComponent error="no data" />;
-
   return (
-    <>
-      <ItemsComponent items={data.data} />;
-      <PaginationComponent
-        page={query.page}
-        pageCount={data.pageCount}
-        onChange={handlePageChange}
-      />
-    </>
+    <DataStateComponent
+      data={paginatedData}
+      error={error}
+      loading={loading}
+      isEmpty={paginatedData?.data.length === 0}>
+      {paginatedData &&
+        <>
+          <ItemsComponent items={paginatedData.data} />;
+          <PaginationComponent
+            page={query.page}
+            pageCount={paginatedData.pageCount}
+            onChange={handlePageChange}
+          />
+        </>
+      }
+    </DataStateComponent>
   );
 };
 

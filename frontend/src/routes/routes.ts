@@ -27,6 +27,10 @@ export const routes = {
     managers: 'managers',
     byId: ':id',
   },
+  icons: {
+    item: (iconUrl: string) => `http://localhost:3003/icons/item/${iconUrl}`,
+    user: (iconUrl: string) => `http://localhost:3003/icons/user/${iconUrl}`,
+  }
 } as const;
 
 export const publicRoutes = [
