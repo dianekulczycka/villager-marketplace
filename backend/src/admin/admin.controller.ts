@@ -72,7 +72,7 @@ export class AdminController {
 
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
-  @Patch('users/:id')
+  @Patch('users/id/:id')
   updateUserByAdmin(
     @Param('id') id: string,
     @Request() request: userRequestInterface.UserRequest,
@@ -84,7 +84,7 @@ export class AdminController {
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
-  @Patch('users/:id/soft-delete')
+  @Patch('users/id/:id/soft-delete')
   async softDeleteUserByAdmin(
     @Param('id') id: string,
     @Request() request: userRequestInterface.UserRequest,
@@ -95,7 +95,7 @@ export class AdminController {
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
-  @Patch('users/:id/ban')
+  @Patch('users/id/:id/ban')
   async banUser(
     @Param('id') id: string,
     @Request() request: userRequestInterface.UserRequest,
@@ -108,7 +108,7 @@ export class AdminController {
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
-  @Patch('users/:id/unban')
+  @Patch('users/id/:id/unban')
   async unbanUser(@Param('id') id: string) {
     await this.adminService.unbanUser(Number(id));
     await this.tokenService.blockTokensForUser(Number(id));
@@ -118,7 +118,7 @@ export class AdminController {
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
-  @Patch('users/:id/unflag')
+  @Patch('users/id/:id/unflag')
   async unflagUser(@Param('id') id: string) {
     await this.adminService.unflagUser(Number(id));
     await this.tokenService.blockTokensForUser(Number(id));
@@ -128,7 +128,7 @@ export class AdminController {
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
-  @Patch('users/:id/restore')
+  @Patch('users/id/:id/restore')
   async restoreUser(
     @Param('id') id: string,
     @Res({ passthrough: true }) res: express.Response,
@@ -155,7 +155,7 @@ export class AdminController {
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.ADMIN)
   @HttpCode(204)
-  @Delete('users/:id')
+  @Delete('users/id/:id')
   async hardDeleteUser(@Param('id') id: string) {
     await this.adminService.hardDeleteUser(Number(id));
     await this.tokenService.blockTokensForUser(Number(id));
@@ -164,7 +164,7 @@ export class AdminController {
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.ADMIN)
   @HttpCode(204)
-  @Patch('users/:id/promote-manager')
+  @Patch('users/id/:id/promote-manager')
   async promoteManager(
     @Param('id') id: string,
     @Res({ passthrough: true }) res: express.Response,
@@ -180,7 +180,7 @@ export class AdminController {
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.ADMIN)
   @HttpCode(204)
-  @Patch('users/:id/demote')
+  @Patch('users/id/:id/demote')
   async demoteManager(
     @Param('id') id: string,
     @Res({ passthrough: true }) res: express.Response,

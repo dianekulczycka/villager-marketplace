@@ -1,7 +1,7 @@
 import {
-  ExceptionFilter,
-  Catch,
   ArgumentsHost,
+  Catch,
+  ExceptionFilter,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
@@ -64,6 +64,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           : (response?.message ?? exception.message);
 
       message = this.cleanMessage(responseMessage);
+    } else if (
+      exception instanceof Error &&
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      (exception as any).code === 'EAUTH'
+    ) {
+      httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+      message = 'Email service auth failed';
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       switch (exception.code) {
         case 'P2002':
