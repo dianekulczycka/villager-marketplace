@@ -17,6 +17,7 @@
     "@mui/styled-engine": "^7.3.8",
     "axios": "^1.13.5",
     "dayjs": "^1.11.19",
+    "lodash": "^4.17.23",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.1",

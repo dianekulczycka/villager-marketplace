@@ -10,7 +10,15 @@ interface Props {
 export const PaginationComponent: FC<Props> = ({ page, pageCount, onChange }) => {
   if (pageCount <= 1) return null;
   return (
-    <Stack alignItems="center" mt={2}>
+    <Stack sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      m: 2,
+      p: 1,
+      backgroundColor: 'rgb(231,253,244)',
+      width: '20%',
+    }}>
       <Pagination
         page={page}
         count={pageCount}

@@ -5,13 +5,15 @@ import { useFetch } from '../../../hooks/useFetch.ts';
 import { getMy } from '../../../services/fetch/item.service.ts';
 import { PaginationComponent } from '../../components/shared/PaginationComponent.tsx';
 import { NumberParam, StringParam, useQueryParams, withDefault } from 'use-query-params';
-import type { ItemSortField } from '../../../models/enums/ItemSortField.ts';
+import { ItemSortField } from '../../../models/enums/ItemSortField.ts';
 import type { SubmitHandler } from 'react-hook-form';
 import type { BecomeSellerDto } from '../../../models/user/BecomeSellerDto.ts';
 import { becomeSeller } from '../../../services/fetch/user.service.ts';
 import type { CreateItemDto } from '../../../models/item/CreateItemDto.ts';
 import DataStateComponent from '../../components/shared/DataStateComponent.tsx';
 import ItemsComponent from '../../components/item/ItemsComponent.tsx';
+import { Box } from '@mui/material';
+import SortSearchComponent from '../../components/shared/SortSearchComponent.tsx';
 
 const UserProfilePage: FC = () => {
   const { user, loadUser } = useAuth();
@@ -32,7 +34,7 @@ const UserProfilePage: FC = () => {
           page: query.page,
           perPage: query.perPage,
           sortBy: query.sortBy as ItemSortField | undefined,
-          sortDirection: query.sortDirection as 'ASC' | 'DESC' | undefined,
+          sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
           search: query.search ?? undefined,
         })
         : Promise.resolve(null),
@@ -54,35 +56,40 @@ const UserProfilePage: FC = () => {
 
   if (!user) return;
 
-
   return (
-    <>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+    }}>
       <UserProfileComponent
         user={user}
         onBecomeSeller={onBecomeSeller}
         onCreateItem={onCreateItem}
       />
+
       {isSeller && (
-        <DataStateComponent
-          loading={loading}
-          error={error}
-          data={paginatedData}
-          isEmpty={paginatedData?.data.length === 0}
-        >
-          {
-            paginatedData &&
-            <>
-              <ItemsComponent items={paginatedData.data} />
-              <PaginationComponent
-                page={query.page}
-                pageCount={paginatedData!.pageCount}
-                onChange={handlePageChange}
-              />
-            </>
-          }
-        </DataStateComponent>
+        <>
+          <SortSearchComponent
+            fields={Object.values(ItemSortField)} />
+          <DataStateComponent
+            loading={loading}
+            error={error}
+            data={paginatedData}
+            isEmpty={paginatedData?.data.length === 0}>
+            {paginatedData &&
+              <>
+                <ItemsComponent items={paginatedData.data} />
+                <PaginationComponent
+                  page={query.page}
+                  pageCount={paginatedData!.pageCount}
+                  onChange={handlePageChange} />
+              </>
+            }
+          </DataStateComponent>
+        </>
       )}
-    </>
+    </Box>
   );
 };
 

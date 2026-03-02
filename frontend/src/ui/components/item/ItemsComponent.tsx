@@ -13,7 +13,6 @@ const ItemsComponent: FC<Props> = ({ items }) => {
       sx={{
         width: '66%',
         margin: '0 auto',
-        mt: 4,
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
         gap: 3,

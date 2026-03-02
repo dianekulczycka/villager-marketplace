@@ -25,7 +25,10 @@ export const AuthProvider: FC = () => {
   const logoutUser = async () => {
     try {
       await logout();
-    } catch {
+    } catch (e) {
+      if (e instanceof Error) {
+        throw e;
+      }
     } finally {
       setUser(null);
     }

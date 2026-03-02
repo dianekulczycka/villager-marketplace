@@ -3,9 +3,11 @@ import ItemsComponent from '../../components/item/ItemsComponent.tsx';
 import { PaginationComponent } from '../../components/shared/PaginationComponent.tsx';
 import { NumberParam, StringParam, useQueryParams, withDefault } from 'use-query-params';
 import { getAll } from '../../../services/fetch/item.service.ts';
-import type { ItemSortField } from '../../../models/enums/ItemSortField.ts';
+import { ItemSortField } from '../../../models/enums/ItemSortField.ts';
 import { useFetch } from '../../../hooks/useFetch.ts';
 import DataStateComponent from '../../components/shared/DataStateComponent.tsx';
+import SortSearchComponent from '../../components/shared/SortSearchComponent.tsx';
+import { Box } from '@mui/material';
 
 const ItemsPage: FC = () => {
   const [query, setQuery] = useQueryParams({
@@ -23,7 +25,7 @@ const ItemsPage: FC = () => {
         page: query.page,
         perPage: query.perPage,
         sortBy: query.sortBy as ItemSortField | undefined,
-        sortDirection: query.sortDirection as 'ASC' | 'DESC' | undefined,
+        sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
         search: query.search ?? undefined,
         sellerId: query.sellerId ?? undefined,
       }),
@@ -35,22 +37,31 @@ const ItemsPage: FC = () => {
   };
 
   return (
-    <DataStateComponent
-      data={paginatedData}
-      error={error}
-      loading={loading}
-      isEmpty={paginatedData?.data.length === 0}>
-      {paginatedData &&
-        <>
-          <ItemsComponent items={paginatedData.data} />;
-          <PaginationComponent
-            page={query.page}
-            pageCount={paginatedData.pageCount}
-            onChange={handlePageChange}
-          />
-        </>
-      }
-    </DataStateComponent>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: "column",
+      alignItems: "center"
+    }}>
+      <SortSearchComponent
+        fields={Object.values(ItemSortField)}
+      />
+      <DataStateComponent
+        data={paginatedData}
+        error={error}
+        loading={loading}
+        isEmpty={paginatedData?.data.length === 0}>
+        {paginatedData &&
+          <>
+            <ItemsComponent items={paginatedData.data} />;
+            <PaginationComponent
+              page={query.page}
+              pageCount={paginatedData.pageCount}
+              onChange={handlePageChange}
+            />
+          </>
+        }
+      </DataStateComponent>
+    </Box>
   );
 };
 
