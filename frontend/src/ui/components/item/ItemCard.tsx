@@ -3,19 +3,21 @@ import { Box, Card, CardContent, CardMedia, Chip, Typography } from '@mui/materi
 import { Link as RouterLink } from 'react-router-dom';
 import type { ItemView } from '../../../models/item/ItemView.ts';
 import { routes } from '../../../routes/routes.ts';
+import { useAuth } from '../../../store/helpers/useAuth.ts';
+import ItemControllers from '../buttons/ItemControllers.tsx';
 
 interface Props {
   item: ItemView;
 }
 
 const ItemCard: FC<Props> = ({ item }) => {
+  const { user } = useAuth();
+  const isOwner: boolean = item.sellerId === user?.id;
+
   return (
     <Card
-      component={RouterLink}
-      to={`/items/id/${item.id}`}
       sx={{
-        textDecoration: 'none',
-        color: 'inherit',
+        position: 'relative',
         borderRadius: 3,
         overflow: 'hidden',
         transition: '0.2s',
@@ -36,8 +38,15 @@ const ItemCard: FC<Props> = ({ item }) => {
           backgroundColor: '#f5f5f5',
         }}
       />
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Typography variant="h6" fontWeight={600}>
+      <CardContent component={RouterLink}
+                   to={`/items/id/${item.id}`}
+                   sx={{
+                     display: 'flex',
+                     textDecoration: 'none',
+                     flexDirection: 'column',
+                     gap: 1,
+                   }}>
+        <Typography variant="h6" color="#000000" fontWeight={600}>
           {item.name.replaceAll('_', ' ')}
         </Typography>
         <Typography variant="h6" color="primary" fontWeight={700}>
@@ -54,6 +63,9 @@ const ItemCard: FC<Props> = ({ item }) => {
           <Chip size="small" label={`views: ${item.views}`} />
         </Box>
       </CardContent>
+      {isOwner && <ItemControllers editHandler={() => {
+      }} deleteHandler={() => {
+      }} />}
     </Card>
   );
 };

@@ -5,4 +5,5 @@ export interface ItemView {
   count: number,
   iconUrl: string,
   views: number,
+  sellerId: number
 }

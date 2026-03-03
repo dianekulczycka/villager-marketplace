@@ -21,7 +21,7 @@ export const HeaderComponent: FC = () => {
       position="sticky"
       elevation={0}
       sx={{
-        backgroundColor: '#e7fdf4',
+        backgroundColor: '#ffffff',
         color: '#333',
         boxShadow: '0 20px 20px rgba(0,0,0,0.15)',
         display: 'flex',

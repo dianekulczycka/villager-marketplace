@@ -35,10 +35,11 @@ const SortSearchComponent: FC<Props> = ({ fields }) => {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
+      borderRadius: 2,
       gap: 2,
       m: 2,
       p: 1,
-      backgroundColor: 'rgb(231,253,244)',
+      backgroundColor: '#ffffff',
       width: '20%',
     }}>
       <TextField

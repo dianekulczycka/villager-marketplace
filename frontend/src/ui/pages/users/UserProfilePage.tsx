@@ -1,8 +1,8 @@
-import { type FC } from 'react';
+import { type FC, useState } from 'react';
 import UserProfileComponent from '../../components/user/UserProfileComponent.tsx';
 import { useAuth } from '../../../store/helpers/useAuth.ts';
 import { useFetch } from '../../../hooks/useFetch.ts';
-import { getMy } from '../../../services/fetch/item.service.ts';
+import { getMy, post } from '../../../services/fetch/item.service.ts';
 import { PaginationComponent } from '../../components/shared/PaginationComponent.tsx';
 import { NumberParam, StringParam, useQueryParams, withDefault } from 'use-query-params';
 import { ItemSortField } from '../../../models/enums/ItemSortField.ts';
@@ -14,10 +14,16 @@ import DataStateComponent from '../../components/shared/DataStateComponent.tsx';
 import ItemsComponent from '../../components/item/ItemsComponent.tsx';
 import { Box } from '@mui/material';
 import SortSearchComponent from '../../components/shared/SortSearchComponent.tsx';
+import type { ActiveModal } from '../../../models/item/ActiveModal.ts';
 
 const UserProfilePage: FC = () => {
   const { user, loadUser } = useAuth();
   const isSeller = user?.role === 'SELLER';
+  const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+
+  const openBecomeModal = () => setActiveModal('become');
+  const openCreateModal = () => setActiveModal('create');
+  const closeModal = () => setActiveModal(null);
 
   const [query, setQuery] = useQueryParams({
     page: withDefault(NumberParam, 1),
@@ -51,7 +57,7 @@ const UserProfilePage: FC = () => {
   };
 
   const onCreateItem: SubmitHandler<CreateItemDto> = async (data) => {
-    console.log(data);
+    await post({ ...data, description: data.description?.trim() || undefined});
   };
 
   if (!user) return;
@@ -66,8 +72,11 @@ const UserProfilePage: FC = () => {
         user={user}
         onBecomeSeller={onBecomeSeller}
         onCreateItem={onCreateItem}
+        activeModal={activeModal}
+        closeModal={closeModal}
+        openBecomeModal={openBecomeModal}
+        openCreateModal={openCreateModal}
       />
-
       {isSeller && (
         <>
           <SortSearchComponent

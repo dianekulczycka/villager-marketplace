@@ -14,9 +14,10 @@ export const PaginationComponent: FC<Props> = ({ page, pageCount, onChange }) =>
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
+      borderRadius: 2,
       m: 2,
       p: 1,
-      backgroundColor: 'rgb(231,253,244)',
+      backgroundColor: '#ffffff',
       width: '20%',
     }}>
       <Pagination

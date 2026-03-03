@@ -68,9 +68,9 @@ const BecomeSellerModal: FC<Props> = ({ open, closeModal, onBecomeSeller }) => {
           {...register('sellerType')}
           fullWidth
         >
-          {Object.values(SellerTypes).map((t) => (
-            <MenuItem key={t} value={t}>
-              {t}
+          {Object.values(SellerTypes).map((i) => (
+            <MenuItem key={i} value={i}>
+              {i}
             </MenuItem>
           ))}
         </TextField>
