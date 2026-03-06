@@ -2,31 +2,33 @@ import { type FC } from 'react';
 import type { UserSelfView } from '../../../models/user/UserSelfView.ts';
 import BecomeSellerModal from '../modals/BecomeSellerModal.tsx';
 import UserProfileCard from './UserProfileCard.tsx';
-import CreateItemModal from '../modals/CreateItemModal.tsx';
 import type { BecomeSellerDto } from '../../../models/user/BecomeSellerDto.ts';
-import type { CreateItemDto } from '../../../models/item/CreateItemDto.ts';
 import { Box, Card, CardContent } from '@mui/material';
 import ActionButton from '../buttons/ActionButton.tsx';
 import type { ActiveModal } from '../../../models/item/ActiveModal.ts';
+import type { SubmitHandler } from 'react-hook-form';
+import type { CreateItemDto } from '../../../models/item/CreateItemDto.ts';
+import CreateItemModal from '../modals/CreateItemModal.tsx';
 
 interface Props {
   user: UserSelfView;
-  onBecomeSeller: (data: BecomeSellerDto) => void;
-  onCreateItem: (data: CreateItemDto) => void;
+  onBecomeSeller: SubmitHandler<BecomeSellerDto>;
+  onCreateItem: SubmitHandler<CreateItemDto>;
   activeModal: ActiveModal;
   closeModal: () => void;
   openBecomeModal: () => void;
   openCreateModal: () => void;
 }
 
-const UserProfileComponent: FC<Props> = ({ user,
+const UserProfileComponent: FC<Props> = ({
+                                           user,
                                            onBecomeSeller,
                                            onCreateItem,
                                            activeModal,
                                            closeModal,
                                            openBecomeModal,
                                            openCreateModal,
-                                           }) => {
+                                         }) => {
   return (
     <Box
       sx={{

@@ -1,3 +1,5 @@
-import type { CreateItemDto } from './CreateItemDto.ts';
-
-export type UpdateItemDto = Partial<CreateItemDto>;
+export interface UpdateItemDto {
+  price: number;
+  count: number;
+  description?: string | undefined;
+}

@@ -1,22 +1,31 @@
-import { type FC, useEffect, useState } from 'react';
-import type { CreateItemDto } from '../../../models/item/CreateItemDto.ts';
-import { type SubmitHandler, useForm } from 'react-hook-form';
 import { useAuth } from '../../../store/helpers/useAuth.ts';
+import { type FC, useEffect, useMemo, useState } from 'react';
+import type { UpdateItemDto } from '../../../models/item/UpdateItemDto.ts';
+import { type SubmitHandler, useForm } from 'react-hook-form';
+import type { ItemName } from '../../../models/enums/ItemName.ts';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createItemSchema } from '../../../validation/item.schema.ts';
-import { Backdrop, Box, Button, MenuItem, Modal, TextField, Typography } from '@mui/material';
-import { allowedItemsPerSeller } from '../../../models/enums/AllowedItemsPerSeller.ts';
+import { updateItemSchema } from '../../../validation/item.schema.ts';
+import { Backdrop, Box, Button, Modal, TextField, Typography } from '@mui/material';
 import ErrorComponent from '../error/ErrorComponent.tsx';
+import type { ItemView } from '../../../models/item/ItemView.ts';
 
 interface Props {
   open: boolean;
   closeModal: () => void;
-  onCreateItem: SubmitHandler<CreateItemDto>;
+  onUpdateItem: (id: number, dto: UpdateItemDto) => Promise<void>;
+  item: ItemView;
 }
 
-const CreateItemModal: FC<Props> = ({ open, closeModal, onCreateItem }) => {
+const UpdateItemModal: FC<Props> = ({ open, closeModal, onUpdateItem, item }) => {
   const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
+
+  const defaultValues = useMemo<UpdateItemDto>(() => ({
+    name: item?.name as ItemName | undefined,
+    price: item?.price,
+    count: item?.count,
+    description: '',
+  }), [item]);
 
   const {
     register,
@@ -24,23 +33,23 @@ const CreateItemModal: FC<Props> = ({ open, closeModal, onCreateItem }) => {
     reset,
     formState: { errors },
   }
-    = useForm<CreateItemDto>({
-    resolver: zodResolver(createItemSchema),
-    defaultValues: {
-      name: undefined,
-      price: undefined,
-      count: undefined,
-      description: '',
-    },
+    = useForm<UpdateItemDto>({
+    resolver: zodResolver(updateItemSchema),
+    defaultValues,
   });
 
   useEffect(() => {
     if (!open) reset();
-  }, [open, reset]);
+  }, [open, reset, defaultValues]);
 
-  const onSubmit: SubmitHandler<CreateItemDto> = async (data) => {
+
+  const onSubmit: SubmitHandler<UpdateItemDto> = async (data) => {
     try {
-      await onCreateItem(data);
+      const payload = {
+        ...data,
+        description: data.description?.trim() || undefined,
+      };
+      await onUpdateItem(item.id, payload);
       reset();
       closeModal();
     } catch (e) {
@@ -82,23 +91,8 @@ const CreateItemModal: FC<Props> = ({ open, closeModal, onCreateItem }) => {
         }}
       >
         <Typography variant="h6" fontWeight={600}>
-          create post
+          update post
         </Typography>
-
-        <TextField
-          select
-          label="name"
-          {...register('name')}
-          fullWidth
-          error={!!errors.name}
-          helperText={errors.name?.message}
-        >
-          {Object.values(allowedItemsPerSeller[user.sellerType]).map((i) => (
-            <MenuItem key={i} value={i}>
-              {i.replaceAll('_', ' ')}
-            </MenuItem>
-          ))}
-        </TextField>
 
         <TextField
           label="price"
@@ -107,6 +101,7 @@ const CreateItemModal: FC<Props> = ({ open, closeModal, onCreateItem }) => {
           helperText={errors.price?.message}
           {...register('price', { valueAsNumber: true })}
         />
+
         <TextField
           label="count"
           type="number"
@@ -114,6 +109,7 @@ const CreateItemModal: FC<Props> = ({ open, closeModal, onCreateItem }) => {
           helperText={errors.count?.message}
           {...register('count', { valueAsNumber: true })}
         />
+
         <TextField
           label="description"
           multiline
@@ -136,10 +132,9 @@ const CreateItemModal: FC<Props> = ({ open, closeModal, onCreateItem }) => {
         </Button>
 
         {error && <ErrorComponent error={error} />}
-
       </Box>
     </Modal>
   );
 };
 
-export default CreateItemModal;
+export default UpdateItemModal;

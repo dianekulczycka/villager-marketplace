@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -95,7 +96,7 @@ export class ItemController {
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.SELLER, user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
-  @Patch('id/:id/soft-delete')
+  @Delete('id/:id/soft-delete')
   async softDelete(
     @Param('id') id: string,
     @Request() request: userRequestInterface.UserRequest,

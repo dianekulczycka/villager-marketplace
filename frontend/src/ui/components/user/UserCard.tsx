@@ -3,22 +3,21 @@ import { Box, Card, Typography } from '@mui/material';
 import type { UserPublicView } from '../../../models/user/UserPublicView.ts';
 import { Link as RouterLink } from 'react-router-dom';
 import { routes } from '../../../routes/routes.ts';
-
 interface UserCardProps {
   user: UserPublicView;
   variant?: 'L' | 'S';
 }
 
 const UserCard: FC<UserCardProps> = ({ user, variant }) => {
+  // const { user: loggedUser } = useAuth();
+  // const canModify: boolean = loggedUser?.role === 'ADMIN' || loggedUser?.role === 'MANAGER';
   const isSmall = variant === 'S';
+
   return (
     <Card
-      component={RouterLink}
-      to={routes.items.bySellerId(user.id)}
       elevation={isSmall ? 0 : 1}
       sx={{
-        textDecoration: 'none',
-        color: 'inherit',
+        position: 'relative',
         borderRadius: 3,
         overflow: 'hidden',
         transition: '0.25s ease',
@@ -49,11 +48,15 @@ const UserCard: FC<UserCardProps> = ({ user, variant }) => {
       />
 
       <Box
+        component={RouterLink}
+        to={routes.items.bySellerId(user.id)}
         sx={{
           display: 'flex',
           flexDirection: 'column',
           gap: 0.5,
           p: isSmall ? 0 : 2,
+          textDecoration: 'none',
+          color: 'inherit',
         }}
       >
         <Typography variant={isSmall ? 'body2' : 'h6'} fontWeight={600}>

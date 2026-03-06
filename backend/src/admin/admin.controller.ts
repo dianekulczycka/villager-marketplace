@@ -84,7 +84,7 @@ export class AdminController {
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
-  @Patch('users/id/:id/soft-delete')
+  @Delete('users/id/:id/soft-delete')
   async softDeleteUserByAdmin(
     @Param('id') id: string,
     @Request() request: userRequestInterface.UserRequest,

@@ -5,14 +5,31 @@ import type { ItemView } from '../../../models/item/ItemView.ts';
 import { routes } from '../../../routes/routes.ts';
 import { useAuth } from '../../../store/helpers/useAuth.ts';
 import ItemControllers from '../buttons/ItemControllers.tsx';
+import type { ActiveModal } from '../../../models/item/ActiveModal.ts';
+import type { SubmitHandler } from 'react-hook-form';
+import type { UpdateItemDto } from '../../../models/item/UpdateItemDto.ts';
 
 interface Props {
   item: ItemView;
+  onUpdateItem: (id: number, dto: UpdateItemDto) => Promise<void>;
+  onDeleteItem: SubmitHandler<number>;
+  activeModal: ActiveModal;
+  closeModal: () => void;
+  openDeleteModal: () => void;
+  openUpdateModal: () => void;
 }
 
-const ItemCard: FC<Props> = ({ item }) => {
+const ItemCard: FC<Props> = ({
+                               item,
+                               onUpdateItem,
+                               onDeleteItem,
+                               activeModal,
+                               closeModal,
+                               openDeleteModal,
+                               openUpdateModal,
+                             }) => {
   const { user } = useAuth();
-  const isOwner: boolean = item.sellerId === user?.id;
+  const canModify: boolean = (item.sellerId === user?.id) || (user?.role === 'ADMIN' || user?.role === 'MANAGER');
 
   return (
     <Card
@@ -63,9 +80,14 @@ const ItemCard: FC<Props> = ({ item }) => {
           <Chip size="small" label={`views: ${item.views}`} />
         </Box>
       </CardContent>
-      {isOwner && <ItemControllers editHandler={() => {
-      }} deleteHandler={() => {
-      }} />}
+      {canModify && <ItemControllers
+        onUpdateItem={onUpdateItem}
+        onDeleteItem={onDeleteItem}
+        activeModal={activeModal}
+        closeModal={closeModal}
+        openDeleteModal={openDeleteModal}
+        openUpdateModal={openUpdateModal}
+        item={item} />}
     </Card>
   );
 };

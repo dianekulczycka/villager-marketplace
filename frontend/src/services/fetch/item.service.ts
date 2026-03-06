@@ -3,9 +3,9 @@ import type { ItemView } from '../../models/item/ItemView.ts';
 import { api } from '../api.config.ts';
 import { endpoints } from '../api.endpoints.ts';
 import type { ItemDetailedView } from '../../models/item/ItemDetailedView.ts';
+import type { ItemQueryParams } from '../../models/item/ItemQueryParams.ts';
 import type { CreateItemDto } from '../../models/item/CreateItemDto.ts';
 import type { UpdateItemDto } from '../../models/item/UpdateItemDto.ts';
-import type { ItemQueryParams } from '../../models/item/ItemQueryParams.ts';
 
 export const getAll = async (
   params?: ItemQueryParams,
@@ -34,7 +34,7 @@ export const post = async (dto: CreateItemDto): Promise<ItemView> => {
 };
 
 export const update = async (id: number, dto: UpdateItemDto): Promise<ItemView> => {
-  const { data } = await api.patch(`${endpoints.items.root}/${id}`, dto);
+  const { data } = await api.patch(`${endpoints.items.byId(id)}`, dto);
   return data;
 };
 

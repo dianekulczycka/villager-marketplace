@@ -12,7 +12,7 @@ import SortSearchComponent from '../../components/shared/SortSearchComponent.tsx
 const UsersPage: FC = () => {
   const [query, setQuery] = useQueryParams({
     page: withDefault(NumberParam, 1),
-    perPage: withDefault(NumberParam, 12),
+    perPage: withDefault(NumberParam, 8),
     sortBy: StringParam,
     sortDirection: StringParam,
     search: StringParam,

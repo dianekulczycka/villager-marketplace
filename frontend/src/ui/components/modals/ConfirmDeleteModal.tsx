@@ -1,35 +1,21 @@
-import { type FC, useEffect, useState } from 'react';
-import { Backdrop, Box, Button, MenuItem, Modal, TextField, Typography } from '@mui/material';
-import { SellerTypes } from '../../../models/enums/SellerType.ts';
+import { type FC, useState } from 'react';
+import { Backdrop, Box, Button, Modal, Typography } from '@mui/material';
+import type { SubmitHandler } from 'react-hook-form';
 import ErrorComponent from '../error/ErrorComponent.tsx';
-import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { BecomeSellerDto } from '../../../models/user/BecomeSellerDto.ts';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { becomeSellerSchema } from '../../../validation/user.schema.ts';
 
 interface Props {
   open: boolean;
   closeModal: () => void;
-  onBecomeSeller: SubmitHandler<BecomeSellerDto>;
+  onDeleteItem: SubmitHandler<number>;
+  itemId: number;
 }
 
-const BecomeSellerModal: FC<Props> = ({ open, closeModal, onBecomeSeller }) => {
+const ConfirmDeleteModal: FC<Props> = ({ open, closeModal, onDeleteItem, itemId }) => {
   const [error, setError] = useState<string | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-  }
-    = useForm<BecomeSellerDto>({ resolver: zodResolver(becomeSellerSchema) });
-
-  useEffect(() => {
-    if (!open) reset();
-  }, [open, reset]);
-
-  const onSubmit: SubmitHandler<BecomeSellerDto> = async (data) => {
+  const handleSubmit = async () => {
     try {
-      await onBecomeSeller(data);
+      await onDeleteItem(itemId);
       closeModal();
     } catch (e) {
       if (e instanceof Error) {
@@ -51,7 +37,7 @@ const BecomeSellerModal: FC<Props> = ({ open, closeModal, onBecomeSeller }) => {
            onClose={closeModal}>
       <Box
         component="form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit}
         sx={{
           position: 'absolute',
           top: '50%',
@@ -68,22 +54,8 @@ const BecomeSellerModal: FC<Props> = ({ open, closeModal, onBecomeSeller }) => {
         }}
       >
         <Typography variant="h6" fontWeight={600}>
-          become seller
+          delete?
         </Typography>
-
-        <TextField
-          select
-          label="seller type"
-          {...register('sellerType')}
-          fullWidth
-        >
-          {Object.values(SellerTypes).map((i) => (
-            <MenuItem key={i} value={i}>
-              {i}
-            </MenuItem>
-          ))}
-        </TextField>
-
         <Button
           type="submit"
           variant="contained"
@@ -92,16 +64,13 @@ const BecomeSellerModal: FC<Props> = ({ open, closeModal, onBecomeSeller }) => {
         >
           send
         </Button>
-
         <Button onClick={closeModal} sx={{ textTransform: 'none' }}>
           cancel
         </Button>
-
         {error && <ErrorComponent error={error} />}
-
       </Box>
     </Modal>
   );
 };
 
-export default BecomeSellerModal;
+export default ConfirmDeleteModal;

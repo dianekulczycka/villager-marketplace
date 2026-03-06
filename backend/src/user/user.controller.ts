@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -68,15 +69,6 @@ export class UserController {
     return this.userService.update(request, request.user.userId, updateUserDto);
   }
 
-  @HttpCode(204)
-  @Patch('profile/soft-delete')
-  async softDelete(
-    @Request() request: userRequestInterface.UserRequest,
-  ): Promise<void> {
-    await this.userService.softDelete(request);
-    await this.tokenService.blockTokensForUser(request.user.userId);
-  }
-
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.BUYER)
   @HttpCode(204)
@@ -94,5 +86,14 @@ export class UserController {
     const { accessToken, refreshToken } =
       await this.tokenService.issueTokenPairForUser(userId);
     this.tokenService.setAuthCookies(res, accessToken, refreshToken);
+  }
+
+  @HttpCode(204)
+  @Delete('profile/soft-delete')
+  async softDelete(
+    @Request() request: userRequestInterface.UserRequest,
+  ): Promise<void> {
+    await this.userService.softDelete(request);
+    await this.tokenService.blockTokensForUser(request.user.userId);
   }
 }
