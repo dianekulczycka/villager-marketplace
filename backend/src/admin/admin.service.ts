@@ -9,12 +9,6 @@ import { PaginationResponse } from '../shared/pagination/pagination-response.int
 export class AdminService {
   constructor(private readonly userService: UserService) {}
 
-  async findAllUsers(
-    query: UserQueryDto,
-  ): Promise<PaginationResponse<UserAdminDto>> {
-    return await this.userService.findAllUsers(query);
-  }
-
   async findFlaggedUsers(
     query: UserQueryDto,
   ): Promise<PaginationResponse<UserAdminDto>> {

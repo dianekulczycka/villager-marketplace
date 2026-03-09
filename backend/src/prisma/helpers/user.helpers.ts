@@ -16,6 +16,24 @@ export const USER_SELF_SELECT: Prisma.userSelect = {
   bannedAt: true,
 };
 
+export const USER_ADMIN_SELECT: Prisma.userSelect = {
+  id: true,
+  email: true,
+  username: true,
+  role: true,
+  iconUrl: true,
+  sellerType: true,
+  isBanned: true,
+  bannedBy: true,
+  bannedAt: true,
+  isFlagged: true,
+  createdAt: true,
+  updatedAt: true,
+  isDeleted: true,
+  deletedAt: true,
+  deletedBy: true,
+};
+
 export const USER_BAN_DATA = (bannedBy: string): Prisma.userUpdateInput => ({
   isBanned: 1,
   bannedBy,

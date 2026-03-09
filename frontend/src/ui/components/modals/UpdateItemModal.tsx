@@ -1,8 +1,7 @@
 import { useAuth } from '../../../store/helpers/useAuth.ts';
-import { type FC, useEffect, useMemo, useState } from 'react';
+import { type FC, useEffect, useState } from 'react';
 import type { UpdateItemDto } from '../../../models/item/UpdateItemDto.ts';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { ItemName } from '../../../models/enums/ItemName.ts';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { updateItemSchema } from '../../../validation/item.schema.ts';
 import { Backdrop, Box, Button, Modal, TextField, Typography } from '@mui/material';
@@ -12,44 +11,42 @@ import type { ItemView } from '../../../models/item/ItemView.ts';
 interface Props {
   open: boolean;
   closeModal: () => void;
-  onUpdateItem: (id: number, dto: UpdateItemDto) => Promise<void>;
-  item: ItemView;
+  onUpdateItem: (dto: UpdateItemDto) => Promise<void>;
+  selectedItem: ItemView | null;
 }
 
-const UpdateItemModal: FC<Props> = ({ open, closeModal, onUpdateItem, item }) => {
+const UpdateItemModal: FC<Props> = ({ open, closeModal, onUpdateItem, selectedItem }) => {
   const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
-
-  const defaultValues = useMemo<UpdateItemDto>(() => ({
-    name: item?.name as ItemName | undefined,
-    price: item?.price,
-    count: item?.count,
-    description: '',
-  }), [item]);
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  }
-    = useForm<UpdateItemDto>({
+  } = useForm<UpdateItemDto>({
     resolver: zodResolver(updateItemSchema),
-    defaultValues,
   });
 
   useEffect(() => {
-    if (!open) reset();
-  }, [open, reset, defaultValues]);
+    if (open && selectedItem) {
+      reset({
+        price: selectedItem.price,
+        count: selectedItem.count,
+        description: '',
+      });
+    }
+  }, [open, selectedItem, reset]);
 
+  if (!user || !selectedItem) return null;
 
   const onSubmit: SubmitHandler<UpdateItemDto> = async (data) => {
     try {
-      const payload = {
+      const dto = {
         ...data,
         description: data.description?.trim() || undefined,
       };
-      await onUpdateItem(item.id, payload);
+      await onUpdateItem(dto);
       reset();
       closeModal();
     } catch (e) {
@@ -58,8 +55,6 @@ const UpdateItemModal: FC<Props> = ({ open, closeModal, onUpdateItem, item }) =>
       }
     }
   };
-
-  if (!user) return null;
 
   return (
     <Modal slots={{ backdrop: Backdrop }}

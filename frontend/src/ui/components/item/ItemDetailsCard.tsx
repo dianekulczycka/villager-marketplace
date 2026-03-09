@@ -1,11 +1,11 @@
 import { type FC } from 'react';
 import { Box, Card, Chip, Typography } from '@mui/material';
-import type { ItemDetailedView } from '../../../models/item/ItemDetailedView.ts';
 import UserCard from '../user/UserCard.tsx';
 import { routes } from '../../../routes/routes.ts';
+import type { ItemAdminView } from '../../../models/item/ItemAdminView.ts';
 
 interface Props {
-  item: ItemDetailedView;
+  item: ItemAdminView;
 }
 
 const ItemDetailsCard: FC<Props> = ({ item }) => {
@@ -63,6 +63,8 @@ const ItemDetailsCard: FC<Props> = ({ item }) => {
           )}
           <Chip sx={{ mt: 1 }} size="small" label={`views: ${item.views}`} />
         </Box>
+
+        {item.isDeleted && <Chip size="medium" color="error" label="REMOVED" />}
 
         <UserCard user={item.seller} variant="S" />
 

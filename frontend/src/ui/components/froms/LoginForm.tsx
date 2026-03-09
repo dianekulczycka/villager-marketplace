@@ -1,18 +1,20 @@
-import { type FC } from 'react';
-import { useForm } from 'react-hook-form';
+import { type FC, useState } from 'react';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { Link } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { alpha, Box, Button, TextField, Typography } from '@mui/material';
 import type { LoginReq } from '../../../models/auth/LoginReq.ts';
 import { loginSchema } from '../../../validation/auth.schema.ts';
 import ErrorComponent from '../error/ErrorComponent.tsx';
+import ActionButton from '../buttons/ActionButton.tsx';
 
 interface Props {
   onLogin: (data: LoginReq) => Promise<void>;
-  error: string | null;
+  openModal: () => void;
 }
 
-const LoginForm: FC<Props> = ({ onLogin, error }) => {
+const LoginForm: FC<Props> = ({ onLogin, openModal }) => {
+  const [error, setError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -20,6 +22,16 @@ const LoginForm: FC<Props> = ({ onLogin, error }) => {
   } = useForm<LoginReq>({
     resolver: zodResolver(loginSchema),
   });
+
+  const onSubmit: SubmitHandler<LoginReq> = async (data) => {
+    try {
+      await onLogin(data);
+    } catch (e) {
+      if (e instanceof Error) {
+        setError(e.message);
+      }
+    }
+  };
 
   return (
     <Box sx={(theme) => ({
@@ -35,7 +47,7 @@ const LoginForm: FC<Props> = ({ onLogin, error }) => {
     })}>
       <Typography variant="h5"> Log in </Typography>
       <form
-        onSubmit={handleSubmit(onLogin)}
+        onSubmit={handleSubmit(onSubmit)}
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -59,12 +71,10 @@ const LoginForm: FC<Props> = ({ onLogin, error }) => {
         <Button variant="outlined" type="submit">Log in</Button>
       </form>
 
-
       <Typography variant="caption"> Don't have an account? <Link to="/auth/register"> Register </Link></Typography>
-
+      <ActionButton action="Restore" actionHandler={openModal} />
 
       {error && <ErrorComponent error={error} />}
-
 
     </Box>
   );

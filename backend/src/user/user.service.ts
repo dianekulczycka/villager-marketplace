@@ -27,6 +27,7 @@ import {
   ADMIN_MANAGERS_WHERE,
   ADMIN_USER_SELECT,
   buildUserPublicSearchWhere,
+  USER_ADMIN_SELECT,
   USER_BAN_DATA,
   USER_PUBLIC_SELECT,
   USER_PUBLIC_WHERE_BASE,
@@ -56,17 +57,33 @@ export class UserService {
 
   async findAllPublic(
     query: UserQueryDto,
+    request: UserRequest,
   ): Promise<PaginationResponse<UserPublicDto>> {
     const orderField = USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.ID];
-    const where: Prisma.userWhereInput = {
-      ...USER_PUBLIC_WHERE_BASE,
-      ...buildUserPublicSearchWhere(query.search),
-    };
+    const role = request.user.role;
+
+    const where: Prisma.userWhereInput =
+      role === user_role.ADMIN || role === user_role.MANAGER
+        ? {
+            role: { not: user_role.ADMIN },
+            ...buildUserPublicSearchWhere(query.search),
+          }
+        : {
+            role: { not: user_role.ADMIN },
+            ...USER_PUBLIC_WHERE_BASE,
+            ...buildUserPublicSearchWhere(query.search),
+          };
+
+    const select =
+      role === user_role.ADMIN || role === user_role.MANAGER
+        ? USER_ADMIN_SELECT
+        : USER_PUBLIC_SELECT;
+
     return paginatePrisma<UserPublicDto>(
       this.prisma.user,
       {
         where,
-        select: USER_PUBLIC_SELECT,
+        select,
         orderBy: { [orderField]: query.sortDirection ?? SortDirectionEnum.ASC },
       },
       query.page,
@@ -191,23 +208,6 @@ export class UserService {
   // --------------------------------------------------------------------------------------------------------
 
   // -------------------------------------------- GET -----------------------------------------------------
-
-  async findAllUsers(
-    query: UserQueryDto,
-  ): Promise<PaginationResponse<UserAdminDto>> {
-    const orderField = USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.ID];
-
-    return paginatePrisma<UserAdminDto>(
-      this.prisma.user,
-      {
-        where: ADMIN_ALL_USERS_WHERE,
-        select: ADMIN_USER_SELECT,
-        orderBy: { [orderField]: query.sortDirection ?? SortDirectionEnum.ASC },
-      },
-      query.page,
-      query.perPage,
-    );
-  }
 
   async findFlaggedUsers(
     query: UserQueryDto,

@@ -45,15 +45,6 @@ export class AdminController {
 
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
-  @Get('users')
-  async getAllUsers(
-    @Query() query: UserQueryDto,
-  ): Promise<PaginationResponse<UserAdminDto>> {
-    return this.adminService.findAllUsers(query);
-  }
-
-  @UseGuards(AllowedRolesGuard)
-  @Roles(user_role.MANAGER, user_role.ADMIN)
   @Get('users/flagged')
   async getFlaggedUsers(
     @Query() query: UserQueryDto,

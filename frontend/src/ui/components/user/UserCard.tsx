@@ -1,16 +1,26 @@
 import type { FC } from 'react';
 import { Box, Card, Typography } from '@mui/material';
-import type { UserPublicView } from '../../../models/user/UserPublicView.ts';
 import { Link as RouterLink } from 'react-router-dom';
 import { routes } from '../../../routes/routes.ts';
+import Controllers from '../buttons/Controllers.tsx';
+import { useAuth } from '../../../store/helpers/useAuth.ts';
+import type { UserAdminView } from '../../../models/user/UserAdminView.ts';
+
 interface UserCardProps {
-  user: UserPublicView;
+  user: UserAdminView;
   variant?: 'L' | 'S';
+  openDeleteModal: (user: UserAdminView) => void;
+  openUpdateModal: (user: UserAdminView) => void;
 }
 
-const UserCard: FC<UserCardProps> = ({ user, variant }) => {
-  // const { user: loggedUser } = useAuth();
-  // const canModify: boolean = loggedUser?.role === 'ADMIN' || loggedUser?.role === 'MANAGER';
+const UserCard: FC<UserCardProps> = ({
+                                       user,
+                                       variant,
+                                       openDeleteModal,
+                                       openUpdateModal,
+                                     }) => {
+  const { user: loggedUser } = useAuth();
+  const canModify: boolean = loggedUser?.role === 'ADMIN' || loggedUser?.role === 'MANAGER';
   const isSmall = variant === 'S';
 
   return (
@@ -31,6 +41,9 @@ const UserCard: FC<UserCardProps> = ({ user, variant }) => {
           transform: isSmall ? 'none' : 'translateY(-6px)',
           boxShadow: isSmall ? 3 : 6,
         },
+        ...(!!user.isDeleted && {
+          opacity: 0.7,
+        }),
       }}
     >
       <Box
@@ -64,13 +77,44 @@ const UserCard: FC<UserCardProps> = ({ user, variant }) => {
         </Typography>
 
         <Typography variant="caption" color="text.secondary">
-          {user.sellerType}
+          {user.role === 'SELLER' ? user.sellerType : user.role}
         </Typography>
 
         <Typography variant="caption" color="text.secondary">
-          Since {new Date(user.createdAt).toLocaleDateString()}
+          Registered: {new Date(user.createdAt).toLocaleDateString()}
         </Typography>
+
+        {variant === 'L' && (
+          <>
+            {!!user.isBanned && (
+              <>
+                <Typography variant="caption" color="text.secondary">
+                  Banned at: {new Date(user.bannedAt!).toLocaleDateString()}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Banned by: {user.bannedBy}
+                </Typography>
+              </>
+            )}
+
+            {!!user.isDeleted && (
+              <>
+                <Typography variant="caption" color="text.secondary">
+                  Deleted at: {new Date(user.deletedAt!).toLocaleDateString()}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Deleted by: {user.deletedBy}
+                </Typography>
+              </>
+            )}
+          </>
+        )}
       </Box>
+      {variant === 'L' && canModify && !user.isDeleted && <Controllers
+        openDeleteModal={openDeleteModal}
+        openUpdateModal={openUpdateModal}
+        element={user}
+      />}
     </Card>
   );
 };

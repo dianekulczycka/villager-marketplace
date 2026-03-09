@@ -1,13 +1,19 @@
 import { type FC } from 'react';
-import type { UserPublicView } from '../../../models/user/UserPublicView.ts';
 import { Box } from '@mui/material';
 import UserCard from './UserCard.tsx';
+import type { UserAdminView } from '../../../models/user/UserAdminView.ts';
 
 interface Props {
-  users: UserPublicView[];
+  users: UserAdminView[];
+  openDeleteModal: (user: UserAdminView) => void;
+  openUpdateModal: (user: UserAdminView) => void;
 }
 
-const UsersComponent: FC<Props> = ({ users }) => {
+const UsersComponent: FC<Props> = ({
+                                     users,
+                                     openDeleteModal,
+                                     openUpdateModal,
+                                   }) => {
   return (
     <Box
       sx={{
@@ -19,7 +25,14 @@ const UsersComponent: FC<Props> = ({ users }) => {
         gap: 3,
       }}>
       {
-        users.map((user) => <UserCard key={user.id} user={user} variant="L" />)
+        users.map((user) => (
+          <UserCard
+            key={user.id}
+            user={user}
+            openDeleteModal={openDeleteModal}
+            openUpdateModal={openUpdateModal}
+            variant="L" />
+          ))
       }
     </Box>
   );

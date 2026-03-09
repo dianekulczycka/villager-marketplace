@@ -43,8 +43,9 @@ export class UserController {
   @Get()
   async getAll(
     @Query() query: UserQueryDto,
+    @Request() request: userRequestInterface.UserRequest,
   ): Promise<PaginationResponse<UserPublicDto>> {
-    return this.userService.findAllPublic(query);
+    return this.userService.findAllPublic(query, request);
   }
 
   @Get('id/:id')
@@ -59,6 +60,8 @@ export class UserController {
     return this.userService.findSelf(request);
   }
 
+  @UseGuards(AllowedRolesGuard)
+  @Roles(user_role.BUYER, user_role.SELLER)
   @UsePipes(new ModerationPipe(['username']))
   @UseInterceptors(ModerationInterceptor)
   @Patch('profile')

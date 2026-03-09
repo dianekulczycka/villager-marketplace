@@ -1,36 +1,47 @@
 import { type FC, useEffect, useState } from 'react';
-import { Backdrop, Box, Button, MenuItem, Modal, TextField, Typography } from '@mui/material';
-import { SellerTypes } from '../../../models/enums/SellerType.ts';
-import ErrorComponent from '../error/ErrorComponent.tsx';
+import type { UpdateUserDto } from '../../../models/user/UpdateUserDto.ts';
+import type { UserSelfView } from '../../../models/user/UserSelfView.ts';
+import type { UserAdminView } from '../../../models/user/UserAdminView.ts';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { BecomeSellerDto } from '../../../models/user/BecomeSellerDto.ts';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { becomeSellerSchema } from '../../../validation/user.schema.ts';
+import { updateUserSchema } from '../../../validation/user.schema.ts';
+import { Backdrop, Box, Button, Modal, TextField, Typography } from '@mui/material';
+import ErrorComponent from '../error/ErrorComponent.tsx';
+
 
 interface Props {
   open: boolean;
   closeModal: () => void;
-  onBecomeSeller: SubmitHandler<BecomeSellerDto>;
+  onUpdateUser: (dto: UpdateUserDto) => Promise<void>;
+  selectedUser: UserSelfView | UserAdminView | null;
 }
 
-const BecomeSellerModal: FC<Props> = ({ open, closeModal, onBecomeSeller }) => {
+const UpdateUserModal: FC<Props> = ({ open, closeModal, onUpdateUser, selectedUser }) => {
   const [error, setError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors }
-  }
-    = useForm<BecomeSellerDto>({ resolver: zodResolver(becomeSellerSchema) });
+    formState: { errors },
+  } = useForm<UpdateUserDto>({
+    resolver: zodResolver(updateUserSchema),
+  });
 
   useEffect(() => {
-    if (!open) reset();
-  }, [open, reset]);
+    if (open && selectedUser) {
+      reset({
+        username: selectedUser.username,
+      });
+    }
+  }, [open, selectedUser, reset]);
 
-  const onSubmit: SubmitHandler<BecomeSellerDto> = async (data) => {
+  if (!selectedUser) return null;
+
+  const onSubmit: SubmitHandler<UpdateUserDto> = async (data) => {
     try {
-      await onBecomeSeller(data);
+      await onUpdateUser(data);
+      reset();
       closeModal();
     } catch (e) {
       if (e instanceof Error) {
@@ -38,6 +49,7 @@ const BecomeSellerModal: FC<Props> = ({ open, closeModal, onBecomeSeller }) => {
       }
     }
   };
+
 
   return (
     <Modal slots={{ backdrop: Backdrop }}
@@ -69,23 +81,16 @@ const BecomeSellerModal: FC<Props> = ({ open, closeModal, onBecomeSeller }) => {
         }}
       >
         <Typography variant="h6" fontWeight={600}>
-          become seller
+          update user
         </Typography>
 
         <TextField
-          select
-          label="seller type"
-          error={!!errors.sellerType}
-          helperText={errors.sellerType?.message}
-          {...register('sellerType')}
-          fullWidth
-        >
-          {Object.values(SellerTypes).map((i) => (
-            <MenuItem key={i} value={i}>
-              {i}
-            </MenuItem>
-          ))}
-        </TextField>
+          label="username"
+          multiline
+          error={!!errors.username}
+          helperText={errors.username?.message}
+          {...register('username')}
+        />
 
         <Button
           type="submit"
@@ -101,10 +106,10 @@ const BecomeSellerModal: FC<Props> = ({ open, closeModal, onBecomeSeller }) => {
         </Button>
 
         {error && <ErrorComponent error={error} />}
-
       </Box>
     </Modal>
+
   );
 };
 
-export default BecomeSellerModal;
+export default UpdateUserModal;

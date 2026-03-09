@@ -1,5 +1,5 @@
-import { type FC } from 'react';
-import { useForm } from 'react-hook-form';
+import { type FC, useState } from 'react';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { Link } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { alpha, Box, Button, TextField, Typography } from '@mui/material';
@@ -9,10 +9,11 @@ import ErrorComponent from '../error/ErrorComponent.tsx';
 
 interface Props {
   onRegister: (data: RegisterReq) => Promise<void>;
-  error: string | null;
 }
 
-const RegisterForm: FC<Props> = ({ onRegister, error }) => {
+const RegisterForm: FC<Props> = ({ onRegister }) => {
+  const [error, setError] = useState<string | null>(null);
+
   const {
     register,
     handleSubmit,
@@ -20,6 +21,16 @@ const RegisterForm: FC<Props> = ({ onRegister, error }) => {
   } = useForm<RegisterReq>({
     resolver: zodResolver(registerSchema),
   });
+
+  const onSubmit: SubmitHandler<RegisterReq> = async (data) => {
+    try {
+      await onRegister(data);
+    } catch (e) {
+      if (e instanceof Error) {
+        setError(e.message);
+      }
+    }
+  };
 
   return (
     <Box sx={(theme) => ({
@@ -35,7 +46,7 @@ const RegisterForm: FC<Props> = ({ onRegister, error }) => {
     })}>
       <Typography variant="h5"> Register </Typography>
       <form
-        onSubmit={handleSubmit(onRegister)}
+        onSubmit={handleSubmit(onSubmit)}
         style={{
           display: 'flex',
           flexDirection: 'column',

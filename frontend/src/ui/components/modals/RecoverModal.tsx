@@ -1,36 +1,35 @@
-import { type FC, useEffect, useState } from 'react';
-import { Backdrop, Box, Button, MenuItem, Modal, TextField, Typography } from '@mui/material';
-import { SellerTypes } from '../../../models/enums/SellerType.ts';
-import ErrorComponent from '../error/ErrorComponent.tsx';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { BecomeSellerDto } from '../../../models/user/BecomeSellerDto.ts';
+import { type FC, useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { becomeSellerSchema } from '../../../validation/user.schema.ts';
+import { Backdrop, Box, Button, MenuItem, Modal, TextField, Typography } from '@mui/material';
+import ErrorComponent from '../error/ErrorComponent.tsx';
+import type { RecoverReq } from '../../../models/auth/RecoverReq.ts';
+import { recoverySchema } from '../../../validation/auth.schema.ts';
 
 interface Props {
   open: boolean;
   closeModal: () => void;
-  onBecomeSeller: SubmitHandler<BecomeSellerDto>;
+  onRecover: SubmitHandler<RecoverReq>;
 }
 
-const BecomeSellerModal: FC<Props> = ({ open, closeModal, onBecomeSeller }) => {
+const RecoverModal: FC<Props> = ({ open, closeModal, onRecover }) => {
   const [error, setError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors },
   }
-    = useForm<BecomeSellerDto>({ resolver: zodResolver(becomeSellerSchema) });
+    = useForm<RecoverReq>({ resolver: zodResolver(recoverySchema) });
 
   useEffect(() => {
     if (!open) reset();
   }, [open, reset]);
 
-  const onSubmit: SubmitHandler<BecomeSellerDto> = async (data) => {
+  const onSubmit: SubmitHandler<RecoverReq> = async (data) => {
     try {
-      await onBecomeSeller(data);
+      await onRecover(data);
       closeModal();
     } catch (e) {
       if (e instanceof Error) {
@@ -69,23 +68,33 @@ const BecomeSellerModal: FC<Props> = ({ open, closeModal, onBecomeSeller }) => {
         }}
       >
         <Typography variant="h6" fontWeight={600}>
-          become seller
+          recovery request
         </Typography>
 
         <TextField
           select
-          label="seller type"
-          error={!!errors.sellerType}
-          helperText={errors.sellerType?.message}
-          {...register('sellerType')}
+          label="action type"
+          {...register('actionType')}
           fullWidth
         >
-          {Object.values(SellerTypes).map((i) => (
-            <MenuItem key={i} value={i}>
-              {i}
-            </MenuItem>
-          ))}
+          <MenuItem value="UNDELETE">undelete</MenuItem>
+          <MenuItem value="UNBAN">unban</MenuItem>
         </TextField>
+
+        <TextField
+          label="email"
+          error={!!errors.email}
+          helperText={errors.email?.message}
+          {...register('email')}
+        />
+
+        <TextField
+          label="describe your request"
+          multiline
+          error={!!errors.text}
+          helperText={errors.text?.message}
+          {...register('text')}
+        />
 
         <Button
           type="submit"
@@ -107,4 +116,4 @@ const BecomeSellerModal: FC<Props> = ({ open, closeModal, onBecomeSeller }) => {
   );
 };
 
-export default BecomeSellerModal;
+export default RecoverModal;

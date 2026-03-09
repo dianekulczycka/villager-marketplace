@@ -5,15 +5,6 @@ import { api } from '../api.config.ts';
 import type { UpdateUserDto } from '../../models/user/UpdateUserDto.ts';
 import type { UserSelfView } from '../../models/user/UserSelfView.ts';
 
-export const getUsers = async (page?: number): Promise<PaginationRes<UserAdminView>> => {
-  const { data } = await api.get(endpoints.admin.root, {
-    params: {
-      page,
-    },
-  });
-  return data;
-};
-
 export const getFlagged = async (page?: number): Promise<PaginationRes<UserAdminView>> => {
   const { data } = await api.get(endpoints.admin.flagged, {
     params: {
@@ -47,7 +38,7 @@ export const update = async (id: number, dto: UpdateUserDto): Promise<UserSelfVi
 };
 
 export const softDelete = async (id: number): Promise<void> => {
-  await api.patch(endpoints.admin.delete(id));
+  await api.delete(endpoints.admin.delete(id));
 };
 
 export const restore = async (id: number): Promise<void> => {
@@ -55,7 +46,7 @@ export const restore = async (id: number): Promise<void> => {
 };
 
 export const hardDelete = async (id: number): Promise<void> => {
-  await api.delete(endpoints.admin.delete(id));
+  await api.delete(endpoints.admin.byId(id));
 };
 
 export const ban = async (id: number): Promise<void> => {

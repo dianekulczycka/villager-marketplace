@@ -1,1 +1,9 @@
-export type ActiveModal = 'become' | 'create' | 'update' | 'delete' | null;
+export type ActiveModal =
+  'become'
+  | 'create'
+  | 'updateItem'
+  | 'updateUser'
+  | 'deleteItem'
+  | 'deleteUser'
+  | 'restore'
+  | null;

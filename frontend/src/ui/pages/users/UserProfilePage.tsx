@@ -2,13 +2,17 @@ import { type FC, useState } from 'react';
 import UserProfileComponent from '../../components/user/UserProfileComponent.tsx';
 import { useAuth } from '../../../store/helpers/useAuth.ts';
 import { useFetch } from '../../../hooks/useFetch.ts';
-import { getMy, post, softDelete, update } from '../../../services/fetch/item.service.ts';
+import {
+  getMy,
+  post,
+  softDelete as itemSoftDelete,
+  update as itemUpdate,
+} from '../../../services/fetch/item.service.ts';
+import { becomeSeller, softDelete, update } from '../../../services/fetch/user.service.ts';
 import { PaginationComponent } from '../../components/shared/PaginationComponent.tsx';
 import { NumberParam, StringParam, useQueryParams, withDefault } from 'use-query-params';
 import { ItemSortField } from '../../../models/enums/ItemSortField.ts';
-import type { SubmitHandler } from 'react-hook-form';
 import type { BecomeSellerDto } from '../../../models/user/BecomeSellerDto.ts';
-import { becomeSeller } from '../../../services/fetch/user.service.ts';
 import DataStateComponent from '../../components/shared/DataStateComponent.tsx';
 import ItemsComponent from '../../components/item/ItemsComponent.tsx';
 import { Box } from '@mui/material';
@@ -16,17 +20,33 @@ import SortSearchComponent from '../../components/shared/SortSearchComponent.tsx
 import type { ActiveModal } from '../../../models/item/ActiveModal.ts';
 import type { CreateItemDto } from '../../../models/item/CreateItemDto.ts';
 import type { UpdateItemDto } from '../../../models/item/UpdateItemDto.ts';
+import { createOpenModal } from '../../../helpers/createOpenModal.ts';
+import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal.tsx';
+import UpdateItemModal from '../../components/modals/UpdateItemModal.tsx';
+import CreateItemModal from '../../components/modals/CreateItemModal.tsx';
+import BecomeSellerModal from '../../components/modals/BecomeSellerModal.tsx';
+import UpdateUserModal from '../../components/modals/UpdateUserModal.tsx';
+import type { UpdateUserDto } from '../../../models/user/UpdateUserDto.ts';
+import type { ItemAdminView } from '../../../models/item/ItemAdminView.ts';
+import type { UserAdminView } from '../../../models/user/UserAdminView.ts';
 
 const UserProfilePage: FC = () => {
   const { user, loadUser } = useAuth();
   const userRole = user?.role;
 
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+  const [selectedItem, setSelectedItem] = useState<ItemAdminView | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserAdminView | null>(null);
 
-  const openBecomeModal = () => setActiveModal('become');
-  const openCreateModal = () => setActiveModal('create');
-  const openUpdateModal = () => setActiveModal('update');
-  const openDeleteModal = () => setActiveModal('delete');
+  const openItemModal = createOpenModal<ItemAdminView>(setActiveModal, setSelectedItem);
+  const openUserModal = createOpenModal<UserAdminView>(setActiveModal, setSelectedUser);
+
+  const openBecomeModal = () => openItemModal('become');
+  const openCreateModal = () => openItemModal('create');
+  const openUpdateItemModal = (item: ItemAdminView) => openItemModal('updateItem', item);
+  const openDeleteItemModal = (item: ItemAdminView) => openItemModal('deleteItem', item);
+  const openUpdateUserModal = (user: UserAdminView) => openUserModal('updateUser', user);
+  const openDeleteUserModal = (user: UserAdminView) => openUserModal('deleteUser', user);
 
   const closeModal = () => setActiveModal(null);
 
@@ -49,34 +69,48 @@ const UserProfilePage: FC = () => {
           search: query.search ?? undefined,
         })
         : Promise.resolve(null),
-    [query],
+    [query, userRole],
   );
 
   const handlePageChange = (newPage: number) => {
     setQuery({ page: newPage });
   };
 
-  const onBecomeSeller: SubmitHandler<BecomeSellerDto> = async (data) => {
+  const onBecomeSeller = async (data: BecomeSellerDto) => {
     await becomeSeller(data);
     loadUser();
   };
 
-  const onCreateItem: SubmitHandler<CreateItemDto> = async (data) => {
+  const onCreateItem = async (data: CreateItemDto) => {
     await post({ ...data, description: data.description?.trim() || undefined });
     await refetch();
   };
 
-  const onUpdateItem = async (id: number, dto: UpdateItemDto) => {
-    await update(id, dto);
+  const onUpdateItem = async (dto: UpdateItemDto) => {
+    if (!selectedItem) return;
+    await itemUpdate(selectedItem.id, dto);
     await refetch();
   };
 
-  const onDeleteItem: SubmitHandler<number> = async (id: number) => {
-    await softDelete(id);
+  const onUpdateUser = async (dto: UpdateUserDto) => {
+    if (!selectedUser) return;
+    await update(dto);
+    loadUser();
+  };
+
+  const onDeleteItem = async () => {
+    if (!selectedItem) return;
+    await itemSoftDelete(selectedItem.id);
     await refetch();
   };
 
-  if (!user) return;
+  const onDeleteUser = async () => {
+    if (!selectedUser) return;
+    await softDelete();
+    await refetch();
+  };
+
+  if (!user) return null;
 
   return (
     <Box sx={{
@@ -86,12 +120,10 @@ const UserProfilePage: FC = () => {
     }}>
       <UserProfileComponent
         user={user}
-        onBecomeSeller={onBecomeSeller}
-        onCreateItem={onCreateItem}
-        activeModal={activeModal}
-        closeModal={closeModal}
         openBecomeModal={openBecomeModal}
         openCreateModal={openCreateModal}
+        openUpdateUserModal={openUpdateUserModal}
+        openDeleteUserModal={openDeleteUserModal}
       />
       {userRole === 'SELLER' && (
         <>
@@ -106,12 +138,8 @@ const UserProfilePage: FC = () => {
               <>
                 <ItemsComponent
                   items={paginatedData.data}
-                  onUpdateItem={onUpdateItem}
-                  onDeleteItem={onDeleteItem}
-                  activeModal={activeModal}
-                  closeModal={closeModal}
-                  openUpdateModal={openUpdateModal}
-                  openDeleteModal={openDeleteModal}
+                  openUpdateModal={openUpdateItemModal}
+                  openDeleteModal={openDeleteItemModal}
                 />
                 <PaginationComponent
                   page={query.page}
@@ -122,6 +150,42 @@ const UserProfilePage: FC = () => {
           </DataStateComponent>
         </>
       )}
+
+      <UpdateUserModal
+        open={activeModal === 'updateUser'}
+        closeModal={closeModal}
+        onUpdateUser={onUpdateUser}
+        selectedUser={selectedUser}
+      />
+
+      <ConfirmDeleteModal
+        open={activeModal === 'deleteItem' || activeModal === 'deleteUser'}
+        closeModal={closeModal}
+        onDelete={activeModal === 'deleteItem' ? onDeleteItem : onDeleteUser}
+      />
+
+      {userRole === 'SELLER' && (
+        <>
+          <CreateItemModal
+            open={activeModal === 'create'}
+            closeModal={closeModal}
+            onCreateItem={onCreateItem} />
+          <UpdateItemModal
+            open={activeModal === 'updateItem'}
+            closeModal={closeModal}
+            onUpdateItem={onUpdateItem}
+            selectedItem={selectedItem} />
+        </>
+      )}
+
+      {userRole === 'BUYER' && (
+        <BecomeSellerModal
+          open={activeModal === 'become'}
+          closeModal={closeModal}
+          onBecomeSeller={onBecomeSeller}
+        />
+      )}
+
     </Box>
   );
 };

@@ -1,33 +1,23 @@
 import { type FC } from 'react';
-import type { UserSelfView } from '../../../models/user/UserSelfView.ts';
-import BecomeSellerModal from '../modals/BecomeSellerModal.tsx';
 import UserProfileCard from './UserProfileCard.tsx';
-import type { BecomeSellerDto } from '../../../models/user/BecomeSellerDto.ts';
 import { Box, Card, CardContent } from '@mui/material';
 import ActionButton from '../buttons/ActionButton.tsx';
-import type { ActiveModal } from '../../../models/item/ActiveModal.ts';
-import type { SubmitHandler } from 'react-hook-form';
-import type { CreateItemDto } from '../../../models/item/CreateItemDto.ts';
-import CreateItemModal from '../modals/CreateItemModal.tsx';
+import type { UserAdminView } from '../../../models/user/UserAdminView.ts';
 
 interface Props {
-  user: UserSelfView;
-  onBecomeSeller: SubmitHandler<BecomeSellerDto>;
-  onCreateItem: SubmitHandler<CreateItemDto>;
-  activeModal: ActiveModal;
-  closeModal: () => void;
+  user: UserAdminView;
   openBecomeModal: () => void;
   openCreateModal: () => void;
+  openDeleteUserModal: (user: UserAdminView) => void;
+  openUpdateUserModal: (user: UserAdminView) => void;
 }
 
 const UserProfileComponent: FC<Props> = ({
                                            user,
-                                           onBecomeSeller,
-                                           onCreateItem,
-                                           activeModal,
-                                           closeModal,
                                            openBecomeModal,
                                            openCreateModal,
+                                           openUpdateUserModal,
+                                           openDeleteUserModal,
                                          }) => {
   return (
     <Box
@@ -55,33 +45,19 @@ const UserProfileComponent: FC<Props> = ({
           }}
         >
           <UserProfileCard user={user} />
-          {user.role === 'BUYER' && (
-            <>
-              <ActionButton
-                action="become seller"
-                actionHandler={openBecomeModal}
-              />
-              <BecomeSellerModal
-                open={activeModal === 'become'}
-                closeModal={closeModal}
-                onBecomeSeller={onBecomeSeller}
-              />
-            </>
-          )}
 
-          {user.role === 'SELLER' && (
-            <>
-              <ActionButton
-                action="New Post"
-                actionHandler={openCreateModal}
-              />
-              <CreateItemModal
-                open={activeModal === 'create'}
-                closeModal={closeModal}
-                onCreateItem={onCreateItem}
-              />
-            </>
-          )}
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}>
+            {user.role !== 'ADMIN' && user.role !== 'MANAGER' && (
+              <ActionButton action="Edit profile" actionHandler={() => openUpdateUserModal(user)} />)}
+            {user.role !== 'ADMIN' &&
+              <ActionButton action="Delete profile" actionHandler={() => openDeleteUserModal(user)} />}
+            {user.role === 'BUYER' && <ActionButton action="Become seller" actionHandler={openBecomeModal} />}
+            {user.role === 'SELLER' && <ActionButton action="New post" actionHandler={openCreateModal} />}
+          </Box>
         </CardContent>
       </Card>
     </Box>

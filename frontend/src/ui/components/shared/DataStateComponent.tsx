@@ -28,7 +28,7 @@ const DataStateComponent: FC<Props> = ({ loading, error, data, isEmpty, children
 
   if (loading) return msgWrap(<PreloaderComponent />);
   if (error) return msgWrap(<ErrorComponent error={error} />);
-  if (!data) return msgWrap(<ErrorComponent error="no data fetched" />);
+  if (!loading && !data) return msgWrap(<ErrorComponent error="no data fetched" />);
   if (isEmpty) return msgWrap(<Alert severity="info">no data yet!</Alert>);
 
   return <>{children}</>;

@@ -89,7 +89,7 @@ export class AuthController {
     this.tokenService.clearAuthCookies(res);
   }
 
-  @Throttle({ default: { limit: 1, ttl: 60000 } })
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @HttpCode(204)
   @Post('account-recovery')
   async requestRecovery(

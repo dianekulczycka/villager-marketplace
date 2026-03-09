@@ -1,21 +1,20 @@
-import { type FC, useState } from 'react';
+import React, { type FC, useState } from 'react';
 import { Backdrop, Box, Button, Modal, Typography } from '@mui/material';
-import type { SubmitHandler } from 'react-hook-form';
 import ErrorComponent from '../error/ErrorComponent.tsx';
 
 interface Props {
   open: boolean;
   closeModal: () => void;
-  onDeleteItem: SubmitHandler<number>;
-  itemId: number;
+  onDelete: () => Promise<void>;
 }
 
-const ConfirmDeleteModal: FC<Props> = ({ open, closeModal, onDeleteItem, itemId }) => {
+const ConfirmDeleteModal: FC<Props> = ({ open, closeModal, onDelete }) => {
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
     try {
-      await onDeleteItem(itemId);
+      await onDelete();
       closeModal();
     } catch (e) {
       if (e instanceof Error) {

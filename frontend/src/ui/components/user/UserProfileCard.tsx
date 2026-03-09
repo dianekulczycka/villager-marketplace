@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { Avatar, Box, Chip, Divider, Typography } from '@mui/material';
+import { Avatar, Box, Typography } from '@mui/material';
 import type { UserSelfView } from '../../../models/user/UserSelfView.ts';
 import { routes } from '../../../routes/routes.ts';
 
@@ -34,30 +34,18 @@ const UserProfileCard: FC<Props> = ({ user }) => {
         </Typography>
 
         <Typography variant="body1" gutterBottom>
-          Role: {user.role}
+          Role: {user.role === 'SELLER' ? user.sellerType : user.role}
         </Typography>
 
-        {user.sellerType && (
-          <Typography variant="body1" gutterBottom>
-            Seller Type: {user.sellerType}
-          </Typography>
-        )}
-
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          Since: {new Date(user.createdAt).toLocaleString()}
+          Registered: {new Date(user.createdAt).toLocaleString()}
         </Typography>
 
         {!!user.isBanned && (
           <>
-            <Divider sx={{ my: 2 }} />
-            <Chip
-              label={`Banned at: ${
-                user.bannedAt
-                  ? new Date(user.bannedAt).toLocaleString()
-                  : 'unknown'
-              }`}
-              color="error"
-            />
+            <Typography variant="caption" color="text.secondary">
+              Banned at: {new Date(user.bannedAt!).toLocaleDateString()}
+            </Typography>
           </>
         )}
       </Box>

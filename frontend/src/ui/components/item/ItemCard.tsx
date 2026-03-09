@@ -1,30 +1,19 @@
 import { type FC } from 'react';
 import { Box, Card, CardContent, CardMedia, Chip, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import type { ItemView } from '../../../models/item/ItemView.ts';
 import { routes } from '../../../routes/routes.ts';
 import { useAuth } from '../../../store/helpers/useAuth.ts';
-import ItemControllers from '../buttons/ItemControllers.tsx';
-import type { ActiveModal } from '../../../models/item/ActiveModal.ts';
-import type { SubmitHandler } from 'react-hook-form';
-import type { UpdateItemDto } from '../../../models/item/UpdateItemDto.ts';
+import Controllers from '../buttons/Controllers.tsx';
+import type { ItemAdminView } from '../../../models/item/ItemAdminView.ts';
 
 interface Props {
-  item: ItemView;
-  onUpdateItem: (id: number, dto: UpdateItemDto) => Promise<void>;
-  onDeleteItem: SubmitHandler<number>;
-  activeModal: ActiveModal;
-  closeModal: () => void;
-  openDeleteModal: () => void;
-  openUpdateModal: () => void;
+  item: ItemAdminView;
+  openDeleteModal: (item: ItemAdminView) => void;
+  openUpdateModal: (item: ItemAdminView) => void;
 }
 
 const ItemCard: FC<Props> = ({
                                item,
-                               onUpdateItem,
-                               onDeleteItem,
-                               activeModal,
-                               closeModal,
                                openDeleteModal,
                                openUpdateModal,
                              }) => {
@@ -43,6 +32,9 @@ const ItemCard: FC<Props> = ({
           transform: 'translateY(-4px)',
           boxShadow: 6,
         },
+        ...(!!item.isDeleted && {
+          opacity: 0.7,
+        }),
       }}
     >
       <CardMedia
@@ -80,14 +72,10 @@ const ItemCard: FC<Props> = ({
           <Chip size="small" label={`views: ${item.views}`} />
         </Box>
       </CardContent>
-      {canModify && <ItemControllers
-        onUpdateItem={onUpdateItem}
-        onDeleteItem={onDeleteItem}
-        activeModal={activeModal}
-        closeModal={closeModal}
+      {canModify && !item.isDeleted && <Controllers
         openDeleteModal={openDeleteModal}
         openUpdateModal={openUpdateModal}
-        item={item} />}
+        element={item} />}
     </Card>
   );
 };
