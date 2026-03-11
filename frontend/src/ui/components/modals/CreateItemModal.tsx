@@ -51,6 +51,7 @@ const CreateItemModal: FC<Props> = ({ open, closeModal, onCreateItem }) => {
   };
 
   if (!user) return null;
+  if (!user?.sellerType) return null;
 
   return (
     <Modal slots={{ backdrop: Backdrop }}

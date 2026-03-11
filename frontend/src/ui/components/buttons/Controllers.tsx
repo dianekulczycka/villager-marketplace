@@ -18,9 +18,11 @@ const Controllers = <T, >({ openUpdateModal, openDeleteModal, element }: Props<T
         top: 0,
         right: 0,
         p: 1,
-      }}>
+        zIndex: 20
+      }}
+    >
       <IconButton
-        onClick={() => openUpdateModal(element)}
+          onClick={() => openUpdateModal(element)}
         sx={{
           bgcolor: 'secondary.main',
           color: '#ffffff',

@@ -5,5 +5,6 @@ export type ActiveModal =
   | 'updateUser'
   | 'deleteItem'
   | 'deleteUser'
+  | 'hardDeleteUser'
   | 'restore'
   | null;

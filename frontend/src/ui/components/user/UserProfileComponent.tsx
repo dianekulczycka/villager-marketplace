@@ -3,6 +3,10 @@ import UserProfileCard from './UserProfileCard.tsx';
 import { Box, Card, CardContent } from '@mui/material';
 import ActionButton from '../buttons/ActionButton.tsx';
 import type { UserAdminView } from '../../../models/user/UserAdminView.ts';
+import type { PageView } from '../../pages/users/UserProfilePage.tsx';
+import type { ProfileStats } from '../../../models/stats/ProfileStats.ts';
+import StatsComponent from './StatsComponen.tsx';
+import DataStateComponent from '../shared/DataStateComponent.tsx';
 
 interface Props {
   user: UserAdminView;
@@ -10,6 +14,10 @@ interface Props {
   openCreateModal: () => void;
   openDeleteUserModal: (user: UserAdminView) => void;
   openUpdateUserModal: (user: UserAdminView) => void;
+  changeView: (pageView: PageView) => void;
+  stats: ProfileStats | null;
+  error: string | null;
+  loading: boolean;
 }
 
 const UserProfileComponent: FC<Props> = ({
@@ -18,7 +26,20 @@ const UserProfileComponent: FC<Props> = ({
                                            openCreateModal,
                                            openUpdateUserModal,
                                            openDeleteUserModal,
+                                           changeView,
+                                           stats,
+                                           error,
+                                           loading
                                          }) => {
+
+  const isAdmin = user.role === 'ADMIN';
+  const isManager = user.role === 'MANAGER';
+  const isSeller = user.role === 'SELLER';
+  const isBuyer = user.role === 'BUYER';
+  const isAuthority = isAdmin || isManager;
+  const canEditProfile = !isAdmin && !isManager;
+  const canDeleteProfile = !isAdmin;
+
   return (
     <Box
       sx={{
@@ -46,17 +67,42 @@ const UserProfileComponent: FC<Props> = ({
         >
           <UserProfileCard user={user} />
 
-          <Box sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}>
-            {user.role !== 'ADMIN' && user.role !== 'MANAGER' && (
-              <ActionButton action="Edit profile" actionHandler={() => openUpdateUserModal(user)} />)}
-            {user.role !== 'ADMIN' &&
-              <ActionButton action="Delete profile" actionHandler={() => openDeleteUserModal(user)} />}
-            {user.role === 'BUYER' && <ActionButton action="Become seller" actionHandler={openBecomeModal} />}
-            {user.role === 'SELLER' && <ActionButton action="New post" actionHandler={openCreateModal} />}
+          <DataStateComponent
+            loading={loading}
+            error={error}
+            data={stats}
+          >
+            {stats && <StatsComponent stats={stats} />}
+          </DataStateComponent>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+            {canEditProfile && (
+              <ActionButton action="Edit profile" actionHandler={() => openUpdateUserModal(user)} />
+            )}
+
+            {canDeleteProfile && (
+              <ActionButton action="Delete profile" actionHandler={() => openDeleteUserModal(user)} />
+            )}
+
+            {isBuyer && (
+              <ActionButton action="Become seller" actionHandler={openBecomeModal} />
+            )}
+
+            {isSeller && (
+              <ActionButton action="New post" actionHandler={openCreateModal} />
+            )}
+
+            {isAuthority && (
+              <>
+                <ActionButton action="Show all" actionHandler={() => changeView('USERS')} />
+                <ActionButton action="Show flagged" actionHandler={() => changeView('FLAGGED_USERS')} />
+                <ActionButton action="Show banned" actionHandler={() => changeView('BANNED_USERS')} />
+              </>
+            )}
+
+            {isAdmin && (
+              <ActionButton action="Show managers" actionHandler={() => changeView('MANAGERS')} />
+            )}
           </Box>
         </CardContent>
       </Card>

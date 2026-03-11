@@ -21,7 +21,6 @@ import { paginatePrisma } from '../shared/pagination/prisma-paginator';
 import { BecomeSellerRequestDto } from './dto/become-seller-request';
 import { UserAdminDto } from './dto/user-admin.dto';
 import {
-  ADMIN_ALL_USERS_WHERE,
   ADMIN_BANNED_USERS_WHERE,
   ADMIN_FLAGGED_USERS_WHERE,
   ADMIN_MANAGERS_WHERE,
@@ -302,7 +301,7 @@ export class UserService {
       select: { role: true },
     });
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
-    if (user.role !== user_role.BUYER)
+    if (!(user.role === user_role.BUYER || user.role === user_role.SELLER))
       throw new BadRequestException(USER_ERRORS.NOT_ALLOWED_UPDATE);
 
     await this.prisma.$transaction([

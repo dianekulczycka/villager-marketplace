@@ -64,7 +64,7 @@ const ItemDetailsCard: FC<Props> = ({ item }) => {
           <Chip sx={{ mt: 1 }} size="small" label={`views: ${item.views}`} />
         </Box>
 
-        {item.isDeleted && <Chip size="medium" color="error" label="REMOVED" />}
+        {!!item.isDeleted && <Chip size="medium" color="error" label="REMOVED" />}
 
         <UserCard user={item.seller} variant="S" />
 

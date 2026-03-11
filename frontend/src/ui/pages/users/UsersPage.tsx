@@ -14,7 +14,16 @@ import { createOpenModal } from '../../../helpers/createOpenModal.ts';
 import type { UpdateUserDto } from '../../../models/user/UpdateUserDto.ts';
 import UpdateUserModal from '../../components/modals/UpdateUserModal.tsx';
 import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal.tsx';
-import { softDelete, update } from '../../../services/fetch/admin.service.ts';
+import {
+  ban,
+  demote, hardDelete,
+  promote,
+  restore,
+  softDelete,
+  unban,
+  unflag,
+  update,
+} from '../../../services/fetch/admin.service.ts';
 
 const UsersPage: FC = () => {
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
@@ -23,6 +32,7 @@ const UsersPage: FC = () => {
   const openUserModal = createOpenModal<UserAdminView>(setActiveModal, setSelectedUser);
   const openUpdateModal = (user: UserAdminView) => openUserModal('updateUser', user);
   const openDeleteModal = (user: UserAdminView) => openUserModal('deleteUser', user);
+  const openHardDeleteModal = (user: UserAdminView) => openUserModal('hardDeleteUser', user);
   const closeModal = () => setActiveModal(null);
 
   const [query, setQuery] = useQueryParams({
@@ -45,17 +55,49 @@ const UsersPage: FC = () => {
     [query],
   );
 
-  const onUpdateUser = async (dto: UpdateUserDto) => {
+  const updateUser = async (dto: UpdateUserDto) => {
     if (!selectedUser) return;
     await update(selectedUser.id, dto);
     await refetch();
   };
 
-  const onDeleteUser = async () => {
+  const deleteUser = async () => {
     if (!selectedUser) return;
     await softDelete(selectedUser.id);
     await refetch();
   };
+
+  const hardDeleteUser = async () => {
+    if (!selectedUser) return;
+    await hardDelete(selectedUser.id);
+    await refetch();
+  };
+
+  const toggleBan = async () => {
+    if (!selectedUser) return;
+    await (selectedUser.isBanned
+      ? unban(selectedUser.id)
+      : ban(selectedUser.id));
+    await refetch();
+  };
+
+  const togglePromote = async () => {
+    if (!selectedUser) return;
+    await (selectedUser.role !== 'MANAGER'
+      ? promote(selectedUser.id)
+      : demote(selectedUser.id));
+    await refetch();
+  };
+
+  const unflagUser = async () => {
+    if (!selectedUser) return;
+    if (selectedUser.isFlagged) await unflag(selectedUser.id);
+  }
+
+  const restoreUser = async () => {
+    if (!selectedUser) return;
+    if (selectedUser.isDeleted) await restore(selectedUser.id);
+  }
 
   const handlePageChange = (newPage: number) => {
     setQuery({ page: newPage });
@@ -78,9 +120,15 @@ const UsersPage: FC = () => {
         {paginatedData &&
           <>
             <UsersComponent
+              setSelectedUser={setSelectedUser}
               users={paginatedData.data}
               openDeleteModal={openDeleteModal}
+              openHardDeleteModal={openHardDeleteModal}
               openUpdateModal={openUpdateModal}
+              toggleBan={toggleBan}
+              togglePromote={togglePromote}
+              unflagUser={unflagUser}
+              restoreUser={restoreUser}
             />
             <PaginationComponent
               page={paginatedData.page}
@@ -95,14 +143,18 @@ const UsersPage: FC = () => {
       <UpdateUserModal
         open={activeModal === 'updateUser'}
         closeModal={closeModal}
-        onUpdateUser={onUpdateUser}
+        onUpdateUser={updateUser}
         selectedUser={selectedUser}
       />
 
       <ConfirmDeleteModal
-        open={activeModal === 'deleteUser'}
+        open={activeModal === 'deleteUser' || activeModal === 'hardDeleteUser'}
         closeModal={closeModal}
-        onDelete={onDeleteUser}
+        onDelete={
+          activeModal === 'deleteUser'
+            ? deleteUser
+            : hardDeleteUser
+        }
       />
 
     </Box>

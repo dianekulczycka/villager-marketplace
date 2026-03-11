@@ -39,7 +39,7 @@ const ItemCard: FC<Props> = ({
     >
       <CardMedia
         component="img"
-        height="200"
+        height="300"
         image={routes.icons.item(item.iconUrl)}
         alt={item.name}
         sx={{

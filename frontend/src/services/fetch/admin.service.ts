@@ -4,31 +4,20 @@ import { endpoints } from '../api.endpoints.ts';
 import { api } from '../api.config.ts';
 import type { UpdateUserDto } from '../../models/user/UpdateUserDto.ts';
 import type { UserSelfView } from '../../models/user/UserSelfView.ts';
+import type { UserQueryParams } from '../../models/user/UserQueryParams.ts';
 
-export const getFlagged = async (page?: number): Promise<PaginationRes<UserAdminView>> => {
-  const { data } = await api.get(endpoints.admin.flagged, {
-    params: {
-      page,
-    },
-  });
+export const getFlagged = async (params?: UserQueryParams): Promise<PaginationRes<UserAdminView>> => {
+  const { data } = await api.get(endpoints.admin.flagged, { params });
   return data;
 };
 
-export const getBanned = async (page?: number): Promise<PaginationRes<UserAdminView>> => {
-  const { data } = await api.get(endpoints.admin.banned, {
-    params: {
-      page,
-    },
-  });
+export const getBanned = async (params?: UserQueryParams): Promise<PaginationRes<UserAdminView>> => {
+  const { data } = await api.get(endpoints.admin.banned, { params });
   return data;
 };
 
-export const getManagers = async (page?: number): Promise<PaginationRes<UserAdminView>> => {
-  const { data } = await api.get(endpoints.admin.managers, {
-    params: {
-      page,
-    },
-  });
+export const getManagers = async (params?: UserQueryParams): Promise<PaginationRes<UserAdminView>> => {
+  const { data } = await api.get(endpoints.admin.managers, { params });
   return data;
 };
 

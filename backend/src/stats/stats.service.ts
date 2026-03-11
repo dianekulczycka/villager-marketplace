@@ -7,7 +7,6 @@ import {
   ADMIN_BANNED_USERS_WHERE,
   ADMIN_FLAGGED_USERS_WHERE,
 } from '../prisma/helpers/user.helpers';
-import { AUTH_ERRORS } from '../shared/errors/auth.errors';
 
 @Injectable()
 export class StatsService {
@@ -16,17 +15,24 @@ export class StatsService {
   async getProfileStats(request: UserRequest): Promise<ProfileStats> {
     const { userId, role } = request.user;
 
+    if (role === user_role.BUYER) {
+      return {
+        role: user_role.BUYER,
+        totalItems: 0,
+      };
+    }
+
     if (role === user_role.SELLER) {
       const [totalItems, activeItems, viewsAgg, mostViewedItem] =
         await this.prisma.$transaction([
-          this.prisma.item.count({ where: { sellerId: userId } }),
+          this.prisma.item.count({ where: { sellerId: userId, isDeleted: 0 } }),
           this.prisma.item.count({ where: { sellerId: userId, isDeleted: 0 } }),
           this.prisma.item.aggregate({
-            where: { sellerId: userId },
+            where: { sellerId: userId, isDeleted: 0 },
             _sum: { views: true },
           }),
           this.prisma.item.findFirst({
-            where: { sellerId: userId },
+            where: { sellerId: userId, isDeleted: 0 },
             orderBy: { views: 'desc' },
             select: { id: true, name: true, views: true },
           }),
@@ -62,6 +68,7 @@ export class StatsService {
         totalItems,
       };
     }
-    throw new Error(AUTH_ERRORS.FORBIDDEN_BY_ROLE(role));
+
+    throw new Error();
   }
 }

@@ -5,26 +5,39 @@ import { routes } from '../../../routes/routes.ts';
 import Controllers from '../buttons/Controllers.tsx';
 import { useAuth } from '../../../store/helpers/useAuth.ts';
 import type { UserAdminView } from '../../../models/user/UserAdminView.ts';
+import UserAdminControllers from '../buttons/UserAdminControllers.tsx';
 
-interface UserCardProps {
+interface Props {
   user: UserAdminView;
   variant?: 'L' | 'S';
-  openDeleteModal: (user: UserAdminView) => void;
-  openUpdateModal: (user: UserAdminView) => void;
+  openDeleteModal?: (user: UserAdminView) => void;
+  openUpdateModal?: (user: UserAdminView) => void;
+  openHardDeleteModal?: (user: UserAdminView) => void;
+  toggleBan?: (user: UserAdminView) => void;
+  togglePromote?: (user: UserAdminView) => void;
+  unflagUser?: (user: UserAdminView) => void;
+  restoreUser?: (user: UserAdminView) => void;
 }
 
-const UserCard: FC<UserCardProps> = ({
-                                       user,
-                                       variant,
-                                       openDeleteModal,
-                                       openUpdateModal,
-                                     }) => {
+const UserCard: FC<Props> = ({
+                               user,
+                               variant,
+                               openDeleteModal,
+                               openUpdateModal,
+                               openHardDeleteModal,
+                               toggleBan,
+                               togglePromote,
+                               unflagUser,
+                               restoreUser,
+                             }) => {
   const { user: loggedUser } = useAuth();
   const canModify: boolean = loggedUser?.role === 'ADMIN' || loggedUser?.role === 'MANAGER';
   const isSmall = variant === 'S';
 
   return (
     <Card
+      component={canModify ? 'div' : RouterLink}
+      to={canModify ? undefined : routes.items.bySellerId(user.id)}
       elevation={isSmall ? 0 : 1}
       sx={{
         position: 'relative',
@@ -37,13 +50,10 @@ const UserCard: FC<UserCardProps> = ({
         gap: isSmall ? 2 : 0,
         p: isSmall ? 2 : 0,
         height: isSmall ? 'auto' : '100%',
-        '&:hover': {
-          transform: isSmall ? 'none' : 'translateY(-6px)',
-          boxShadow: isSmall ? 3 : 6,
-        },
-        ...(!!user.isDeleted && {
-          opacity: 0.7,
-        }),
+        textDecoration: 'none',
+        color: 'inherit',
+        pointerEvents: canModify ? 'none' : 'auto',
+        ...(!!user.isDeleted && { opacity: 0.7 }),
       }}
     >
       <Box
@@ -52,7 +62,7 @@ const UserCard: FC<UserCardProps> = ({
         alt={user.username}
         sx={{
           width: isSmall ? 48 : '100%',
-          height: isSmall ? 48 : 220,
+          height: isSmall ? 48 : 300,
           borderRadius: isSmall ? '50%' : 0,
           objectFit: 'cover',
           backgroundColor: '#f5f5f5',
@@ -61,8 +71,6 @@ const UserCard: FC<UserCardProps> = ({
       />
 
       <Box
-        component={RouterLink}
-        to={routes.items.bySellerId(user.id)}
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -70,6 +78,8 @@ const UserCard: FC<UserCardProps> = ({
           p: isSmall ? 0 : 2,
           textDecoration: 'none',
           color: 'inherit',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <Typography variant={isSmall ? 'body2' : 'h6'} fontWeight={600}>
@@ -110,11 +120,14 @@ const UserCard: FC<UserCardProps> = ({
           </>
         )}
       </Box>
-      {variant === 'L' && canModify && !user.isDeleted && <Controllers
-        openDeleteModal={openDeleteModal}
-        openUpdateModal={openUpdateModal}
-        element={user}
-      />}
+      {variant === 'L' && canModify && (
+        <Box sx={{ pointerEvents: 'auto', mt: 'auto', pb: 2 }}> <UserAdminControllers toggleBan={toggleBan!} togglePromote={togglePromote!}
+                                                                   unflagUser={unflagUser!} restoreUser={restoreUser!}
+                                                                   openHardDeleteModal={openHardDeleteModal!}
+                                                                   user={user} /> </Box>)}
+      {variant === 'L' && canModify && !user.isDeleted && (
+        <Box sx={{ pointerEvents: 'auto' }}> <Controllers openDeleteModal={openDeleteModal!}
+                                                          openUpdateModal={openUpdateModal!} element={user} /> </Box>)}
     </Card>
   );
 };

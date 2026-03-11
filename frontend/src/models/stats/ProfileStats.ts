@@ -1,3 +1,8 @@
+export interface IBuyerStats {
+  role: 'BUYER';
+  totalItems: number;
+}
+
 export interface ISellerStats {
   role: 'SELLER';
   totalItems: number;
@@ -19,4 +24,4 @@ export interface IAdminStats {
   totalItems: number;
 }
 
-export type ProfileStats = ISellerStats | IAdminStats;
+export type ProfileStats = IBuyerStats | ISellerStats | IAdminStats;

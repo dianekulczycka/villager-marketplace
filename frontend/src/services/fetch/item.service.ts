@@ -2,7 +2,6 @@ import type { PaginationRes } from '../../models/pagiantion/PaginationRes.ts';
 import type { ItemView } from '../../models/item/ItemView.ts';
 import { api } from '../api.config.ts';
 import { endpoints } from '../api.endpoints.ts';
-import type { ItemDetailedView } from '../../models/item/ItemDetailedView.ts';
 import type { ItemQueryParams } from '../../models/item/ItemQueryParams.ts';
 import type { CreateItemDto } from '../../models/item/CreateItemDto.ts';
 import type { UpdateItemDto } from '../../models/item/UpdateItemDto.ts';
@@ -15,7 +14,7 @@ export const getAll = async (
   return data;
 };
 
-export const getById = async (id: number): Promise<ItemDetailedView> => {
+export const getById = async (id: number): Promise<ItemAdminView> => {
   const { data } = await api.get(endpoints.items.byId(id));
   return data;
 };
