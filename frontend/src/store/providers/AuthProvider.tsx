@@ -1,13 +1,13 @@
 import { type FC, useEffect, useState } from 'react';
-import type { UserSelfView } from '../../models/user/UserSelfView.ts';
 import { AuthContext } from '../context/auth.context.ts';
 import { Outlet, useLocation } from 'react-router';
 import { getMe } from '../../services/fetch/user.service.ts';
 import { publicRoutes } from '../../routes/routes.ts';
 import { logout } from '../../services/fetch/auth.service.ts';
+import type { UserAdminView } from '../../models/user/UserAdminView.ts';
 
 export const AuthProvider: FC = () => {
-  const [user, setUser] = useState<UserSelfView | null>(null);
+  const [user, setUser] = useState<UserAdminView | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const location = useLocation();
 

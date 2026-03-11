@@ -1,7 +1,6 @@
 import type { PaginationRes } from '../../models/pagiantion/PaginationRes.ts';
 import { api } from '../api.config.ts';
 import { endpoints } from '../api.endpoints.ts';
-import type { UserSelfView } from '../../models/user/UserSelfView.ts';
 import type { ProfileStats } from '../../models/stats/ProfileStats.ts';
 import type { UpdateUserDto } from '../../models/user/UpdateUserDto.ts';
 import type { BecomeSellerDto } from '../../models/user/BecomeSellerDto.ts';
@@ -13,7 +12,7 @@ export const getAll = async (params?: UserQueryParams): Promise<PaginationRes<Us
   return data;
 };
 
-export const getMe = async (): Promise<UserSelfView> => {
+export const getMe = async (): Promise<UserAdminView> => {
   const { data } = await api.get(endpoints.users.me);
   return data;
 };
@@ -23,7 +22,7 @@ export const stats = async (): Promise<ProfileStats> => {
   return data;
 };
 
-export const update = async (dto: UpdateUserDto): Promise<UserSelfView> => {
+export const update = async (dto: UpdateUserDto): Promise<UserAdminView> => {
   const { data } = await api.patch(endpoints.users.me, dto);
   return data;
 };

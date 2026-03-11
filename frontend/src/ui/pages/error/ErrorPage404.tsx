@@ -7,9 +7,9 @@ const ErrorPage404: FC = () => {
     <Box
       sx={{
         flex: 1,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
       }}
     >
       <ErrorComponent error={'no page with given route'} />

@@ -29,7 +29,7 @@ const UserProfileComponent: FC<Props> = ({
                                            changeView,
                                            stats,
                                            error,
-                                           loading
+                                           loading,
                                          }) => {
 
   const isAdmin = user.role === 'ADMIN';

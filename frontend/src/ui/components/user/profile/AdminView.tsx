@@ -35,7 +35,7 @@ const AdminView: FC<Props> = ({
                                 togglePromote,
                                 unflagUser,
                                 restoreUser,
-                                openHardDeleteModal
+                                openHardDeleteModal,
                               }) => {
 
   const handlePageChange = (newPage: number) => {

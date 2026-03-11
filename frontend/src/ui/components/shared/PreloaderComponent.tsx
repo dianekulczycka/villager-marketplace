@@ -5,11 +5,11 @@ const PreloaderComponent: FC = () => {
   return (
     <Box
       sx={{
-        position: "absolute",
+        position: 'absolute',
         inset: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         zIndex: 10,
       }}
     >

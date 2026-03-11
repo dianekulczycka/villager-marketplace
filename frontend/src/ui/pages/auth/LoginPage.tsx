@@ -20,19 +20,19 @@ const LoginPage: FC = () => {
   const closeModal = () => setActiveModal(null);
 
   const onLogin = async (dto: LoginReq) => {
-      await login(dto);
-      loadUser();
-      navigate(routes.items.root);
+    await login(dto);
+    loadUser();
+    navigate(routes.items.root);
   };
 
   const onRecover = async (dto: RecoverReq) => {
-      await recover(dto);
-      setOpen(true);
+    await recover(dto);
+    setOpen(true);
   };
 
   return (
     <>
-      <LoginForm onLogin={onLogin} openModal={openModal}/>
+      <LoginForm onLogin={onLogin} openModal={openModal} />
       <RecoverModal open={activeModal === 'restore'} closeModal={closeModal} onRecover={onRecover} />
       <Snackbar
         open={open}

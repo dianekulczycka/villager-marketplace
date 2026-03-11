@@ -20,7 +20,7 @@ const BecomeSellerModal: FC<Props> = ({ open, closeModal, onBecomeSeller }) => {
     register,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors },
   }
     = useForm<BecomeSellerDto>({ resolver: zodResolver(becomeSellerSchema) });
 

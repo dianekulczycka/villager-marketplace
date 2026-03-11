@@ -121,10 +121,12 @@ const UserCard: FC<Props> = ({
         )}
       </Box>
       {variant === 'L' && canModify && (
-        <Box sx={{ pointerEvents: 'auto', mt: 'auto', pb: 2 }}> <UserAdminControllers toggleBan={toggleBan!} togglePromote={togglePromote!}
-                                                                   unflagUser={unflagUser!} restoreUser={restoreUser!}
-                                                                   openHardDeleteModal={openHardDeleteModal!}
-                                                                   user={user} /> </Box>)}
+        <Box sx={{ pointerEvents: 'auto', mt: 'auto', pb: 2 }}> <UserAdminControllers toggleBan={toggleBan!}
+                                                                                      togglePromote={togglePromote!}
+                                                                                      unflagUser={unflagUser!}
+                                                                                      restoreUser={restoreUser!}
+                                                                                      openHardDeleteModal={openHardDeleteModal!}
+                                                                                      user={user} /> </Box>)}
       {variant === 'L' && canModify && !user.isDeleted && (
         <Box sx={{ pointerEvents: 'auto' }}> <Controllers openDeleteModal={openDeleteModal!}
                                                           openUpdateModal={openUpdateModal!} element={user} /> </Box>)}

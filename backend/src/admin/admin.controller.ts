@@ -8,7 +8,6 @@ import {
   Patch,
   Query,
   Request,
-  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -22,7 +21,6 @@ import { user_role } from '@prisma/client';
 import { UpdateUserDto } from '../user/dto/update-user.dto';
 import { UserService } from '../user/user.service';
 import { MailService } from '../mail/mail.service';
-import express from 'express';
 import { Roles } from '../auth/guards/allowed-roles.decorator';
 import { TokenService } from '../security/token/token.service';
 import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';

@@ -23,7 +23,7 @@ const UsersComponent: FC<Props> = ({
                                      togglePromote,
                                      unflagUser,
                                      restoreUser,
-                                     openHardDeleteModal
+                                     openHardDeleteModal,
                                    }) => {
   return (
     <Box

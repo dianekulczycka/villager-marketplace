@@ -16,7 +16,8 @@ import UpdateUserModal from '../../components/modals/UpdateUserModal.tsx';
 import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal.tsx';
 import {
   ban,
-  demote, hardDelete,
+  demote,
+  hardDelete,
   promote,
   restore,
   softDelete,
@@ -92,12 +93,12 @@ const UsersPage: FC = () => {
   const unflagUser = async () => {
     if (!selectedUser) return;
     if (selectedUser.isFlagged) await unflag(selectedUser.id);
-  }
+  };
 
   const restoreUser = async () => {
     if (!selectedUser) return;
     if (selectedUser.isDeleted) await restore(selectedUser.id);
-  }
+  };
 
   const handlePageChange = (newPage: number) => {
     setQuery({ page: newPage });
@@ -120,7 +121,6 @@ const UsersPage: FC = () => {
         {paginatedData &&
           <>
             <UsersComponent
-              setSelectedUser={setSelectedUser}
               users={paginatedData.data}
               openDeleteModal={openDeleteModal}
               openHardDeleteModal={openHardDeleteModal}
