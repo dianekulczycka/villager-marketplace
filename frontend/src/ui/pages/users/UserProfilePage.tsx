@@ -1,7 +1,6 @@
 import { type FC, useState } from 'react';
 import UserProfileComponent from '../../components/user/UserProfileComponent.tsx';
 import { useAuth } from '../../../store/helpers/useAuth.ts';
-import { useFetch } from '../../../hooks/useFetch.ts';
 import {
   getMy,
   post,
@@ -43,9 +42,9 @@ import {
   unflag,
 } from '../../../services/fetch/admin.service.ts';
 import type { ProfileStats } from '../../../models/stats/ProfileStats.ts';
+import { useQuery } from '@tanstack/react-query';
 
 export type PageView = 'ITEMS' | 'USERS' | 'BANNED_USERS' | 'FLAGGED_USERS' | 'MANAGERS';
-type PageData = PaginationRes<ItemAdminView> | PaginationRes<UserAdminView> | null;
 
 const UserProfilePage: FC = () => {
   const { user, loadUser } = useAuth();
@@ -55,9 +54,7 @@ const UserProfilePage: FC = () => {
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
   const [selectedItem, setSelectedItem] = useState<ItemAdminView | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserAdminView | null>(null);
-  const [pageView, setPageView] = useState<PageView>(() =>
-    user?.role === 'SELLER' ? 'ITEMS' : 'USERS',
-  );
+  const [pageView, setPageView] = useState<PageView>('ITEMS');
   const openItemModal = createOpenModal<ItemAdminView>(setActiveModal, setSelectedItem);
   const openUserModal = createOpenModal<UserAdminView>(setActiveModal, setSelectedUser);
 
@@ -79,55 +76,79 @@ const UserProfilePage: FC = () => {
     search: StringParam,
   });
 
-  const { paginatedData, loading, error, refetch } = useFetch<PageData>(
-    () => {
-      if (userRole === 'SELLER' && pageView === 'ITEMS') {
-        return getMy({
-          page: query.page,
-          perPage: query.perPage,
-          sortBy: query.sortBy as ItemSortField | undefined,
-          sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
-          search: query.search ?? undefined,
-        });
-      }
+  const fetchPageData = () => {
+    if (userRole === 'SELLER' && pageView === 'ITEMS') {
+      return getMy({
+        page: query.page,
+        perPage: query.perPage,
+        sortBy: query.sortBy as ItemSortField | undefined,
+        sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
+        search: query.search ?? undefined,
+      });
+    }
 
-      if (isAuthority && pageView === 'USERS') {
-        return getAll({
-          page: query.page,
-          perPage: query.perPage,
-          sortBy: query.sortBy as UserSortField | undefined,
-          sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
-          search: query.search ?? undefined,
-        });
-      }
+    if (isAuthority && pageView === 'USERS') {
+      return getAll({
+        page: query.page,
+        perPage: query.perPage,
+        sortBy: query.sortBy as UserSortField | undefined,
+        sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
+        search: query.search ?? undefined,
+      });
+    }
 
-      if (isAuthority && pageView === 'FLAGGED_USERS') {
-        return getFlagged({
-          page: query.page,
-          perPage: query.perPage,
-        });
-      }
+    if (isAuthority && pageView === 'FLAGGED_USERS') {
+      return getFlagged({
+        page: query.page,
+        perPage: query.perPage,
+      });
+    }
 
-      if (isAuthority && pageView === 'BANNED_USERS') {
-        return getBanned({
-          page: query.page,
-          perPage: query.perPage,
-        });
-      }
+    if (isAuthority && pageView === 'BANNED_USERS') {
+      return getBanned({
+        page: query.page,
+        perPage: query.perPage,
+      });
+    }
 
-      if (userRole === 'ADMIN' && pageView === 'MANAGERS') {
-        return getManagers({
-          page: query.page,
-          perPage: query.perPage,
-        });
-      }
-      return Promise.resolve(null);
-    },
-    [query, pageView, userRole],
-  );
+    if (userRole === 'ADMIN' && pageView === 'MANAGERS') {
+      return getManagers({
+        page: query.page,
+        perPage: query.perPage,
+      });
+    }
+    throw new Error('Invalid query state');
+  };
 
-  const { paginatedData: stats, loading: statsLoading, error: statsError } =
-    useFetch<ProfileStats>(() => loadStats(), [user]);
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<PaginationRes<ItemAdminView | UserAdminView> | null>({
+    queryKey: [
+      'profilePage',
+      pageView,
+      userRole,
+      query.page,
+      query.perPage,
+      query.sortBy,
+      query.sortDirection,
+      query.search,
+    ],
+    queryFn: fetchPageData,
+    enabled: !!userRole,
+  });
+
+  const {
+    data: stats,
+    isLoading: statsLoading,
+    error: statsError,
+  } = useQuery<ProfileStats>({
+    queryKey: ['profileStats', user?.id],
+    queryFn: loadStats,
+    enabled: !!user,
+  });
 
   const onBecomeSeller = async (data: BecomeSellerDto) => {
     await becomeSeller(data);
@@ -216,8 +237,8 @@ const UserProfilePage: FC = () => {
         <SellerView
           query={query as UserQueryParams}
           setQuery={setQuery}
-          items={paginatedData as PaginationRes<ItemAdminView>}
-          loading={loading}
+          items={data as PaginationRes<ItemAdminView>}
+          loading={isLoading}
           error={error}
           openUpdateModal={openUpdateItemModal}
           openDeleteModal={openDeleteItemModal} />
@@ -227,8 +248,8 @@ const UserProfilePage: FC = () => {
         <AdminView
           query={query as UserQueryParams}
           setQuery={setQuery}
-          users={paginatedData as PaginationRes<UserAdminView>}
-          loading={loading}
+          users={data as PaginationRes<UserAdminView>}
+          loading={isLoading}
           error={error}
           openUpdateModal={openUpdateUserModal}
           openDeleteModal={openDeleteUserModal}

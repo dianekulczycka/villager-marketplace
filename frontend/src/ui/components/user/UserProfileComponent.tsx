@@ -15,8 +15,8 @@ interface Props {
   openDeleteUserModal: (user: UserAdminView) => void;
   openUpdateUserModal: (user: UserAdminView) => void;
   changeView: (pageView: PageView) => void;
-  stats: ProfileStats | null;
-  error: string | null;
+  stats: ProfileStats | undefined;
+  error: Error | null;
   loading: boolean;
 }
 

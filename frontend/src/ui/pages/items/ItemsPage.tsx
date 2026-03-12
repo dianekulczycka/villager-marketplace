@@ -4,7 +4,6 @@ import { PaginationComponent } from '../../components/shared/PaginationComponent
 import { NumberParam, StringParam, useQueryParams, withDefault } from 'use-query-params';
 import { getAll, softDelete as itemSoftDelete, update as itemUpdate } from '../../../services/fetch/item.service.ts';
 import { ItemSortField } from '../../../models/enums/ItemSortField.ts';
-import { useFetch } from '../../../hooks/useFetch.ts';
 import DataStateComponent from '../../components/shared/DataStateComponent.tsx';
 import SortSearchComponent from '../../components/shared/SortSearchComponent.tsx';
 import { Box } from '@mui/material';
@@ -14,6 +13,7 @@ import type { ActiveModal } from '../../../models/item/ActiveModal.ts';
 import type { UpdateItemDto } from '../../../models/item/UpdateItemDto.ts';
 import { createOpenModal } from '../../../helpers/createOpenModal.ts';
 import type { ItemAdminView } from '../../../models/item/ItemAdminView.ts';
+import { useQuery } from '@tanstack/react-query';
 
 const ItemsPage: FC = () => {
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
@@ -33,18 +33,29 @@ const ItemsPage: FC = () => {
     sellerId: NumberParam,
   });
 
-  const { paginatedData, loading, error, refetch } = useFetch(
-    () =>
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: [
+      'items',
+      query.page,
+      query.perPage,
+      query.sortBy,
+      query.sortDirection,
+      query.search,
+    ],
+    queryFn: () =>
       getAll({
         page: query.page,
         perPage: query.perPage,
         sortBy: query.sortBy as ItemSortField | undefined,
         sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
         search: query.search ?? undefined,
-        sellerId: query.sellerId ?? undefined,
       }),
-    [query],
-  );
+  });
 
   const handlePageChange = (newPage: number) => {
     setQuery({ page: newPage });
@@ -72,20 +83,20 @@ const ItemsPage: FC = () => {
         fields={Object.values(ItemSortField)}
       />
       <DataStateComponent
-        data={paginatedData}
+        data={data}
         error={error}
-        loading={loading}
-        isEmpty={paginatedData?.data.length === 0}>
-        {paginatedData &&
+        loading={isLoading}
+        isEmpty={data?.data.length === 0}>
+        {data &&
           <>
             <ItemsComponent
-              items={paginatedData.data}
+              items={data.data}
               openUpdateModal={openUpdateItemModal}
               openDeleteModal={openDeleteItemModal}
             />
             <PaginationComponent
               page={query.page}
-              pageCount={paginatedData.pageCount}
+              pageCount={data.pageCount}
               onChange={handlePageChange}
             />
           </>

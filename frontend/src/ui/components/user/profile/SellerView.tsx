@@ -13,7 +13,7 @@ interface Props {
   setQuery: (q: Partial<UserQueryParams>) => void;
   items: PaginationRes<ItemAdminView> | null;
   loading: boolean;
-  error: string | null;
+  error: Error | null;
   openUpdateModal: (item: ItemAdminView) => void;
   openDeleteModal: (item: ItemAdminView) => void;
 }

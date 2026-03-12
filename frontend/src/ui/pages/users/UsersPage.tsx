@@ -4,7 +4,6 @@ import { PaginationComponent } from '../../components/shared/PaginationComponent
 import { getAll } from '../../../services/fetch/user.service.ts';
 import { NumberParam, StringParam, useQueryParams, withDefault } from 'use-query-params';
 import { UserSortField } from '../../../models/enums/UserSortField.ts';
-import { useFetch } from '../../../hooks/useFetch.ts';
 import DataStateComponent from '../../components/shared/DataStateComponent.tsx';
 import { Box } from '@mui/material';
 import SortSearchComponent from '../../components/shared/SortSearchComponent.tsx';
@@ -25,6 +24,7 @@ import {
   unflag,
   update,
 } from '../../../services/fetch/admin.service.ts';
+import { useQuery } from '@tanstack/react-query';
 
 const UsersPage: FC = () => {
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
@@ -44,8 +44,21 @@ const UsersPage: FC = () => {
     search: StringParam,
   });
 
-  const { paginatedData, loading, error, refetch } = useFetch(
-    () =>
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: [
+      'users',
+      query.page,
+      query.perPage,
+      query.sortBy,
+      query.sortDirection,
+      query.search,
+    ],
+    queryFn: () =>
       getAll({
         page: query.page,
         perPage: query.perPage,
@@ -53,8 +66,7 @@ const UsersPage: FC = () => {
         sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
         search: query.search ?? undefined,
       }),
-    [query],
-  );
+  });
 
   const updateUser = async (dto: UpdateUserDto) => {
     if (!selectedUser) return;
@@ -110,14 +122,14 @@ const UsersPage: FC = () => {
         fields={Object.values(UserSortField)}
       />
       <DataStateComponent
-        data={paginatedData}
+        data={data}
         error={error}
-        loading={loading}
-        isEmpty={paginatedData?.data.length === 0}>
-        {paginatedData &&
+        loading={isLoading}
+        isEmpty={data?.data.length === 0}>
+        {data &&
           <>
             <UsersComponent
-              users={paginatedData.data}
+              users={data.data}
               openDeleteModal={openDeleteModal}
               openHardDeleteModal={openHardDeleteModal}
               openUpdateModal={openUpdateModal}
@@ -127,8 +139,8 @@ const UsersPage: FC = () => {
               restoreUser={restoreUser}
             />
             <PaginationComponent
-              page={paginatedData.page}
-              pageCount={paginatedData.pageCount}
+              page={data.page}
+              pageCount={data.pageCount}
               onChange={handlePageChange}
 
             />

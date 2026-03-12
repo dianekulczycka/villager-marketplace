@@ -7,10 +7,6 @@ export const loginSchema = z.object({
 
   password: z
     .string()
-    .regex(
-      /^(?=.*\d)[A-Za-z\d]{6,20}$/,
-      'Invalid password format',
-    ),
 });
 
 export const registerSchema = z.object({

@@ -6,7 +6,7 @@ import { Box } from '@mui/material';
 
 interface Props {
   loading: boolean;
-  error: string | null;
+  error: Error | null;
   isEmpty?: boolean;
   data: unknown;
   children: ReactNode;
@@ -27,7 +27,7 @@ const DataStateComponent: FC<Props> = ({ loading, error, data, isEmpty, children
   );
 
   if (loading) return msgWrap(<PreloaderComponent />);
-  if (error) return msgWrap(<ErrorComponent error={error} />);
+  if (error) return msgWrap(<ErrorComponent error={error.message} />);
   if (!loading && !data) return msgWrap(<ErrorComponent error="no data fetched" />);
   if (isEmpty) return msgWrap(<Alert severity="info">no data yet!</Alert>);
 
