@@ -74,30 +74,26 @@ const UsersPage: FC = () => {
     await refetch();
   };
 
-  const toggleBan = async () => {
-    if (!selectedUser) return;
-    await (selectedUser.isBanned
-      ? unban(selectedUser.id)
-      : ban(selectedUser.id));
+  const toggleBan = async (user: UserAdminView) => {
+    await (user.isBanned ? unban(user.id) : ban(user.id));
     await refetch();
   };
 
-  const togglePromote = async () => {
-    if (!selectedUser) return;
-    await (selectedUser.role !== 'MANAGER'
-      ? promote(selectedUser.id)
-      : demote(selectedUser.id));
+  const togglePromote = async (user: UserAdminView) => {
+    await (user.role !== 'MANAGER'
+      ? promote(user.id)
+      : demote(user.id));
     await refetch();
   };
 
-  const unflagUser = async () => {
-    if (!selectedUser) return;
-    if (selectedUser.isFlagged) await unflag(selectedUser.id);
+  const unflagUser = async (user: UserAdminView) => {
+    if (user.isFlagged) await unflag(user.id);
+    await refetch();
   };
 
-  const restoreUser = async () => {
-    if (!selectedUser) return;
-    if (selectedUser.isDeleted) await restore(selectedUser.id);
+  const restoreUser = async (user: UserAdminView) => {
+    if (user.isDeleted) await restore(user.id);
+    await refetch();
   };
 
   const handlePageChange = (newPage: number) => {
