@@ -116,7 +116,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"refreshToken\": \"{{refreshToken}}\"\r\n} ",
+              "raw": "",
               "options": {
                 "raw": {
                   "language": "json"
@@ -147,7 +147,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"refreshToken\": \"{{refreshToken}}\"\r\n}",
+              "raw": "",
               "options": {
                 "raw": {
                   "language": "json"
@@ -338,38 +338,6 @@
           "response": []
         },
         {
-          "name": "localhost:3003/users/profile/soft-delete",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "PATCH",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "localhost:3003/users/profile/soft-delete",
-              "host": [
-                "localhost"
-              ],
-              "port": "3003",
-              "path": [
-                "users",
-                "profile",
-                "soft-delete"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "localhost:3003/users/profile/become-seller",
           "event": [
             {
@@ -411,6 +379,38 @@
                 "users",
                 "profile",
                 "become-seller"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/users/profile/soft-delete",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/users/profile/soft-delete",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "users",
+                "profile",
+                "soft-delete"
               ]
             }
           },
@@ -460,6 +460,30 @@
                 "items",
                 "id",
                 "3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/items/id/3/views",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "localhost:3003/items/id/3/views",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "items",
+                "id",
+                "3",
+                "views"
               ]
             }
           },
@@ -550,12 +574,12 @@
           "response": []
         },
         {
-          "name": "localhost:3003/items/1/soft-delete",
+          "name": "localhost:3003/items/id/3/soft-delete",
           "request": {
             "auth": {
               "type": "noauth"
             },
-            "method": "PATCH",
+            "method": "DELETE",
             "header": [],
             "url": {
               "raw": "localhost:3003/items/id/3/soft-delete",
@@ -578,35 +602,6 @@
     {
       "name": "admin",
       "item": [
-        {
-          "name": "localhost:3003/admin/users",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "GET",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": ""
-            },
-            "url": {
-              "raw": "localhost:3003/admin/users",
-              "host": [
-                "localhost"
-              ],
-              "port": "3003",
-              "path": [
-                "admin",
-                "users"
-              ]
-            }
-          },
-          "response": []
-        },
         {
           "name": "localhost:3003/admin/users/flagged",
           "protocolProfileBehavior": {
@@ -697,7 +692,7 @@
           "response": []
         },
         {
-          "name": "localhost:3003/admin/users/3",
+          "name": "localhost:3003/admin/users/id/3",
           "request": {
             "auth": {
               "type": "noauth"
@@ -714,7 +709,7 @@
               }
             },
             "url": {
-              "raw": "localhost:3003/admin/users/3",
+              "raw": "localhost:3003/admin/users/id/3",
               "host": [
                 "localhost"
               ],
@@ -722,6 +717,7 @@
               "path": [
                 "admin",
                 "users",
+                "id",
                 "3"
               ]
             }
@@ -729,63 +725,7 @@
           "response": []
         },
         {
-          "name": "localhost:3003/admin/users/3/soft-delete",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "PATCH",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": ""
-            },
-            "url": {
-              "raw": "localhost:3003/admin/users/3/soft-delete",
-              "host": [
-                "localhost"
-              ],
-              "port": "3003",
-              "path": [
-                "admin",
-                "users",
-                "3",
-                "soft-delete"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "localhost:3003/admin/users/3/restore",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "PATCH",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": ""
-            },
-            "url": {
-              "raw": "localhost:3003/admin/users/3/restore",
-              "host": [
-                "localhost"
-              ],
-              "port": "3003",
-              "path": [
-                "admin",
-                "users",
-                "3",
-                "restore"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "localhost:3003/admin/users/3",
+          "name": "localhost:3003/admin/users/id/3/soft-delete",
           "request": {
             "auth": {
               "type": "noauth"
@@ -797,7 +737,7 @@
               "raw": ""
             },
             "url": {
-              "raw": "localhost:3003/admin/users/3",
+              "raw": "localhost:3003/admin/users/id/3/soft-delete",
               "host": [
                 "localhost"
               ],
@@ -805,14 +745,16 @@
               "path": [
                 "admin",
                 "users",
-                "3"
+                "id",
+                "3",
+                "soft-delete"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "localhost:3003/admin/users/3/ban",
+          "name": "localhost:3003/admin/users/id/3/restore",
           "request": {
             "auth": {
               "type": "noauth"
@@ -824,7 +766,7 @@
               "raw": ""
             },
             "url": {
-              "raw": "localhost:3003/admin/users/5/ban",
+              "raw": "localhost:3003/admin/users/id/3/restore",
               "host": [
                 "localhost"
               ],
@@ -832,6 +774,64 @@
               "path": [
                 "admin",
                 "users",
+                "id",
+                "3",
+                "restore"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/admin/users/id/3",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "localhost:3003/admin/users/id/3",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "users",
+                "id",
+                "3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/admin/users/id/5/ban",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "localhost:3003/admin/users/id/5/ban",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "admin",
+                "users",
+                "id",
                 "5",
                 "ban"
               ]
@@ -840,7 +840,7 @@
           "response": []
         },
         {
-          "name": "localhost:3003/admin/users/3/unban",
+          "name": "localhost:3003/admin/users/id/4/unban",
           "request": {
             "auth": {
               "type": "noauth"
@@ -852,7 +852,7 @@
               "raw": ""
             },
             "url": {
-              "raw": "localhost:3003/admin/users/4/unban",
+              "raw": "localhost:3003/admin/users/id/4/unban",
               "host": [
                 "localhost"
               ],
@@ -860,6 +860,7 @@
               "path": [
                 "admin",
                 "users",
+                "id",
                 "4",
                 "unban"
               ]
@@ -868,7 +869,7 @@
           "response": []
         },
         {
-          "name": "localhost:3003/admin/users/4/unflag",
+          "name": "localhost:3003/admin/users/id/4/unflag",
           "request": {
             "auth": {
               "type": "noauth"
@@ -880,7 +881,7 @@
               "raw": ""
             },
             "url": {
-              "raw": "localhost:3003/admin/users/4/unflag",
+              "raw": "localhost:3003/admin/users/id/4/unflag",
               "host": [
                 "localhost"
               ],
@@ -888,6 +889,7 @@
               "path": [
                 "admin",
                 "users",
+                "id",
                 "4",
                 "unflag"
               ]
@@ -896,7 +898,7 @@
           "response": []
         },
         {
-          "name": "localhost:3003/admin/users/4/promote-manager",
+          "name": "localhost:3003/admin/users/id/4/promote-manager",
           "request": {
             "auth": {
               "type": "noauth"
@@ -908,7 +910,7 @@
               "raw": ""
             },
             "url": {
-              "raw": "localhost:3003/admin/users/4/promote-manager",
+              "raw": "localhost:3003/admin/users/id/4/promote-manager",
               "host": [
                 "localhost"
               ],
@@ -916,6 +918,7 @@
               "path": [
                 "admin",
                 "users",
+                "id",
                 "4",
                 "promote-manager"
               ]
@@ -924,7 +927,7 @@
           "response": []
         },
         {
-          "name": "localhost:3003/admin/users/4/demote",
+          "name": "localhost:3003/admin/users/id/4/demote",
           "request": {
             "auth": {
               "type": "noauth"
@@ -936,7 +939,7 @@
               "raw": ""
             },
             "url": {
-              "raw": "localhost:3003/admin/users/4/demote",
+              "raw": "localhost:3003/admin/users/id/4/demote",
               "host": [
                 "localhost"
               ],
@@ -944,6 +947,7 @@
               "path": [
                 "admin",
                 "users",
+                "id",
                 "4",
                 "demote"
               ]
