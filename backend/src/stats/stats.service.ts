@@ -50,7 +50,14 @@ export class StatsService {
     if (role === user_role.ADMIN || role === user_role.MANAGER) {
       const [totalUsers, totalSellers, totalFlagged, totalBanned, totalItems] =
         await this.prisma.$transaction([
-          this.prisma.user.count({ where: { isDeleted: 0 } }),
+          this.prisma.user.count({
+            where: {
+              role: {
+                in: [user_role.SELLER, user_role.BUYER],
+              },
+              isDeleted: 0,
+            },
+          }),
           this.prisma.user.count({
             where: { role: user_role.SELLER, isDeleted: 0 },
           }),
