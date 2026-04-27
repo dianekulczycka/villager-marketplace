@@ -66,7 +66,7 @@ const ItemDetailsCard: FC<Props> = ({ item }) => {
 
         {!!item.isDeleted && <Chip size="medium" color="error" label="REMOVED" />}
 
-        <UserCard user={item.seller} variant="S" />
+        <UserCard user={item.seller} disabled={!!item.seller.isBanned} variant="S" />
 
       </Box>
     </Card>

@@ -46,6 +46,7 @@ const ItemsPage: FC = () => {
       query.sortBy,
       query.sortDirection,
       query.search,
+      query.sellerId
     ],
     queryFn: () =>
       getAll({
@@ -54,6 +55,7 @@ const ItemsPage: FC = () => {
         sortBy: query.sortBy as ItemSortField | undefined,
         sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
         search: query.search ?? undefined,
+        sellerId: query.sellerId ?? undefined,
       }),
   });
 
