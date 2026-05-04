@@ -1,7 +1,7 @@
 export interface QueryParams<T> {
-  page?: number;
-  perPage?: number;
-  sortBy?: T;
-  sortDirection?: 'asc' | 'desc';
-  search?: string;
+  page?: number | null;
+  perPage?: number | null;
+  sortBy?: T | null;
+  sortDirection?: 'asc' | 'desc' | null;
+  search?: string | null;
 }

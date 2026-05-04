@@ -5,6 +5,8 @@ services:
       - "3003:3003"
     env_file:
       - ./backend/.env
+    volumes:
+      - ./public:/app/public
 
   frontend:
     build: ./frontend

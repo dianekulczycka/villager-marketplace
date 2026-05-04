@@ -7,15 +7,15 @@ export class UserSignInRequestDto {
   email: string;
 
   @ApiProperty({ example: 'password1' })
-  @Matches(/^(?=.*\d)[A-Za-z\d]{6,20}$/, {
+  @Matches(/^(?=.*[A-Za-z])(?=.*\d)[^\s]{6,20}$/, {
     message:
-      'Password must be 6-20 chars, contain Latin letters only, and include AT LEAST one number',
+      'Password must be 6-20 chars and include one number and one letter',
   })
   password: string;
 
   @ApiProperty({ example: 'john' })
   @Matches(/^[A-Za-z0-9\s]{2,}$/, {
-    message: 'Name must be gt 2 chars and contain Latin letters only',
+    message: 'Name must be gt 2 chars',
   })
   username: string;
 }

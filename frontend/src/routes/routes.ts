@@ -28,8 +28,8 @@ export const routes = {
     byId: ':id',
   },
   icons: {
-    item: (iconUrl: string) => `http://localhost:3003/icons/item/${iconUrl}`,
-    user: (iconUrl: string) => `http://localhost:3003/icons/user/${iconUrl}`,
+    item: (iconUrl: string) => `/public/icons/item/${iconUrl}`,
+    user: (iconUrl: string) => `/public/icons/user/${iconUrl}`,
   }
 } as const;
 

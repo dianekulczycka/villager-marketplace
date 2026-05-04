@@ -34,7 +34,7 @@ export class AuthController {
     private readonly tokenService: TokenService,
   ) {}
 
-  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @UsePipes(new ModerationPipe(['username']))
   @UseInterceptors(ModerationInterceptor)
   @Post('register')
