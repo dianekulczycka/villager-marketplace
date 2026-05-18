@@ -164,4 +164,66 @@ export class MailService {
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
     await this.send(user.email, 'RECOVERY_APPROVE', {});
   }
+
+  async notifyBuyerPurchase(
+    buyerId: number,
+    itemId: number,
+    itemAmount: number,
+  ) {
+    const buyer = await this.prisma.user.findUnique({
+      where: { id: buyerId },
+      select: { email: true },
+    });
+
+    const item = await this.prisma.item.findUnique({
+      where: { id: itemId },
+      select: {
+        name: true,
+        seller: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!buyer || !item) return;
+
+    await this.send(buyer.email, 'PURCHASE_BUYER', {
+      sellerEmail: item.seller.email,
+      itemName: item.name,
+      itemAmount,
+    });
+  }
+
+  async notifySellerPurchase(
+    buyerId: number,
+    itemId: number,
+    itemAmount: number,
+  ) {
+    const buyer = await this.prisma.user.findUnique({
+      where: { id: buyerId },
+      select: { email: true },
+    });
+
+    const item = await this.prisma.item.findUnique({
+      where: { id: itemId },
+      select: {
+        name: true,
+        seller: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!buyer || !item) return;
+
+    await this.send(item.seller.email, 'PURCHASE_SELLER', {
+      buyerEmail: buyer.email,
+      itemName: item.name,
+      itemAmount,
+    });
+  }
 }

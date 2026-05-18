@@ -2,4 +2,5 @@ export const ITEM_ERRORS = {
   NOT_FOUND: 'Item was not found',
   NOT_ALLOWED: 'Not allowed to post/modify item',
   NOT_ALLOWED_NAME: 'Not allowed item',
+  INVALID_AMOUNT: 'Invalid amount',
 };

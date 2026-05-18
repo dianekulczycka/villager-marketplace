@@ -27,12 +27,17 @@ import { ModerationPipe } from '../moderation/moderation.pipe.service';
 import { ModerationInterceptor } from '../moderation/moderation.interceptor.service';
 import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';
 import { user_role } from '@prisma/client';
+import { BuyItemDto } from './dto/buy-item.dto';
+import { MailService } from '../mail/mail.service';
 
 @ApiErrorResponses()
 @UseGuards(AuthGuard('jwt'))
 @Controller('items')
 export class ItemController {
-  constructor(private readonly itemsService: ItemService) {}
+  constructor(
+    private readonly itemsService: ItemService,
+    private readonly mailService: MailService,
+  ) {}
 
   @Get('')
   async getAll(
@@ -102,5 +107,26 @@ export class ItemController {
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<void> {
     return this.itemsService.softDelete(request, Number(id));
+  }
+
+  @UseGuards(AllowedRolesGuard)
+  @Roles(user_role.SELLER, user_role.BUYER)
+  @Post('id/:id/buy')
+  async buy(
+    @Param('id') id: string,
+    @Request() request: userRequestInterface.UserRequest,
+    @Body() buyItemDto: BuyItemDto,
+  ): Promise<void> {
+    await this.itemsService.buy(request, Number(id), buyItemDto);
+    await this.mailService.notifyBuyerPurchase(
+      request.user.userId,
+      Number(id),
+      buyItemDto.amount ?? 1,
+    );
+    await this.mailService.notifySellerPurchase(
+      request.user.userId,
+      Number(id),
+      buyItemDto.amount ?? 1,
+    );
   }
 }

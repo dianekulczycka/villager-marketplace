@@ -34,4 +34,12 @@ export const emailConstants: IEmailConstants<typeof EmailEnum> = {
     subject: 'Account restored',
     template: 'recovery-approve',
   },
+  [EmailEnum.PURCHASE_BUYER]: {
+    subject: "You've purchased an item!",
+    template: 'purchase-buyer',
+  },
+  [EmailEnum.PURCHASE_SELLER]: {
+    subject: 'Your item has been purchased!',
+    template: 'purchase-seller',
+  },
 };
