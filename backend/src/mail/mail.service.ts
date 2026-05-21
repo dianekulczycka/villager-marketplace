@@ -10,6 +10,7 @@ import { user_role } from '@prisma/client';
 import { AccountRecoveryRequestDto } from '../user/dto/account-recovery-request.dto';
 import { ConfigService } from '@nestjs/config';
 import { USER_ERRORS } from '../shared/errors/user.errors';
+import { BuyItemDto } from '../item/dto/buy-item.dto';
 
 @Injectable()
 export class MailService {
@@ -168,7 +169,7 @@ export class MailService {
   async notifyBuyerPurchase(
     buyerId: number,
     itemId: number,
-    itemAmount: number,
+    buyItemDto?: BuyItemDto,
   ) {
     const buyer = await this.prisma.user.findUnique({
       where: { id: buyerId },
@@ -192,14 +193,14 @@ export class MailService {
     await this.send(buyer.email, 'PURCHASE_BUYER', {
       sellerEmail: item.seller.email,
       itemName: item.name,
-      itemAmount,
+      itemAmount: buyItemDto?.amount || 1,
     });
   }
 
   async notifySellerPurchase(
     buyerId: number,
     itemId: number,
-    itemAmount: number,
+    buyItemDto?: BuyItemDto,
   ) {
     const buyer = await this.prisma.user.findUnique({
       where: { id: buyerId },
@@ -223,7 +224,7 @@ export class MailService {
     await this.send(item.seller.email, 'PURCHASE_SELLER', {
       buyerEmail: buyer.email,
       itemName: item.name,
-      itemAmount,
+      itemAmount: buyItemDto?.amount || 1,
     });
   }
 }

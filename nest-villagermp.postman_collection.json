@@ -490,6 +490,30 @@
           "response": []
         },
         {
+          "name": "localhost:3003/items/id/3/buy",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "localhost:3003/items/id/3/buy",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "items",
+                "id",
+                "3",
+                "buy"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "localhost:3003/items/my",
           "request": {
             "auth": {

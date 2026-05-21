@@ -112,7 +112,8 @@ const ItemsPage: FC = () => {
                 open={activeModal === 'updateItem'}
                 closeModal={closeModal}
                 onUpdateItem={onUpdateItem}
-                selectedItem={selectedItem}/>
+                selectedItem={selectedItem}
+            />
             <ConfirmDeleteModal
                 open={activeModal === 'deleteItem'}
                 closeModal={closeModal}

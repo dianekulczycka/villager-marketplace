@@ -197,9 +197,9 @@ export class ItemService {
   async buy(
     request: UserRequest,
     id: number,
-    buyItemDto: BuyItemDto,
+    buyItemDto?: BuyItemDto,
   ): Promise<void> {
-    const { amount = 1 } = buyItemDto;
+    const amount = buyItemDto?.amount || 1;
 
     if (amount <= 0) {
       throw new BadRequestException(ITEM_ERRORS.INVALID_AMOUNT);

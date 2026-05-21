@@ -1,19 +1,19 @@
-import {type FC, useState} from 'react';
-import {Backdrop, Box, Button, MenuItem, Modal, TextField, Typography} from '@mui/material';
-import {SellerTypes} from '../../../models/enums/SellerType.ts';
-import ErrorComponent from '../error/ErrorComponent.tsx';
-import {type SubmitHandler, useForm} from 'react-hook-form';
-import type {BecomeSellerDto} from '../../../models/user/BecomeSellerDto.ts';
-import {zodResolver} from '@hookform/resolvers/zod';
-import {becomeSellerSchema} from '../../../validation/user.schema.ts';
+import {type FC, useState} from "react";
+import {Backdrop, Box, Button, Modal, TextField} from "@mui/material";
+import ErrorComponent from "../error/ErrorComponent.tsx";
+import {type SubmitHandler, useForm} from "react-hook-form";
+import type {BuyItemDto} from "../../../models/item/BuyItemDto.ts";
+import {buyItemSchema} from "../../../validation/item.schema.ts";
+import {zodResolver} from "@hookform/resolvers/zod";
 
 interface Props {
     open: boolean;
     closeModal: () => void;
-    onBecomeSeller: SubmitHandler<BecomeSellerDto>;
+    onBuyItem: (data: BuyItemDto) => Promise<void>;
+    itemCount: number;
 }
 
-const BecomeSellerModal: FC<Props> = ({open, closeModal, onBecomeSeller}) => {
+const BuyItemModal: FC<Props> = ({open, closeModal, onBuyItem, itemCount}) => {
     const [error, setError] = useState<string | null>(null);
 
     const {
@@ -22,7 +22,12 @@ const BecomeSellerModal: FC<Props> = ({open, closeModal, onBecomeSeller}) => {
         reset,
         formState: {errors},
     }
-        = useForm<BecomeSellerDto>({resolver: zodResolver(becomeSellerSchema)});
+        = useForm<BuyItemDto>({
+        resolver: zodResolver(buyItemSchema),
+        defaultValues: {
+            amount: 1
+        },
+    });
 
     const onClose = () => {
         setError(null);
@@ -30,9 +35,15 @@ const BecomeSellerModal: FC<Props> = ({open, closeModal, onBecomeSeller}) => {
         closeModal();
     };
 
-    const onSubmit: SubmitHandler<BecomeSellerDto> = async (data) => {
+    const onSubmit: SubmitHandler<BuyItemDto> = async (data) => {
+        if (data.amount > itemCount) {
+            setError(`Only ${itemCount} available`);
+            return;
+        }
+
         try {
-            await onBecomeSeller(data);
+            await onBuyItem(data);
+            reset();
             onClose();
         } catch (e) {
             if (e instanceof Error) {
@@ -70,43 +81,28 @@ const BecomeSellerModal: FC<Props> = ({open, closeModal, onBecomeSeller}) => {
                     gap: 2,
                 }}
             >
-                <Typography variant="h6" fontWeight={600}>
-                    become seller
-                </Typography>
-
                 <TextField
-                    select
-                    label="seller type"
-                    error={!!errors.sellerType}
-                    helperText={errors.sellerType?.message}
-                    {...register('sellerType')}
-                    fullWidth
-                >
-                    {Object.values(SellerTypes).map((i) => (
-                        <MenuItem key={i} value={i}>
-                            {i}
-                        </MenuItem>
-                    ))}
-                </TextField>
-
+                    label="amount"
+                    type="number"
+                    error={!!errors.amount}
+                    helperText={errors.amount?.message}
+                    {...register('amount', {valueAsNumber: true})}
+                />
                 <Button
                     type="submit"
                     variant="contained"
                     color="secondary"
                     sx={{textTransform: 'none', fontWeight: 500}}
                 >
-                    send
+                    buy
                 </Button>
-
                 <Button onClick={closeModal} sx={{textTransform: 'none'}}>
                     cancel
                 </Button>
-
                 {error && <ErrorComponent error={error}/>}
-
             </Box>
         </Modal>
     );
 };
 
-export default BecomeSellerModal;
+export default BuyItemModal;

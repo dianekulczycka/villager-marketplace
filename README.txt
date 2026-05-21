@@ -36,6 +36,20 @@
     Items are created from predefined enums
     Supports search, sorting, filtering, and pagination
 
+### Purchase
+    Items can be purchased using two flows:
+
+    Instant Buy:
+    Purchases a single item (amount = 1)
+
+    Bulk Purchase:
+    Allows purchasing multiple items via user-defined amount
+    Amount is validated against available stock
+
+    Purchase rules:
+    If last item is purchased, the item is soft-deleted and may no longer be accessible (can result in 404)
+    After successful purchase, email notifications are sent to buyer and seller
+
 ## Moderation
     Automatic system:
         1st offense → flagged

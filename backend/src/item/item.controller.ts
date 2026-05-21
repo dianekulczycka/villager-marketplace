@@ -29,6 +29,7 @@ import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.deco
 import { user_role } from '@prisma/client';
 import { BuyItemDto } from './dto/buy-item.dto';
 import { MailService } from '../mail/mail.service';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiErrorResponses()
 @UseGuards(AuthGuard('jwt'))
@@ -109,24 +110,25 @@ export class ItemController {
     return this.itemsService.softDelete(request, Number(id));
   }
 
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.SELLER, user_role.BUYER)
   @Post('id/:id/buy')
   async buy(
     @Param('id') id: string,
     @Request() request: userRequestInterface.UserRequest,
-    @Body() buyItemDto: BuyItemDto,
+    @Body() buyItemDto?: BuyItemDto,
   ): Promise<void> {
     await this.itemsService.buy(request, Number(id), buyItemDto);
     await this.mailService.notifyBuyerPurchase(
       request.user.userId,
       Number(id),
-      buyItemDto.amount ?? 1,
+      buyItemDto,
     );
     await this.mailService.notifySellerPurchase(
       request.user.userId,
       Number(id),
-      buyItemDto.amount ?? 1,
+      buyItemDto,
     );
   }
 }

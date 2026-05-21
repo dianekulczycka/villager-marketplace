@@ -29,6 +29,7 @@ export const endpoints = {
     increaseViews: (id: number) => `${roots.items}/id/${id}/views`,
     my: `${roots.items}/my`,
     delete: (id: number) => `${roots.items}/id/${id}/soft-delete`,
+    buy: (id: number) => `${roots.items}/id/${id}/buy`,
   },
   admin: {
     root: roots.admin,

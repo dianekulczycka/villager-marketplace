@@ -1,14 +1,22 @@
 import {type FC} from 'react';
-import {Box, Card, Chip, Typography} from '@mui/material';
+import {Box, Button, Card, Chip, Typography} from '@mui/material';
 import UserCard from '../user/UserCard.tsx';
 import {routes} from '../../../routes/routes.ts';
 import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
+import type {BuyItemDto} from "../../../models/item/BuyItemDto.ts";
+import {useAuth} from "../../../store/helpers/useAuth.ts";
+import Alert from "@mui/material/Alert";
 
 interface Props {
     item: ItemAdminView;
+    onBuyItem: (dto: BuyItemDto) => void;
+    openModal: () => void;
 }
 
-const ItemDetailsCard: FC<Props> = ({item}) => {
+const ItemDetailsCard: FC<Props> = ({item, onBuyItem, openModal}) => {
+    const { user: loggedUser } = useAuth();
+    const isAuthority = loggedUser?.role === 'ADMIN' || loggedUser?.role === 'MANAGER';
+
     return (
         <Card
             sx={{
@@ -62,12 +70,27 @@ const ItemDetailsCard: FC<Props> = ({item}) => {
                         </Typography>
                     )}
                     <Chip sx={{mt: 1}} size="small" label={`views: ${item.views}`}/>
+
+                    {loggedUser?.id !== item.sellerId && !isAuthority &&
+                        <Box sx={{mt: 2}}>
+                            <Button
+                                variant="contained"
+                                color="success"
+                                sx={{m: 1}}
+                                onClick={() => onBuyItem({amount: 1})}
+                            >
+                                Instant buy
+                            </Button>
+                            <Button variant="contained"
+                                    color="warning" sx={{m: 1}} onClick={openModal}>Buy in bulk</Button>
+                        </Box>
+                    }
+
                 </Box>
 
-                {!!item.isDeleted && <Chip size="medium" color="error" label="REMOVED"/>}
+                {!!item.isDeleted && <Alert variant="filled" severity="error"> ITEM IS REMOVED </Alert>}
 
                 <UserCard user={item.seller} disabled={!!item.seller.isBanned} variant="S"/>
-
             </Box>
         </Card>
     );
