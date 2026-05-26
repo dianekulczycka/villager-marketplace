@@ -80,58 +80,36 @@ export class MailService {
     });
   }
 
-  async notifyManagersFlagged(id: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      select: { email: true },
-    });
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+  async notifyManagersFlagged(userId: number, email: string) {
     const managers = await this.getManagerEmails();
-
     await Promise.all(
       managers.map((m) =>
         this.send(m, 'FLAGGED_ADMIN', {
-          userId: id,
-          email: user.email,
+          userId,
+          email,
         }),
       ),
     );
   }
 
-  async notifyManagersBanned(id: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      select: { email: true },
-    });
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+  async notifyManagersBanned(userId: number, email: string) {
     const managers = await this.getManagerEmails();
-
     await Promise.all(
       managers.map((m) =>
         this.send(m, 'BANNED_ADMIN', {
-          userId: id,
-          email: user.email,
+          userId,
+          email,
         }),
       ),
     );
   }
 
-  async notifyUserFlagged(id: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      select: { email: true },
-    });
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
-    await this.send(user.email, 'FLAGGED', {});
+  async notifyUserFlagged(email: string) {
+    await this.send(email, 'FLAGGED', {});
   }
 
-  async notifyUserBanned(id: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      select: { email: true },
-    });
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
-    await this.send(user.email, 'BANNED', {});
+  async notifyUserBanned(email: string) {
+    await this.send(email, 'BANNED', {});
   }
 
   async sendRecoveryRequest(
@@ -156,13 +134,8 @@ export class MailService {
     );
   }
 
-  async sendRecoveryApproved(id: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      select: { email: true },
-    });
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
-    await this.send(user.email, 'RECOVERY_APPROVE', {});
+  async sendRecoveryApproved(email: string) {
+    await this.send(email, 'RECOVERY_APPROVE', {});
   }
 
   async notifyBuyerPurchase(

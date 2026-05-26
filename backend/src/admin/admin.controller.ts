@@ -89,9 +89,9 @@ export class AdminController {
     @Param('id') id: string,
     @Request() request: userRequestInterface.UserRequest,
   ) {
-    await this.adminService.banUser(Number(id), request);
+    const userEmail = await this.adminService.banUser(Number(id), request);
     await this.tokenService.blockTokensForUser(Number(id));
-    await this.mailService.notifyUserBanned(Number(id));
+    await this.mailService.notifyUserBanned(userEmail);
   }
 
   @UseGuards(AllowedRolesGuard)
@@ -99,9 +99,9 @@ export class AdminController {
   @HttpCode(204)
   @Patch('id/:id/unban')
   async unbanUser(@Param('id') id: string) {
-    await this.adminService.unbanUser(Number(id));
+    const userEmail = await this.adminService.unbanUser(Number(id));
     await this.tokenService.blockTokensForUser(Number(id));
-    await this.mailService.sendRecoveryApproved(Number(id));
+    await this.mailService.sendRecoveryApproved(userEmail);
   }
 
   @UseGuards(AllowedRolesGuard)
@@ -109,9 +109,9 @@ export class AdminController {
   @HttpCode(204)
   @Patch('id/:id/unflag')
   async unflagUser(@Param('id') id: string) {
-    await this.adminService.unflagUser(Number(id));
+    const userEmail = await this.adminService.unflagUser(Number(id));
     await this.tokenService.blockTokensForUser(Number(id));
-    await this.mailService.sendRecoveryApproved(Number(id));
+    await this.mailService.sendRecoveryApproved(userEmail);
   }
 
   @UseGuards(AllowedRolesGuard)
@@ -119,8 +119,8 @@ export class AdminController {
   @HttpCode(204)
   @Patch('id/:id/restore')
   async restoreUser(@Param('id') id: string): Promise<void> {
-    await this.adminService.restoreUser(Number(id));
-    await this.mailService.sendRecoveryApproved(Number(id));
+    const userEmail = await this.adminService.restoreUser(Number(id));
+    await this.mailService.sendRecoveryApproved(userEmail);
   }
 
   // ----------------------------------------------------------------------------------------------------------

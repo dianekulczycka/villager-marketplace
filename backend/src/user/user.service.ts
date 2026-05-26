@@ -258,10 +258,10 @@ export class UserService {
 
   // -------------------------------------------- PATCH -----------------------------------------------------
 
-  async banUser(userId: number, request: UserRequest): Promise<void> {
+  async banUser(userId: number, request: UserRequest): Promise<string> {
     const user = await this.prisma.user.findFirst({
       where: { id: userId, isDeleted: 0 },
-      select: { id: true },
+      select: { id: true, email: true },
     });
 
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
@@ -270,12 +270,14 @@ export class UserService {
       where: { id: userId },
       data: USER_BAN_DATA(request.user.email),
     });
+
+    return user.email;
   }
 
-  async unbanUser(userId: number): Promise<void> {
+  async unbanUser(userId: number): Promise<string> {
     const user = await this.prisma.user.findFirst({
       where: { id: userId, isDeleted: 0 },
-      select: { id: true },
+      select: { id: true, email: true },
     });
 
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
@@ -284,15 +286,24 @@ export class UserService {
       where: { id: userId },
       data: USER_UNBAN_DATA,
     });
+    return user.email;
   }
 
-  async unflagUser(userId: number): Promise<void> {
+  async unflagUser(userId: number): Promise<string> {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, isDeleted: 0 },
+      select: { id: true, email: true },
+    });
+
+    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+
     await this.prisma.user.update({
       where: { id: userId },
       data: {
         isFlagged: 0,
       },
     });
+    return user.email;
   }
 
   async promoteManager(userId: number): Promise<void> {
@@ -340,10 +351,10 @@ export class UserService {
     });
   }
 
-  async restoreUser(userId: number): Promise<void> {
+  async restoreUser(userId: number): Promise<string> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { isDeleted: true },
+      select: { isDeleted: true, email: true },
     });
 
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
@@ -357,6 +368,8 @@ export class UserService {
         deletedBy: null,
       },
     });
+
+    return user.email;
   }
 
   // -------------------------------------------- DELETE -----------------------------------------------------

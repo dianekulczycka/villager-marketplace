@@ -27,11 +27,11 @@ export class AdminService {
     return await this.userService.findAllManagers(query);
   }
 
-  async banUser(userId: number, request: UserRequest): Promise<void> {
+  async banUser(userId: number, request: UserRequest): Promise<string> {
     return await this.userService.banUser(userId, request);
   }
 
-  async unbanUser(userId: number): Promise<void> {
+  async unbanUser(userId: number): Promise<string> {
     return await this.userService.unbanUser(userId);
   }
 
@@ -47,11 +47,11 @@ export class AdminService {
     return await this.userService.demoteManager(userId);
   }
 
-  async unflagUser(userId: number): Promise<void> {
-    await this.userService.unflagUser(userId);
+  async unflagUser(userId: number): Promise<string> {
+    return await this.userService.unflagUser(userId);
   }
 
-  async restoreUser(userId: number): Promise<void> {
-    await this.userService.restoreUser(userId);
+  async restoreUser(userId: number): Promise<string> {
+    return await this.userService.restoreUser(userId);
   }
 }

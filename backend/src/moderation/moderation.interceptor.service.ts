@@ -1,6 +1,7 @@
 import {
   CallHandler,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
@@ -9,6 +10,7 @@ import { MailService } from '../mail/mail.service';
 import { UserRequest } from '../user/interfaces/user-request.interface';
 import { hasSwearWords } from '../shared/filters/swear-words.filter';
 import { TokenService } from '../security/token/token.service';
+import { USER_ERRORS } from '../shared/errors/user.errors';
 
 @Injectable()
 export class ModerationInterceptor implements NestInterceptor {
@@ -45,7 +47,6 @@ export class ModerationInterceptor implements NestInterceptor {
       await this.prisma.user.update({
         where: { id: userId },
         data: {
-          isFlagged: 1,
           isBanned: 1,
           bannedBy: user.email,
           bannedAt: new Date(),
@@ -53,19 +54,21 @@ export class ModerationInterceptor implements NestInterceptor {
       });
 
       await this.tokenService.blockTokensForUser(userId);
-      await this.mailService.notifyManagersBanned(userId);
-      await this.mailService.notifyUserBanned(userId);
-    } else {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { isFlagged: 1 },
-      });
+      await this.mailService.notifyManagersBanned(userId, user.email);
+      await this.mailService.notifyUserBanned(user.email);
 
-      await this.tokenService.blockTokensForUser(userId);
-      await this.mailService.notifyManagersFlagged(userId);
-      await this.mailService.notifyUserFlagged(userId);
+      throw new ForbiddenException(USER_ERRORS.BANNED);
     }
 
-    return next.handle();
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { isFlagged: 1 },
+    });
+
+    await this.tokenService.blockTokensForUser(userId);
+    await this.mailService.notifyManagersFlagged(userId, user.email);
+    await this.mailService.notifyUserFlagged(user.email);
+
+    throw new ForbiddenException(USER_ERRORS.FLAGGED);
   }
 }
