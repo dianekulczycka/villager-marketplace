@@ -70,7 +70,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"email\": \"admin@gmail.com\",\r\n    \"password\": \"rootroot2\"\r\n}",
+              "raw": "{\r\n    \"email\": \"buyer5@villager.com\",\r\n    \"password\": \"useruser67\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -484,30 +484,6 @@
                 "id",
                 "3",
                 "views"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "localhost:3003/items/id/3/buy",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "localhost:3003/items/id/3/buy",
-              "host": [
-                "localhost"
-              ],
-              "port": "3003",
-              "path": [
-                "items",
-                "id",
-                "3",
-                "buy"
               ]
             }
           },
@@ -974,6 +950,180 @@
                 "id",
                 "4",
                 "demote"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "order",
+      "item": [
+        {
+          "name": "localhost:3003/orders/id/6/order",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"amount\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/orders/id/6/order",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "orders",
+                "id",
+                "6",
+                "order"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/orders/my/buying",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"amount\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/orders/my/buying",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "orders",
+                "my",
+                "buying"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/orders/my/selling",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"amount\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/orders/my/selling",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "orders",
+                "my",
+                "selling"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/orders/id/1/confirm",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"amount\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/orders/id/1/confirm",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "orders",
+                "id",
+                "1",
+                "confirm"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "localhost:3003/orders/id/2/reject",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"amount\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "localhost:3003/orders/id/2/reject",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "orders",
+                "id",
+                "2",
+                "reject"
               ]
             }
           },

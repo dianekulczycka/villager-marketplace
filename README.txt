@@ -18,10 +18,13 @@
         View items and users
         Search, sort, paginate
         Can become a seller
+        Create purchase orders
     Seller
         Create, edit, and soft-delete items
         View users
         Choose a seller type
+        Confirm / reject incoming orders
+        Can also purchase items from other sellers
     Manager
         Moderate users and items
         Ban / unban, flag / unflag
@@ -36,33 +39,71 @@
     Items are created from predefined enums
     Supports search, sorting, filtering, and pagination
 
-### Purchase
-    Items can be purchased using two flows:
+## Orders
+    Buyers can create purchase requests for items
+    Sellers can confirm or reject incoming orders
 
-    Instant Buy:
-    Purchases a single item (amount = 1)
+### Order Flow
+    Order creation:
+        Buyer selects item and amount
+        Amount is validated against available stock
+        Order is created with PENDING status
 
-    Bulk Purchase:
-    Allows purchasing multiple items via user-defined amount
-    Amount is validated against available stock
+    Order confirmation:
+        Seller confirms order
+        Item stock is decremented
+        Order status changes to CONFIRMED
+        Email notifications are sent to buyer and seller
 
-    Purchase rules:
-    If last item is purchased, the item is soft-deleted and may no longer be accessible (can result in 404)
-    After successful purchase, email notifications are sent to buyer and seller
+    Order rejection:
+        Seller rejects order
+        Order status changes to REJECTED
+
+### Order Rules
+    Users cannot purchase their own items
+    Only order owner seller can confirm/reject orders
+    Only pending orders can be confirmed/rejected
+    Banned or deleted users cannot interact with orders
 
 ## Moderation
-    Automatic system:
-        1st offense → flagged
-        2nd offense → banned
-    Manual moderation by managers/admins
+    Automatic moderation system:
+        1st offense → user is flagged
+        2nd offense → user is banned
+
+### Flagged Users
+    Receive warning email
+    Remain able to use platform features
+
+### Banned Users
+    Tokens are invalidated automatically
+    Cannot authenticate or access protected endpoints
+    Cannot create/edit items or interact with orders
+
+### Manual Moderation
+    Managers/admins can:
+        Ban / unban users
+        Flag / unflag users
+        Soft-delete entities
 
 ## Email System
-    Users receive emails when flagged or banned
-    Users can request unban or data restoration
+    Users receive emails when:
+        Flagged
+        Banned
+        Order is confirmed
+
+    Users can request:
+        Unban
+        Data restoration
+
     Requests are sent to all managers
 
 ## Data
-    Core entities: Users, Items, Tokens
+    Core entities:
+        Users
+        Items
+        Orders
+        Tokens
+
     Supports soft and hard deletion
     Access controlled by role
 

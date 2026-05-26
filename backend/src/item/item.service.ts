@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -32,7 +31,6 @@ import { USER_ERRORS } from '../shared/errors/user.errors';
 import { canModifyItem } from '../shared/helpers/permission.helpers';
 import { ITEM_ICON_MAP } from '../shared/helpers/icon-map.helper';
 import { ItemPublicDetailedDto } from './dto/item-public-detailed.dto';
-import { BuyItemDto } from './dto/buy-item.dto';
 
 @Injectable()
 export class ItemService {
@@ -191,38 +189,6 @@ export class ItemService {
     await this.prisma.item.update({
       where: { id },
       data: ITEM_SOFT_DELETE_DATA,
-    });
-  }
-
-  async buy(
-    request: UserRequest,
-    id: number,
-    buyItemDto?: BuyItemDto,
-  ): Promise<void> {
-    const amount = buyItemDto?.amount || 1;
-
-    if (amount <= 0) {
-      throw new BadRequestException(ITEM_ERRORS.INVALID_AMOUNT);
-    }
-
-    const { item, isOwner } = await this.getItemForUser(id, request);
-
-    if (isOwner) {
-      throw new ForbiddenException(ITEM_ERRORS.NOT_ALLOWED);
-    }
-
-    if (item.count < amount) {
-      throw new BadRequestException(ITEM_ERRORS.INVALID_AMOUNT);
-    }
-
-    const newCount = item.count - amount;
-
-    await this.prisma.item.update({
-      where: { id },
-      data: {
-        count: newCount,
-        isDeleted: newCount === 0 ? 1 : 0,
-      },
     });
   }
 }

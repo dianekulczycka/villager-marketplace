@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
+import * as nodemailer from 'nodemailer';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as handlebars from 'handlebars';
@@ -10,7 +10,6 @@ import { user_role } from '@prisma/client';
 import { AccountRecoveryRequestDto } from '../user/dto/account-recovery-request.dto';
 import { ConfigService } from '@nestjs/config';
 import { USER_ERRORS } from '../shared/errors/user.errors';
-import { BuyItemDto } from '../item/dto/buy-item.dto';
 
 @Injectable()
 export class MailService {
@@ -167,64 +166,28 @@ export class MailService {
   }
 
   async notifyBuyerPurchase(
-    buyerId: number,
-    itemId: number,
-    buyItemDto?: BuyItemDto,
+    buyerEmail: string,
+    sellerEmail: string,
+    itemName: string,
+    amount: number,
   ) {
-    const buyer = await this.prisma.user.findUnique({
-      where: { id: buyerId },
-      select: { email: true },
-    });
-
-    const item = await this.prisma.item.findUnique({
-      where: { id: itemId },
-      select: {
-        name: true,
-        seller: {
-          select: {
-            email: true,
-          },
-        },
-      },
-    });
-
-    if (!buyer || !item) return;
-
-    await this.send(buyer.email, 'PURCHASE_BUYER', {
-      sellerEmail: item.seller.email,
-      itemName: item.name,
-      itemAmount: buyItemDto?.amount || 1,
+    await this.send(buyerEmail, 'PURCHASE_BUYER', {
+      sellerEmail,
+      itemName,
+      amount,
     });
   }
 
   async notifySellerPurchase(
-    buyerId: number,
-    itemId: number,
-    buyItemDto?: BuyItemDto,
+    buyerEmail: string,
+    sellerEmail: string,
+    itemName: string,
+    amount: number,
   ) {
-    const buyer = await this.prisma.user.findUnique({
-      where: { id: buyerId },
-      select: { email: true },
-    });
-
-    const item = await this.prisma.item.findUnique({
-      where: { id: itemId },
-      select: {
-        name: true,
-        seller: {
-          select: {
-            email: true,
-          },
-        },
-      },
-    });
-
-    if (!buyer || !item) return;
-
-    await this.send(item.seller.email, 'PURCHASE_SELLER', {
-      buyerEmail: buyer.email,
-      itemName: item.name,
-      itemAmount: buyItemDto?.amount || 1,
+    await this.send(sellerEmail, 'PURCHASE_SELLER', {
+      buyerEmail,
+      itemName,
+      amount,
     });
   }
 }

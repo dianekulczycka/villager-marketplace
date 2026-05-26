@@ -19,6 +19,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { RequestDetailsLoggerInteceptor } from './shared/interceptors/request-details-logger.inteceptor';
 import { CleanUpJobModule } from './shared/jobs/clean-up.job.module';
 import { ItemModule } from './item/item.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { ItemModule } from './item/item.module';
     StatsModule,
     ModerationModule,
     SecurityModule,
+    OrderModule,
   ],
   providers: [
     {

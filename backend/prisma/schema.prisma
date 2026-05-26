@@ -21,8 +21,10 @@ model item {
   updatedAt   DateTime  @default(now()) @db.DateTime(6)
   sellerId    Int
   seller      user     @relation(fields: [sellerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_7e5265b54c312941a5cef5a9379")
+  orders order[]
 
   @@index([sellerId], map: "FK_7e5265b54c312941a5cef5a9379")
+
 }
 
 model token {
@@ -59,6 +61,31 @@ model user {
   deletedBy  String?          @db.VarChar(255)
   item       item[]
   token      token[]
+  buyerOrders order[] @relation("buyerOrders")
+  sellerOrders order[] @relation("sellerOrders")
+}
+
+model order {
+  id        Int          @id @default(autoincrement())
+
+  buyerId   Int
+  sellerId  Int
+  itemId    Int
+
+  amount    Int
+
+  status    order_status @default(PENDING)
+
+  createdAt DateTime     @default(now()) @db.DateTime(6)
+
+  buyer  user @relation("buyerOrders", fields: [buyerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  seller user @relation("sellerOrders", fields: [sellerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  item item @relation(fields: [itemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([itemId])
 }
 
 enum item_name {
@@ -168,4 +195,10 @@ enum user_role {
   SELLER
   MANAGER
   ADMIN
+}
+
+enum order_status {
+  PENDING
+  CONFIRMED
+  REJECTED
 }

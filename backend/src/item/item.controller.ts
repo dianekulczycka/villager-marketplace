@@ -27,25 +27,19 @@ import { ModerationPipe } from '../moderation/moderation.pipe.service';
 import { ModerationInterceptor } from '../moderation/moderation.interceptor.service';
 import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';
 import { user_role } from '@prisma/client';
-import { BuyItemDto } from './dto/buy-item.dto';
-import { MailService } from '../mail/mail.service';
-import { Throttle } from '@nestjs/throttler';
 
 @ApiErrorResponses()
 @UseGuards(AuthGuard('jwt'))
 @Controller('items')
 export class ItemController {
-  constructor(
-    private readonly itemsService: ItemService,
-    private readonly mailService: MailService,
-  ) {}
+  constructor(private readonly itemService: ItemService) {}
 
   @Get('')
   async getAll(
     @Query() query: ItemQueryDto,
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<PaginationResponse<ItemPublicDto>> {
-    return this.itemsService.findAllPublic(query, request);
+    return this.itemService.findAllPublic(query, request);
   }
 
   @Get('id/:id')
@@ -53,7 +47,7 @@ export class ItemController {
     @Param('id') id: string,
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<ItemPublicDto> {
-    return this.itemsService.findById(Number(id), request);
+    return this.itemService.findById(Number(id), request);
   }
 
   @Post('id/:id/views')
@@ -61,7 +55,7 @@ export class ItemController {
     @Param('id') id: string,
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<void> {
-    await this.itemsService.incrementViews(Number(id), request);
+    await this.itemService.incrementViews(Number(id), request);
   }
 
   @UseGuards(AllowedRolesGuard)
@@ -71,7 +65,7 @@ export class ItemController {
     @Query() query: ItemQueryDto,
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<PaginationResponse<ItemPublicDto>> {
-    return this.itemsService.findMyItems(query, request);
+    return this.itemService.findMyItems(query, request);
   }
 
   @UseGuards(AllowedRolesGuard)
@@ -83,7 +77,7 @@ export class ItemController {
     @Request() request: userRequestInterface.UserRequest,
     @Body() createItemDto: CreateItemDto,
   ): Promise<ItemPublicDto> {
-    return await this.itemsService.create(request, createItemDto);
+    return await this.itemService.create(request, createItemDto);
   }
 
   @UseGuards(AllowedRolesGuard)
@@ -96,7 +90,7 @@ export class ItemController {
     @Request() request: userRequestInterface.UserRequest,
     @Body() updateItemDto: UpdateItemDto,
   ): Promise<ItemPublicDto> {
-    return this.itemsService.update(request, Number(id), updateItemDto);
+    return this.itemService.update(request, Number(id), updateItemDto);
   }
 
   @UseGuards(AllowedRolesGuard)
@@ -107,28 +101,6 @@ export class ItemController {
     @Param('id') id: string,
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<void> {
-    return this.itemsService.softDelete(request, Number(id));
-  }
-
-  @Throttle({ default: { limit: 3, ttl: 60000 } })
-  @UseGuards(AllowedRolesGuard)
-  @Roles(user_role.SELLER, user_role.BUYER)
-  @Post('id/:id/buy')
-  async buy(
-    @Param('id') id: string,
-    @Request() request: userRequestInterface.UserRequest,
-    @Body() buyItemDto?: BuyItemDto,
-  ): Promise<void> {
-    await this.itemsService.buy(request, Number(id), buyItemDto);
-    await this.mailService.notifyBuyerPurchase(
-      request.user.userId,
-      Number(id),
-      buyItemDto,
-    );
-    await this.mailService.notifySellerPurchase(
-      request.user.userId,
-      Number(id),
-      buyItemDto,
-    );
+    return this.itemService.softDelete(request, Number(id));
   }
 }

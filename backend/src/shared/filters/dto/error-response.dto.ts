@@ -4,7 +4,7 @@ export class ErrorResponseDto {
   @ApiProperty({ example: 403 })
   statusCode: number;
 
-  @ApiProperty({ example: '2026-02-13T14:49:53.397Z' })
+  @ApiProperty({ example: '2000-01-01T12:00:00.000Z' })
   timestamp: string;
 
   @ApiProperty({ example: '/auth/register' })
