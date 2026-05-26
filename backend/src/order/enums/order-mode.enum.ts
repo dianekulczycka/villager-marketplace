@@ -1,4 +1,4 @@
 export enum OrderModeEnum {
-  SELL= "SELL",
-  BUY = "BUY"
+  SELL = 'SELL',
+  BUY = 'BUY',
 }
