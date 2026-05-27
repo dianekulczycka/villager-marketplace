@@ -22,4 +22,7 @@ export class OrderResponseDto {
 
   @ApiProperty({ example: '2000-01-01T12:00:00.000Z' })
   createdAt: Date;
+
+  @ApiProperty({ example: '0763f148' })
+  uuid: string;
 }

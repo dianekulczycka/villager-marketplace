@@ -37,13 +37,14 @@ export class OrderController {
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.SELLER, user_role.BUYER)
   @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @HttpCode(201)
   @Post('id/:itemId/order')
   async order(
     @Param('itemId') itemId: string,
     @Request() request: userRequestInterface.UserRequest,
     @Body() orderRequestDto?: OrderRequestDto,
-  ): Promise<OrderResponseDto> {
-    return this.orderService.create(request, Number(itemId), orderRequestDto);
+  ): Promise<void> {
+    await this.orderService.create(request, Number(itemId), orderRequestDto);
   }
 
   @UseGuards(AllowedRolesGuard)

@@ -74,6 +74,7 @@ model order {
   buyer     user         @relation("buyerOrders", fields: [buyerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   item      item         @relation(fields: [itemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   seller    user         @relation("sellerOrders", fields: [sellerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  uuid String @unique
 
   @@index([buyerId])
   @@index([sellerId])

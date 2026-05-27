@@ -21,6 +21,7 @@ import { OrderModeEnum } from './enums/order-mode.enum';
 import { OrderEmailData } from '../mail/models/order-email-data';
 import { ORDER_ERRORS } from '../shared/errors/order.errors';
 import { order_status } from '@prisma/client';
+import crypto from 'crypto';
 
 @Injectable()
 export class OrderService {
@@ -29,9 +30,9 @@ export class OrderService {
   async create(
     request: UserRequest,
     itemId: number,
-    buyItemDto?: OrderRequestDto,
-  ): Promise<OrderResponseDto> {
-    const amount = buyItemDto?.amount || 1;
+    orderRequestDto?: OrderRequestDto,
+  ): Promise<void> {
+    const amount = orderRequestDto?.amount || 1;
     if (amount <= 0) throw new BadRequestException(ITEM_ERRORS.INVALID_AMOUNT);
 
     const { userId: buyerId } = request.user;
@@ -57,12 +58,13 @@ export class OrderService {
     if (item.count < amount)
       throw new BadRequestException(ITEM_ERRORS.INVALID_AMOUNT);
 
-    return this.prisma.order.create({
+    await this.prisma.order.create({
       data: {
         buyerId,
         sellerId: item.sellerId,
         itemId,
         amount,
+        uuid: crypto.randomBytes(4).toString('hex'),
       },
     });
   }

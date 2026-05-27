@@ -1,3 +1,5 @@
+const API_URL: string = import.meta.env.VITE_API_URL;
+
 const roots = {
   auth: '/auth',
   users: '/users',
@@ -7,7 +9,7 @@ const roots = {
 };
 
 export const endpoints = {
-  baseURL: 'http://localhost:3003',
+  baseURL: API_URL,
   auth: {
     root: roots.auth,
     register: `${roots.auth}/register`,

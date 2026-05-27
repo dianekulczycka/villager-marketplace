@@ -1,5 +1,4 @@
 export enum ItemSortField {
-  ID = 'id',
   NAME = 'name',
   PRICE = 'price',
   COUNT = 'count',

@@ -22,7 +22,7 @@ const OrdersPage: FC = () => {
 
     const [query, setQuery] = useQueryParams({
         page: withDefault(NumberParam, 1),
-        perPage: withDefault(NumberParam, 8),
+        perPage: withDefault(NumberParam, 12),
         sortBy: StringParam,
         sortDirection: StringParam,
         search: StringParam,

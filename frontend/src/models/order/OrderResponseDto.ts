@@ -8,4 +8,5 @@ export interface OrderResponseDto {
     sellerId: number;
     itemId: number;
     createdAt: Date;
+    uuid: string;
 }

@@ -1,5 +1,4 @@
 export enum OrderSortField {
-    ID = 'id',
     AMOUNT = 'amount',
     STATUS = 'status',
     CREATED_AT = 'created_at',

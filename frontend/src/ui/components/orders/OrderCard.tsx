@@ -43,7 +43,7 @@ const OrderCard: FC<Props> = ({order, confirmOrder, rejectOrder}) => {
                     }}
                 >
                     <Typography fontWeight={700}>
-                        Order {order.id}
+                        Order {order.uuid}
                     </Typography>
 
                     <Chip
