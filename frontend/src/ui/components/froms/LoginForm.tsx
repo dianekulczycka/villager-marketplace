@@ -8,11 +8,11 @@ import {loginSchema} from '../../../validation/auth.schema.ts';
 import ErrorComponent from '../error/ErrorComponent.tsx';
 
 interface Props {
-    onLogin: (data: LoginReq) => Promise<void>;
+    login: (data: LoginReq) => Promise<void>;
     openModal: () => void;
 }
 
-const LoginForm: FC<Props> = ({onLogin, openModal}) => {
+const LoginForm: FC<Props> = ({login, openModal}) => {
     const [error, setError] = useState<string | null>(null);
     const {
         register,
@@ -24,7 +24,7 @@ const LoginForm: FC<Props> = ({onLogin, openModal}) => {
 
     const onSubmit: SubmitHandler<LoginReq> = async (data) => {
         try {
-            await onLogin(data);
+            await login(data);
         } catch (e) {
             if (e instanceof Error) {
                 setError(e.message);

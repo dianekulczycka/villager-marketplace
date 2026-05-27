@@ -12,6 +12,7 @@ import UsersPage from '../ui/pages/users/UsersPage.tsx';
 import ErrorPage404 from '../ui/pages/error/ErrorPage404.tsx';
 import {routes} from './routes.ts';
 import UserProfilePage from '../ui/pages/users/UserProfilePage.tsx';
+import OrdersPage from "../ui/pages/orders/OrdersPage.tsx";
 
 export const router = createBrowserRouter([
     {
@@ -41,6 +42,12 @@ export const router = createBrowserRouter([
                         children: [
                             { index: true, element: <ItemsPage /> },
                             { path: routes.items.byId, element: <ItemDetailsPage /> },
+                        ],
+                    },
+                    {
+                        path: routes.orders.root,
+                        children: [
+                            { index: true, element: <OrdersPage /> },
                         ],
                     },
                     {

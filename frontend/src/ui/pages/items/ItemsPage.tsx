@@ -15,6 +15,8 @@ import {createOpenModal} from '../../../helpers/createOpenModal.ts';
 import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
 import {useQuery} from '@tanstack/react-query';
 import type {QueryParams} from "../../../models/pagiantion/QueryParams.ts";
+import {useMutationHandler} from "../../../helpers/handleMutation.ts";
+import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
 
 const ItemsPage: FC = () => {
     const [activeModal, setActiveModal] = useState<ActiveModal>(null);
@@ -60,20 +62,33 @@ const ItemsPage: FC = () => {
             }),
     });
 
+    const {
+        isLoading: isUpdatingItem,
+        openSnackbar,
+        setOpenSnackbar,
+        snackbarText,
+        snackbarStatus,
+        handleMutation,
+    } = useMutationHandler(refetch);
+
     const handlePageChange = (newPage: number) => {
         setQuery({page: newPage});
     };
 
-    const onUpdateItem = async (dto: UpdateItemDto) => {
+    const updateItem = async (dto: UpdateItemDto) => {
         if (!selectedItem) return;
-        await itemUpdate(selectedItem.id, dto);
-        await refetch();
+        await handleMutation(
+            async () => {
+                await itemUpdate(selectedItem.id, dto);
+            }, 'Item updated');
     };
 
-    const onDeleteItem = async () => {
+    const deleteItem = async () => {
         if (!selectedItem) return;
-        await itemSoftDelete(selectedItem.id);
-        await refetch();
+        await handleMutation(
+            async () => {
+                await itemSoftDelete(selectedItem.id);
+            }, 'Item deleted');
     };
 
     return (
@@ -90,7 +105,7 @@ const ItemsPage: FC = () => {
             <DataStateComponent
                 data={data}
                 error={error}
-                loading={isLoading}
+                loading={isLoading || isUpdatingItem}
                 isEmpty={data?.data.length === 0}>
                 {data &&
                     <>
@@ -111,13 +126,20 @@ const ItemsPage: FC = () => {
             <UpdateItemModal
                 open={activeModal === 'updateItem'}
                 closeModal={closeModal}
-                onUpdateItem={onUpdateItem}
+                updateItem={updateItem}
                 selectedItem={selectedItem}
             />
             <ConfirmDeleteModal
                 open={activeModal === 'deleteItem'}
                 closeModal={closeModal}
-                onDelete={onDeleteItem}
+                deleteEntity={deleteItem}
+            />
+
+            <InfoSnackbar
+                open={openSnackbar}
+                setOpen={setOpenSnackbar}
+                text={snackbarText}
+                status={snackbarStatus}
             />
 
         </Box>

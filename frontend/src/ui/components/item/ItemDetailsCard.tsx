@@ -3,18 +3,18 @@ import {Box, Button, Card, Chip, Typography} from '@mui/material';
 import UserCard from '../user/UserCard.tsx';
 import {routes} from '../../../routes/routes.ts';
 import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
-import type {BuyItemDto} from "../../../models/item/BuyItemDto.ts";
 import {useAuth} from "../../../store/helpers/useAuth.ts";
 import Alert from "@mui/material/Alert";
+import type {OrderRequestDto} from "../../../models/order/OrderRequestDto.ts";
 
 interface Props {
     item: ItemAdminView;
-    onBuyItem: (dto: BuyItemDto) => void;
+    order: (dto: OrderRequestDto) => Promise<void>;
     openModal: () => void;
 }
 
-const ItemDetailsCard: FC<Props> = ({item, onBuyItem, openModal}) => {
-    const { user: loggedUser } = useAuth();
+const ItemDetailsCard: FC<Props> = ({item, order, openModal}) => {
+    const {user: loggedUser} = useAuth();
     const isAuthority = loggedUser?.role === 'ADMIN' || loggedUser?.role === 'MANAGER';
 
     return (
@@ -77,7 +77,7 @@ const ItemDetailsCard: FC<Props> = ({item, onBuyItem, openModal}) => {
                                 variant="contained"
                                 color="success"
                                 sx={{m: 1}}
-                                onClick={() => onBuyItem({amount: 1})}
+                                onClick={() => order({amount: 1})}
                             >
                                 Instant buy
                             </Button>

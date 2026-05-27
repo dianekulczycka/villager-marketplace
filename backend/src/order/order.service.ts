@@ -39,6 +39,9 @@ export class OrderService {
       where: {
         id: itemId,
         isDeleted: 0,
+        seller: {
+          isBanned: 0,
+        },
       },
       select: {
         id: true,

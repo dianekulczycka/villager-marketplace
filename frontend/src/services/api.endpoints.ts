@@ -2,6 +2,7 @@ const roots = {
   auth: '/auth',
   users: '/users',
   items: '/items',
+  orders: '/orders',
   admin: '/admin/users',
 };
 
@@ -29,7 +30,14 @@ export const endpoints = {
     increaseViews: (id: number) => `${roots.items}/id/${id}/views`,
     my: `${roots.items}/my`,
     delete: (id: number) => `${roots.items}/id/${id}/soft-delete`,
-    buy: (id: number) => `${roots.items}/id/${id}/buy`,
+  },
+  orders: {
+    root: roots.orders,
+    order: (id: number) => `${roots.orders}/id/${id}/order`,
+    buying: `${roots.orders}/my/buying`,
+    selling: `${roots.orders}/my/selling`,
+    confirm: (id: number) => `${roots.orders}/id/${id}/confirm`,
+    reject: (id: number) => `${roots.orders}/id/${id}/reject`,
   },
   admin: {
     root: roots.admin,

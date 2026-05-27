@@ -26,6 +26,8 @@ import {
 } from '../../../services/fetch/admin.service.ts';
 import {useQuery} from '@tanstack/react-query';
 import type {QueryParams} from "../../../models/pagiantion/QueryParams.ts";
+import {useMutationHandler} from "../../../helpers/handleMutation.ts";
+import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
 
 const UsersPage: FC = () => {
     const [activeModal, setActiveModal] = useState<ActiveModal>(null);
@@ -69,44 +71,83 @@ const UsersPage: FC = () => {
             }),
     });
 
+    const {
+        isLoading: isUpdatingUser,
+        openSnackbar,
+        setOpenSnackbar,
+        snackbarText,
+        snackbarStatus,
+        handleMutation,
+    } = useMutationHandler(refetch);
+
     const updateUser = async (dto: UpdateUserDto) => {
         if (!selectedUser) return;
-        await update(selectedUser.id, dto);
-        await refetch();
+        await handleMutation(
+            async () => {
+                await update(selectedUser.id, dto)
+            }, 'User updated');
     };
 
     const deleteUser = async () => {
         if (!selectedUser) return;
-        await softDelete(selectedUser.id);
-        await refetch();
+        await handleMutation(
+            async () => {
+                await softDelete(selectedUser.id)
+            }, 'User deleted');
     };
 
     const hardDeleteUser = async () => {
         if (!selectedUser) return;
-        await hardDelete(selectedUser.id);
-        await refetch();
+        await handleMutation(
+            async () => {
+                await hardDelete(selectedUser.id)
+            }, 'User hard deleted');
     };
 
     const toggleBan = async (user: UserAdminView) => {
-        await (user.isBanned ? unban(user.id) : ban(user.id));
-        await refetch();
+        await handleMutation(
+            async () => {
+                await (user.isBanned
+                    ? unban(user.id)
+                    : ban(user.id));
+            },
+            user.isBanned
+                ? 'User unbanned'
+                : 'User banned',
+        );
     };
 
     const togglePromote = async (user: UserAdminView) => {
-        await (user.role !== 'MANAGER'
-            ? promote(user.id)
-            : demote(user.id));
-        await refetch();
+        await handleMutation(
+            async () => {
+                await (
+                    user.role !== 'MANAGER'
+                        ? promote(user.id)
+                        : demote(user.id)
+                );
+            },
+            user.role !== 'MANAGER'
+                ? 'User promoted'
+                : 'User demoted',
+        );
     };
 
     const unflagUser = async (user: UserAdminView) => {
-        if (user.isFlagged) await unflag(user.id);
-        await refetch();
+        await handleMutation(
+            async () => {
+                if (user.isFlagged) {
+                    await unflag(user.id)
+                }
+            }, 'User unflagged');
     };
 
     const restoreUser = async (user: UserAdminView) => {
-        if (user.isDeleted) await restore(user.id);
-        await refetch();
+        await handleMutation(
+            async () => {
+                if (user.isDeleted) {
+                    await restore(user.id);
+                }
+            }, 'User restored');
     };
 
     const handlePageChange = (newPage: number) => {
@@ -127,7 +168,7 @@ const UsersPage: FC = () => {
             <DataStateComponent
                 data={data}
                 error={error}
-                loading={isLoading}
+                loading={isLoading || isUpdatingUser}
                 isEmpty={data?.data.length === 0}>
                 {data &&
                     <>
@@ -161,11 +202,18 @@ const UsersPage: FC = () => {
             <ConfirmDeleteModal
                 open={activeModal === 'deleteUser' || activeModal === 'hardDeleteUser'}
                 closeModal={closeModal}
-                onDelete={
+                deleteEntity={
                     activeModal === 'deleteUser'
                         ? deleteUser
                         : hardDeleteUser
                 }
+            />
+
+            <InfoSnackbar
+                open={openSnackbar}
+                setOpen={setOpenSnackbar}
+                text={snackbarText}
+                status={snackbarStatus}
             />
 
         </Box>

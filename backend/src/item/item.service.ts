@@ -16,7 +16,7 @@ import {
 } from './dto/item-query.dto';
 import { SortDirectionEnum } from '../shared/pagination/pagination-request.dto';
 import { paginatePrisma } from '../shared/pagination/prisma-paginator';
-import { Prisma, user_role } from '@prisma/client';
+import { order_status, Prisma, user_role } from '@prisma/client';
 import {
   buildItemSearchWhere,
   ITEM_ADMIN_SELECT,
@@ -186,9 +186,22 @@ export class ItemService {
 
   async softDelete(request: UserRequest, id: number): Promise<void> {
     await canModifyItem(this.prisma, request, id);
-    await this.prisma.item.update({
-      where: { id },
-      data: ITEM_SOFT_DELETE_DATA,
-    });
+
+    await this.prisma.$transaction([
+      this.prisma.item.update({
+        where: { id },
+        data: ITEM_SOFT_DELETE_DATA,
+      }),
+
+      this.prisma.order.updateMany({
+        where: {
+          itemId: id,
+          status: order_status.PENDING,
+        },
+        data: {
+          status: order_status.REJECTED,
+        },
+      }),
+    ]);
   }
 }

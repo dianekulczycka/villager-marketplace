@@ -35,7 +35,7 @@ const SortSearchComponent = <T extends string>({fields, query, setQuery}: Props<
             m: 2,
             p: 1,
             backgroundColor: '#ffffff',
-            width: '20%',
+            width: '25%',
         }}>
             <TextField
                 size="small"

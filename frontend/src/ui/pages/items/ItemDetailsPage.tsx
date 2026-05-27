@@ -1,22 +1,19 @@
 import {type FC, useEffect, useState} from 'react';
-import {useNavigate, useParams} from 'react-router';
+import {useParams} from 'react-router';
 import ItemDetailsCard from '../../components/item/ItemDetailsCard.tsx';
-import {buy, getById, increaseViews} from '../../../services/fetch/item.service.ts';
+import {getById, increaseViews} from '../../../services/fetch/item.service.ts';
 import DataStateComponent from '../../components/shared/DataStateComponent.tsx';
 import {useQuery} from '@tanstack/react-query';
 import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
-import type {BuyItemDto} from "../../../models/item/BuyItemDto.ts";
-import {Snackbar} from "@mui/material";
-import Alert from "@mui/material/Alert";
-import BuyItemModal from "../../components/modals/BuyItemModal.tsx";
+import OrderModal from "../../components/modals/OrderModal.tsx";
+import type {OrderRequestDto} from "../../../models/order/OrderRequestDto.ts";
+import {order as orderItem} from "../../../services/fetch/order.service.ts";
+import {useMutationHandler} from "../../../helpers/handleMutation.ts";
+import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
 
 const ItemDetailsPage: FC = () => {
     const {id} = useParams();
-    const navigate = useNavigate();
-
-    const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
     const [openModal, setOpenModal] = useState<boolean>(false);
-    const [isBuying, setIsBuying] = useState(false);
 
     const {
         data,
@@ -29,58 +26,53 @@ const ItemDetailsPage: FC = () => {
         enabled: !!id,
     });
 
+    const {
+        isLoading: isOrdering,
+        openSnackbar,
+        setOpenSnackbar,
+        snackbarText,
+        snackbarStatus,
+        handleMutation,
+    } = useMutationHandler(refetch);
+
     useEffect(() => {
         if (!data?.id) return;
         increaseViews(data.id);
     }, [data?.id]);
 
-    const onBuyItem = async (dto: BuyItemDto) => {
-        setIsBuying(true);
-        try {
-            await buy(Number(id), dto);
-            setOpenModal(false);
-
-            if (dto.amount >= (data?.count ?? 0)) {
-                navigate('/items');
-            } else {
-                setOpenSnackbar(true);
-                refetch();
-            }
-        } finally {
-            setIsBuying(false);
-        }
+    const order = async (dto: OrderRequestDto): Promise<void> => {
+        await handleMutation(
+            async () => {
+                await orderItem(Number(id), dto);
+                setOpenModal(false);
+            }, 'Order created!');
     };
 
     return (
         <>
-            <DataStateComponent data={data} error={error} loading={isLoading || isBuying}>
+            <DataStateComponent data={data} error={error} loading={isLoading || isOrdering}>
                 {data &&
                     (<>
-                        <ItemDetailsCard item={data} onBuyItem={onBuyItem} openModal={() => {
+                        <ItemDetailsCard item={data} order={order} openModal={() => {
                             setOpenModal(true)
                         }}/>
-                        <BuyItemModal
+                        <OrderModal
                             open={openModal}
                             closeModal={() => {
                                 setOpenModal(false)
                             }}
-                            onBuyItem={onBuyItem}
+                            order={order}
                             itemCount={data.count}
                         />
                     </>)
                 }
             </DataStateComponent>
-            <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={() => setOpenSnackbar(false)}>
-                <Alert
-                    onClose={() => setOpenSnackbar(false)}
-                    severity="success"
-                    variant="filled"
-                    sx={{width: '100%'}}
-                >
-                    Thanks for purchase!
-                </Alert>
-            </Snackbar>
-
+            <InfoSnackbar
+                open={openSnackbar}
+                setOpen={setOpenSnackbar}
+                text={snackbarText}
+                status={snackbarStatus}
+            />
         </>
 
     );

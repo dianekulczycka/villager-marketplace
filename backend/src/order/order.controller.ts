@@ -41,9 +41,9 @@ export class OrderController {
   async order(
     @Param('itemId') itemId: string,
     @Request() request: userRequestInterface.UserRequest,
-    @Body() buyItemDto?: OrderRequestDto,
+    @Body() orderRequestDto?: OrderRequestDto,
   ): Promise<OrderResponseDto> {
-    return this.orderService.create(request, Number(itemId), buyItemDto);
+    return this.orderService.create(request, Number(itemId), orderRequestDto);
   }
 
   @UseGuards(AllowedRolesGuard)
@@ -73,7 +73,7 @@ export class OrderController {
   async corfirmOrder(
     @Param('orderId') orderId: string,
     @Request() request: userRequestInterface.UserRequest,
-  ) {
+  ): Promise<void> {
     const { buyerEmail, sellerEmail, itemName, amount } =
       await this.orderService.confirmOrder(request, Number(orderId));
 
@@ -98,7 +98,7 @@ export class OrderController {
   async rejectOrder(
     @Param('orderId') orderId: string,
     @Request() request: userRequestInterface.UserRequest,
-  ) {
+  ): Promise<void> {
     await this.orderService.rejectOrder(request, Number(orderId));
   }
 }

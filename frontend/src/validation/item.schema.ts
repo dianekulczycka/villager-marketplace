@@ -31,6 +31,4 @@ export const updateItemSchema = z.object({
     .or(z.literal('')),
 });
 
-export const buyItemSchema = z.object({
-  amount: z.number().min(1).max(64),
-});
+

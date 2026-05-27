@@ -6,7 +6,6 @@ import type {ItemQueryParams} from '../../models/item/ItemQueryParams.ts';
 import type {CreateItemDto} from '../../models/item/CreateItemDto.ts';
 import type {UpdateItemDto} from '../../models/item/UpdateItemDto.ts';
 import type {ItemAdminView} from '../../models/item/ItemAdminView.ts';
-import type {BuyItemDto} from "../../models/item/BuyItemDto.ts";
 
 export const getAll = async (
     params?: ItemQueryParams,
@@ -43,6 +42,3 @@ export const softDelete = async (id: number): Promise<void> => {
     await api.delete(endpoints.items.delete(id));
 };
 
-export const buy = async (id: number, dto: BuyItemDto): Promise<void> => {
-    await api.post(endpoints.items.buy(id), dto);
-};

@@ -9,10 +9,10 @@ import {recoverySchema} from '../../../validation/auth.schema.ts';
 interface Props {
     open: boolean;
     closeModal: () => void;
-    onRecover: SubmitHandler<RecoverReq>;
+    recover: SubmitHandler<RecoverReq>;
 }
 
-const RecoverModal: FC<Props> = ({open, closeModal, onRecover}) => {
+const RecoverModal: FC<Props> = ({open, closeModal, recover}) => {
     const [error, setError] = useState<string | null>(null);
 
     const {
@@ -31,7 +31,7 @@ const RecoverModal: FC<Props> = ({open, closeModal, onRecover}) => {
 
     const onSubmit: SubmitHandler<RecoverReq> = async (data) => {
         try {
-            await onRecover(data);
+            await recover(data);
             onClose();
         } catch (e) {
             if (e instanceof Error) {

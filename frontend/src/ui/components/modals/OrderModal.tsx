@@ -2,18 +2,18 @@ import {type FC, useState} from "react";
 import {Backdrop, Box, Button, Modal, TextField} from "@mui/material";
 import ErrorComponent from "../error/ErrorComponent.tsx";
 import {type SubmitHandler, useForm} from "react-hook-form";
-import type {BuyItemDto} from "../../../models/item/BuyItemDto.ts";
-import {buyItemSchema} from "../../../validation/item.schema.ts";
 import {zodResolver} from "@hookform/resolvers/zod";
+import type {OrderRequestDto} from "../../../models/order/OrderRequestDto.ts";
+import {orderSchema} from "../../../validation/order.schema.ts";
 
 interface Props {
     open: boolean;
     closeModal: () => void;
-    onBuyItem: (data: BuyItemDto) => Promise<void>;
+    order: (data: OrderRequestDto) => Promise<void>;
     itemCount: number;
 }
 
-const BuyItemModal: FC<Props> = ({open, closeModal, onBuyItem, itemCount}) => {
+const OrderModal: FC<Props> = ({open, closeModal, order, itemCount}) => {
     const [error, setError] = useState<string | null>(null);
 
     const {
@@ -22,8 +22,8 @@ const BuyItemModal: FC<Props> = ({open, closeModal, onBuyItem, itemCount}) => {
         reset,
         formState: {errors},
     }
-        = useForm<BuyItemDto>({
-        resolver: zodResolver(buyItemSchema),
+        = useForm<OrderRequestDto>({
+        resolver: zodResolver(orderSchema),
         defaultValues: {
             amount: 1
         },
@@ -35,14 +35,14 @@ const BuyItemModal: FC<Props> = ({open, closeModal, onBuyItem, itemCount}) => {
         closeModal();
     };
 
-    const onSubmit: SubmitHandler<BuyItemDto> = async (data) => {
+    const onSubmit: SubmitHandler<OrderRequestDto> = async (data) => {
         if (data.amount > itemCount) {
             setError(`Only ${itemCount} available`);
             return;
         }
 
         try {
-            await onBuyItem(data);
+            await order(data);
             reset();
             onClose();
         } catch (e) {
@@ -105,4 +105,4 @@ const BuyItemModal: FC<Props> = ({open, closeModal, onBuyItem, itemCount}) => {
     );
 };
 
-export default BuyItemModal;
+export default OrderModal;

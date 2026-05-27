@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, user_role } from '@prisma/client';
+import { order_status, Prisma, user_role } from '@prisma/client';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserPublicDto } from './dto/user-public.dto';
 import { UserRequest } from './interfaces/user-request.interface';
@@ -21,6 +21,7 @@ import { paginatePrisma } from '../shared/pagination/prisma-paginator';
 import { BecomeSellerRequestDto } from './dto/become-seller-request';
 import { UserAdminDto } from './dto/user-admin.dto';
 import {
+  ADMIN_ALL_USERS_WHERE,
   ADMIN_BANNED_USERS_WHERE,
   ADMIN_FLAGGED_USERS_WHERE,
   ADMIN_MANAGERS_WHERE,
@@ -64,11 +65,11 @@ export class UserService {
     const where: Prisma.userWhereInput =
       role === user_role.ADMIN || role === user_role.MANAGER
         ? {
-            role: { not: user_role.ADMIN },
+            ...ADMIN_ALL_USERS_WHERE,
             ...buildUserPublicSearchWhere(query.search),
           }
         : {
-            role: { not: user_role.ADMIN },
+            ...ADMIN_ALL_USERS_WHERE,
             ...USER_PUBLIC_WHERE_BASE,
             ...buildUserPublicSearchWhere(query.search),
           };
@@ -83,7 +84,9 @@ export class UserService {
       {
         where,
         select,
-        orderBy: { [orderField]: query.sortDirection ?? SortDirectionEnum.ASC },
+        orderBy: {
+          [orderField]: query.sortDirection ?? SortDirectionEnum.ASC,
+        },
       },
       query.page,
       query.perPage,
@@ -266,10 +269,32 @@ export class UserService {
 
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
 
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: USER_BAN_DATA(request.user.email),
-    });
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: USER_BAN_DATA(request.user.email),
+      }),
+
+      this.prisma.token.updateMany({
+        where: { userId },
+        data: TOKEN_BLOCK_DATA,
+      }),
+
+      this.prisma.item.updateMany({
+        where: { sellerId: userId },
+        data: ITEM_SOFT_DELETE_DATA,
+      }),
+
+      this.prisma.order.updateMany({
+        where: {
+          sellerId: userId,
+          status: order_status.PENDING,
+        },
+        data: {
+          status: order_status.REJECTED,
+        },
+      }),
+    ]);
 
     return user.email;
   }
@@ -282,10 +307,20 @@ export class UserService {
 
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
 
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: USER_UNBAN_DATA,
-    });
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: USER_UNBAN_DATA,
+      }),
+
+      this.prisma.item.updateMany({
+        where: { sellerId: userId },
+        data: {
+          isDeleted: 0,
+        },
+      }),
+    ]);
+
     return user.email;
   }
 

@@ -1,7 +1,7 @@
 import { item_name, Prisma } from '@prisma/client';
 import { ADMIN_USER_SELECT, USER_PUBLIC_SELECT } from './user.helpers';
 
-export const ITEM_SOFT_DELETE_DATA: Prisma.itemUpdateInput = {
+export const ITEM_SOFT_DELETE_DATA: Prisma.itemUpdateManyMutationInput = {
   isDeleted: 1,
 };
 
