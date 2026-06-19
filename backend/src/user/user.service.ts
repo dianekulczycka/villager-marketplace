@@ -411,6 +411,11 @@ export class UserService {
 
   async hardDeleteUser(userId: number): Promise<void> {
     await this.prisma.$transaction([
+      this.prisma.order.deleteMany({
+        where: {
+          OR: [{ buyerId: userId }, { sellerId: userId }],
+        },
+      }),
       this.prisma.item.deleteMany({
         where: { sellerId: userId },
       }),
