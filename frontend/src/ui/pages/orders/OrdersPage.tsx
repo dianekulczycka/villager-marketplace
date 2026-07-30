@@ -20,6 +20,12 @@ const OrdersPage: FC = () => {
 
     const [displayMode, setDisplayMode] = useState<OrderMode>("BUY");
 
+    const searchFields = displayMode === "BUY" ? Object.values(OrderSortField).filter(
+        (field) => field !== OrderSortField.BUYER_ID,
+    ) : Object.values(OrderSortField).filter(
+        (field) => field !== OrderSortField.SELLER_ID,
+    );
+
     const [query, setQuery] = useQueryParams({
         page: withDefault(NumberParam, 1),
         perPage: withDefault(NumberParam, 12),
@@ -74,19 +80,19 @@ const OrdersPage: FC = () => {
         setQuery({page: newPage});
     };
 
-    const confirmOrder = async (id: number) => {
+    const confirmOrder = async (publicId: string) => {
         await handleMutation(
             async () => {
-                await confirm(id);
+                await confirm(publicId);
             },
             'Order confirmed!',
         );
     };
 
-    const rejectOrder = async (id: number) => {
+    const rejectOrder = async (publicId: string) => {
         await handleMutation(
             async () => {
-                await reject(id);
+                await reject(publicId);
             },
             'Order rejected!',
         );
@@ -125,7 +131,7 @@ const OrdersPage: FC = () => {
                 <SortSearchComponent
                     query={query as QueryParams<OrderSortField>}
                     setQuery={setQuery}
-                    fields={Object.values(OrderSortField)}
+                    fields={searchFields}
                 />
             </Box>
 

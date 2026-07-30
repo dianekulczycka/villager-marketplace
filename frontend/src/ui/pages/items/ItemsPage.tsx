@@ -33,7 +33,7 @@ const ItemsPage: FC = () => {
         sortBy: StringParam,
         sortDirection: StringParam,
         search: StringParam,
-        sellerId: NumberParam,
+        sellerId: StringParam,
     });
 
     const {
@@ -79,7 +79,7 @@ const ItemsPage: FC = () => {
         if (!selectedItem) return;
         await handleMutation(
             async () => {
-                await itemUpdate(selectedItem.id, dto);
+                await itemUpdate(selectedItem.publicId, dto);
             }, 'Item updated');
     };
 
@@ -87,7 +87,7 @@ const ItemsPage: FC = () => {
         if (!selectedItem) return;
         await handleMutation(
             async () => {
-                await itemSoftDelete(selectedItem.id);
+                await itemSoftDelete(selectedItem.publicId);
             }, 'Item deleted');
     };
 

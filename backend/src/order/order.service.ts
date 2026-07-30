@@ -22,6 +22,7 @@ import { OrderEmailData } from '../mail/models/order-email-data';
 import { ORDER_ERRORS } from '../shared/errors/order.errors';
 import { order_status } from '@prisma/client';
 import { generatePublicId } from '../shared/generators/private-id.generator';
+import { ORDER_PUBLIC_SELECT } from '../prisma/helpers/order.helpers';
 
 @Injectable()
 export class OrderService {
@@ -83,6 +84,7 @@ export class OrderService {
           mode === OrderModeEnum.BUY
             ? { buyerId: request.user.userId }
             : { sellerId: request.user.userId },
+        select: ORDER_PUBLIC_SELECT,
         orderBy: {
           [orderField]: query.sortDirection ?? SortDirectionEnum.ASC,
         },
@@ -150,7 +152,6 @@ export class OrderService {
       buyerEmail: order.buyer.email,
       sellerEmail: request.user.email,
       itemName: order.item.name,
-      amount: order.amount,
     };
   }
 

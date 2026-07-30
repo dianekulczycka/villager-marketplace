@@ -84,7 +84,7 @@ const UsersPage: FC = () => {
         if (!selectedUser) return;
         await handleMutation(
             async () => {
-                await update(selectedUser.id, dto)
+                await update(selectedUser.publicId, dto)
             }, 'User updated');
     };
 
@@ -92,7 +92,7 @@ const UsersPage: FC = () => {
         if (!selectedUser) return;
         await handleMutation(
             async () => {
-                await softDelete(selectedUser.id)
+                await softDelete(selectedUser.publicId)
             }, 'User deleted');
     };
 
@@ -100,7 +100,7 @@ const UsersPage: FC = () => {
         if (!selectedUser) return;
         await handleMutation(
             async () => {
-                await hardDelete(selectedUser.id)
+                await hardDelete(selectedUser.publicId)
             }, 'User hard deleted');
     };
 
@@ -108,8 +108,8 @@ const UsersPage: FC = () => {
         await handleMutation(
             async () => {
                 await (user.isBanned
-                    ? unban(user.id)
-                    : ban(user.id));
+                    ? unban(user.publicId)
+                    : ban(user.publicId));
             },
             user.isBanned
                 ? 'User unbanned'
@@ -122,8 +122,8 @@ const UsersPage: FC = () => {
             async () => {
                 await (
                     user.role !== 'MANAGER'
-                        ? promote(user.id)
-                        : demote(user.id)
+                        ? promote(user.publicId)
+                        : demote(user.publicId)
                 );
             },
             user.role !== 'MANAGER'
@@ -136,7 +136,7 @@ const UsersPage: FC = () => {
         await handleMutation(
             async () => {
                 if (user.isFlagged) {
-                    await unflag(user.id)
+                    await unflag(user.publicId)
                 }
             }, 'User unflagged');
     };
@@ -145,7 +145,7 @@ const UsersPage: FC = () => {
         await handleMutation(
             async () => {
                 if (user.isDeleted) {
-                    await restore(user.id);
+                    await restore(user.publicId);
                 }
             }, 'User restored');
     };

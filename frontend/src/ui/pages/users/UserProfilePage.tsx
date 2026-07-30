@@ -148,7 +148,7 @@ const UserProfilePage: FC = () => {
         isLoading: statsLoading,
         error: statsError,
     } = useQuery<ProfileStats>({
-        queryKey: ['profileStats', user?.id],
+        queryKey: ['profileStats', user?.publicId],
         queryFn: loadStats,
         enabled: !!user,
     });
@@ -187,7 +187,7 @@ const UserProfilePage: FC = () => {
         if (!selectedItem) return;
         await handleMutation(
             async () => {
-                await itemUpdate(selectedItem.id, dto);
+                await itemUpdate(selectedItem.publicId, dto);
             },
             'Item updated',
         );
@@ -209,7 +209,7 @@ const UserProfilePage: FC = () => {
         if (!selectedItem) return;
         await handleMutation(
             async () => {
-                await itemSoftDelete(selectedItem.id);
+                await itemSoftDelete(selectedItem.publicId);
             }, 'Item deleted');
     };
 
@@ -217,7 +217,7 @@ const UserProfilePage: FC = () => {
         if (!selectedUser) return;
         await handleMutation(
             async () => {
-                await softDelete(selectedUser.id)
+                await softDelete(selectedUser.publicId)
             }, 'User deleted');
     };
 
@@ -225,7 +225,7 @@ const UserProfilePage: FC = () => {
         if (!selectedUser) return;
         await handleMutation(
             async () => {
-                await hardDelete(selectedUser.id)
+                await hardDelete(selectedUser.publicId)
             }, 'User hard deleted');
     };
 
@@ -233,8 +233,8 @@ const UserProfilePage: FC = () => {
         await handleMutation(
             async () => {
                 await (user.isBanned
-                    ? unban(user.id)
-                    : ban(user.id));
+                    ? unban(user.publicId)
+                    : ban(user.publicId));
             },
             user.isBanned
                 ? 'User unbanned'
@@ -247,8 +247,8 @@ const UserProfilePage: FC = () => {
             async () => {
                 await (
                     user.role !== 'MANAGER'
-                        ? promote(user.id)
-                        : demote(user.id)
+                        ? promote(user.publicId)
+                        : demote(user.publicId)
                 );
             },
             user.role !== 'MANAGER'
@@ -261,7 +261,7 @@ const UserProfilePage: FC = () => {
         await handleMutation(
             async () => {
                 if (user.isFlagged) {
-                    await unflag(user.id)
+                    await unflag(user.publicId)
                 }
             }, 'User unflagged');
     };
@@ -270,7 +270,7 @@ const UserProfilePage: FC = () => {
         await handleMutation(
             async () => {
                 if (user.isDeleted) {
-                    await restore(user.id);
+                    await restore(user.publicId);
                 }
             }, 'User restored');
     };

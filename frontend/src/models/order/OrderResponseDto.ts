@@ -1,12 +1,11 @@
 import type {OrderStatus} from "../enums/OrderStatus.ts";
 
 export interface OrderResponseDto {
-    id: number;
+    publicId: string;
     amount: number;
     status: OrderStatus;
-    buyerId: number;
-    sellerId: number;
-    itemId: number;
+    seller: { publicId: string };
+    buyer: { publicId: string };
+    item: { publicId: string };
     createdAt: Date;
-    uuid: string;
 }

@@ -40,7 +40,7 @@ const UserCard: FC<Props> = ({
     return (
         <Card
             component={isClickable ? RouterLink : 'div'}
-            to={isClickable ? routes.items.bySellerId(user.id) : undefined}
+            to={isClickable ? routes.items.bySellerId(user.publicId) : undefined}
             elevation={isSmall ? 0 : 1}
             sx={{
                 position: 'relative',

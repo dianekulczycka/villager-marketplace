@@ -1,5 +1,5 @@
 export type UserRole =
-  'BUYER' |
-  'SELLER' |
-  'MANAGER' |
-  'ADMIN'
+    'BUYER' |
+    'SELLER' |
+    'MANAGER' |
+    'ADMIN'

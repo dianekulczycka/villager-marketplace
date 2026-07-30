@@ -5,8 +5,8 @@ import OrderCard from "./OrderCard.tsx";
 
 interface Props {
     orders: OrderResponseDto[];
-    confirmOrder: (id: number) => Promise<void>;
-    rejectOrder: (id: number) => Promise<void>;
+    confirmOrder: (publicId: string) => Promise<void>;
+    rejectOrder: (publicId: string) => Promise<void>;
 }
 
 const OrdersComponent: FC<Props> = ({orders, rejectOrder, confirmOrder}) => {
@@ -24,7 +24,7 @@ const OrdersComponent: FC<Props> = ({orders, rejectOrder, confirmOrder}) => {
                     <OrderCard
                         confirmOrder={confirmOrder}
                         rejectOrder={rejectOrder}
-                        key={order.id}
+                        key={order.publicId}
                         order={order}
                     />))
             }

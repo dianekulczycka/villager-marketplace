@@ -14,13 +14,13 @@ export const getAll = async (
     return data;
 };
 
-export const getById = async (id: number): Promise<ItemAdminView> => {
-    const {data} = await api.get(endpoints.items.byId(id));
+export const getById = async (publicId: string): Promise<ItemAdminView> => {
+    const {data} = await api.get(endpoints.items.byId(publicId));
     return data;
 };
 
-export const increaseViews = async (id: number): Promise<void> => {
-    await api.post(endpoints.items.increaseViews(id));
+export const increaseViews = async (publicId: string): Promise<void> => {
+    await api.post(endpoints.items.increaseViews(publicId));
 };
 
 export const getMy = async (params?: ItemQueryParams): Promise<PaginationRes<ItemAdminView>> => {
@@ -33,12 +33,12 @@ export const post = async (dto: CreateItemDto): Promise<ItemView> => {
     return data;
 };
 
-export const update = async (id: number, dto: UpdateItemDto): Promise<ItemView> => {
-    const {data} = await api.patch(`${endpoints.items.byId(id)}`, dto);
+export const update = async (publicId: string, dto: UpdateItemDto): Promise<ItemView> => {
+    const {data} = await api.patch(`${endpoints.items.byId(publicId)}`, dto);
     return data;
 };
 
-export const softDelete = async (id: number): Promise<void> => {
-    await api.delete(endpoints.items.delete(id));
+export const softDelete = async (publicId: string): Promise<void> => {
+    await api.delete(endpoints.items.delete(publicId));
 };
 

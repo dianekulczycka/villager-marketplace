@@ -18,7 +18,7 @@ const RegisterForm: FC<Props> = ({onRegister}) => {
         register,
         handleSubmit,
         formState: {errors},
-    } = useForm<RegisterReq & {repeatPassword: string}>({
+    } = useForm<RegisterReq & { repeatPassword: string }>({
         resolver: zodResolver(registerSchema),
     });
 

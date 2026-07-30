@@ -1,5 +1,5 @@
 import { SortQueryDto } from '../../shared/pagination/sort-query.dto';
-import { IsEnum, IsInt, IsOptional, Min } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum OrderSortFieldEnum {
@@ -26,20 +26,15 @@ export class OrderQueryDto extends SortQueryDto<OrderSortFieldEnum> {
   declare sortBy?: OrderSortFieldEnum;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  buyerId?: number;
+  @IsString()
+  buyerId?: string;
+
+  @IsOptional()
+  @IsString()
+  sellerId?: string;
 
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  sellerId?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  itemId?: number;
+  @IsString()
+  itemId?: string;
 }

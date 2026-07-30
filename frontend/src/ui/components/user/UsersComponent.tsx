@@ -37,7 +37,7 @@ const UsersComponent: FC<Props> = ({
             {
                 users.map((user) => (
                     <UserCard
-                        key={user.id}
+                        key={user.publicId}
                         user={user}
                         openDeleteModal={openDeleteModal}
                         openHardDeleteModal={openHardDeleteModal}

@@ -45,15 +45,30 @@ export class ItemService {
       ITEM_SORT_MAP[query.sortBy ?? ItemSortFieldEnum.CREATED_AT];
     const role = request.user.role;
 
+    let sellerId: number | undefined;
+
+    if (query.sellerId) {
+      const seller = await this.prisma.user.findUnique({
+        where: {
+          publicId: query.sellerId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      sellerId = seller?.id ?? -1;
+    }
+
     const where: Prisma.itemWhereInput =
       role === user_role.ADMIN || role === user_role.MANAGER
         ? {
-            ...(query.sellerId && { sellerId: query.sellerId }),
+            ...(sellerId !== undefined && { sellerId }),
             ...buildItemSearchWhere(query.search),
           }
         : {
             ...ITEM_PUBLIC_WHERE_BASE,
-            ...(query.sellerId && { sellerId: query.sellerId }),
+            ...(sellerId !== undefined && { sellerId }),
             ...buildItemSearchWhere(query.search),
           };
 
@@ -122,13 +137,38 @@ export class ItemService {
     query: ItemQueryDto,
     request: UserRequest,
   ): Promise<PaginationResponse<ItemPublicDto>> {
-    const userId = request.user.userId;
-    return this.findAllPublic(
+    const orderField =
+      ITEM_SORT_MAP[query.sortBy ?? ItemSortFieldEnum.CREATED_AT];
+    const role = request.user.role;
+
+    const where: Prisma.itemWhereInput =
+      role === user_role.ADMIN || role === user_role.MANAGER
+        ? {
+            sellerId: request.user.userId,
+            ...buildItemSearchWhere(query.search),
+          }
+        : {
+            ...ITEM_PUBLIC_WHERE_BASE,
+            sellerId: request.user.userId,
+            ...buildItemSearchWhere(query.search),
+          };
+
+    const select =
+      role === user_role.ADMIN || role === user_role.MANAGER
+        ? ITEM_ADMIN_SELECT
+        : ITEM_PUBLIC_SELECT;
+
+    return paginatePrisma<ItemPublicDto>(
+      this.prisma.item,
       {
-        ...query,
-        sellerId: userId,
+        where,
+        select,
+        orderBy: {
+          [orderField]: query.sortDirection ?? SortDirectionEnum.ASC,
+        },
       },
-      request,
+      query.page,
+      query.perPage,
     );
   }
 

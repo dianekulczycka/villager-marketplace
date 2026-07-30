@@ -18,53 +18,53 @@ export const router = createBrowserRouter([
     {
         element: (
             <QueryParamProvider adapter={ReactRouter6Adapter}>
-                <AuthProvider />
+                <AuthProvider/>
             </QueryParamProvider>
         ),
         children: [
             {
                 path: routes.auth.root,
-                element: <PublicLayout />,
+                element: <PublicLayout/>,
                 children: [
-                    { path: routes.auth.login, element: <LoginPage /> },
-                    { path: routes.auth.register, element: <RegisterPage /> },
+                    {path: routes.auth.login, element: <LoginPage/>},
+                    {path: routes.auth.register, element: <RegisterPage/>},
                 ],
             },
             {
-                element: <BasicLayout />,
+                element: <BasicLayout/>,
                 children: [
                     {
                         index: true,
-                        element: <Navigate to={routes.items.root} replace />,
+                        element: <Navigate to={routes.items.root} replace/>,
                     },
                     {
                         path: routes.items.root,
                         children: [
-                            { index: true, element: <ItemsPage /> },
-                            { path: routes.items.byId, element: <ItemDetailsPage /> },
+                            {index: true, element: <ItemsPage/>},
+                            {path: routes.items.byId, element: <ItemDetailsPage/>},
                         ],
                     },
                     {
                         path: routes.orders.root,
                         children: [
-                            { index: true, element: <OrdersPage /> },
+                            {index: true, element: <OrdersPage/>},
                         ],
                     },
                     {
                         path: routes.users.root,
                         children: [
-                            { index: true, element: <UsersPage /> },
-                            { path: routes.users.me, element: <UserProfilePage /> },
+                            {index: true, element: <UsersPage/>},
+                            {path: routes.users.me, element: <UserProfilePage/>},
                         ],
                     },
                 ],
             },
             {
-                element: <PublicLayout />,
+                element: <PublicLayout/>,
                 children: [
                     {
                         path: "*",
-                        element: <ErrorPage404 />,
+                        element: <ErrorPage404/>,
                     },
                 ],
             },

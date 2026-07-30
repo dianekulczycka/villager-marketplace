@@ -142,12 +142,10 @@ export class MailService {
     buyerEmail: string,
     sellerEmail: string,
     itemName: string,
-    amount: number,
   ) {
     await this.send(buyerEmail, 'PURCHASE_BUYER', {
       sellerEmail,
       itemName,
-      amount,
     });
   }
 
@@ -155,12 +153,10 @@ export class MailService {
     buyerEmail: string,
     sellerEmail: string,
     itemName: string,
-    amount: number,
   ) {
     await this.send(sellerEmail, 'PURCHASE_SELLER', {
       buyerEmail,
       itemName,
-      amount,
     });
   }
 }

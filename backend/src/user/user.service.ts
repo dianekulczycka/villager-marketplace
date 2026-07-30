@@ -215,7 +215,8 @@ export class UserService {
   async findFlaggedUsers(
     query: UserQueryDto,
   ): Promise<PaginationResponse<UserAdminDto>> {
-    const orderField = USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.ID];
+    const orderField =
+      USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.CREATED_AT];
     return paginatePrisma<UserAdminDto>(
       this.prisma.user,
       {
@@ -231,7 +232,8 @@ export class UserService {
   async findBannedUsers(
     query: UserQueryDto,
   ): Promise<PaginationResponse<UserAdminDto>> {
-    const orderField = USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.ID];
+    const orderField =
+      USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.CREATED_AT];
 
     return paginatePrisma<UserAdminDto>(
       this.prisma.user,
@@ -246,7 +248,8 @@ export class UserService {
   }
 
   async findAllManagers(query: UserQueryDto) {
-    const orderField = USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.ID];
+    const orderField =
+      USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.CREATED_AT];
 
     return paginatePrisma<UserAdminDto>(
       this.prisma.user,

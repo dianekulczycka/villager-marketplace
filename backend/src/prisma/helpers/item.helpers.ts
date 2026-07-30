@@ -16,7 +16,11 @@ export const ITEM_PUBLIC_SELECT: Prisma.itemSelect = {
   count: true,
   iconUrl: true,
   views: true,
-  sellerId: true,
+  seller: {
+    select: {
+      publicId: true,
+    },
+  },
 };
 
 export const ITEM_PUBLIC_DETAILED_SELECT: Prisma.itemSelect = {

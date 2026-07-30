@@ -5,8 +5,8 @@ import type {OrderRequestDto} from "../../models/order/OrderRequestDto.ts";
 import type {OrderResponseDto} from "../../models/order/OrderResponseDto.ts";
 import type {OrderQueryParams} from "../../models/order/OrderQueryParams.ts";
 
-export const order = async (itemId: number, dto: OrderRequestDto): Promise<OrderResponseDto> => {
-    return api.post(endpoints.orders.order(itemId), dto);
+export const order = async (itemPublicId: string, dto: OrderRequestDto): Promise<OrderResponseDto> => {
+    return api.post(endpoints.orders.order(itemPublicId), dto);
 };
 
 export const getMyBuyingOrders = async (
@@ -23,10 +23,10 @@ export const getMySellingOrders = async (
     return data;
 };
 
-export const confirm = async (id: number): Promise<void> => {
-    await api.patch(endpoints.orders.confirm(id));
+export const confirm = async (publicId: string): Promise<void> => {
+    await api.patch(endpoints.orders.confirm(publicId));
 };
 
-export const reject = async (id: number): Promise<void> => {
-    await api.patch(endpoints.orders.reject(id));
+export const reject = async (publicId: string): Promise<void> => {
+    await api.patch(endpoints.orders.reject(publicId));
 };

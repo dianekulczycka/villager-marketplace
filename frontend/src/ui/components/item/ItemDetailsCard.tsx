@@ -71,7 +71,7 @@ const ItemDetailsCard: FC<Props> = ({item, order, openModal}) => {
                     )}
                     <Chip sx={{mt: 1}} size="small" label={`views: ${item.views}`}/>
 
-                    {loggedUser?.id !== item.sellerId && !isAuthority &&
+                    {loggedUser?.publicId !== item.sellerPublicId && !isAuthority &&
                         <Box sx={{mt: 2}}>
                             <Button
                                 variant="contained"

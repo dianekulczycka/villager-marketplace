@@ -75,20 +75,18 @@ export class OrderController {
     @Param('publicId') publicId: string,
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<void> {
-    const { buyerEmail, sellerEmail, itemName, amount } =
+    const { buyerEmail, sellerEmail, itemName } =
       await this.orderService.confirmOrder(request, publicId);
 
     await this.mailService.notifySellerPurchase(
       buyerEmail,
       sellerEmail,
       itemName,
-      amount,
     );
     await this.mailService.notifyBuyerPurchase(
       buyerEmail,
       sellerEmail,
       itemName,
-      amount,
     );
   }
 

@@ -105,4 +105,3 @@ export const USER_ICON_MAP: Record<SellerTypeEnum, string> = {
 
 export const BUYER_ICON: string = 'nitwit.png';
 export const MANAGER_ICON: string = 'alex.png';
-export const ADMIN_ICON: string = 'steve.png';

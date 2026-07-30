@@ -2,9 +2,9 @@ import type {FC} from "react";
 import {Box, Button} from "@mui/material";
 
 interface Props {
-    confirmOrder: (id: number) => Promise<void>;
-    rejectOrder: (id: number) => Promise<void>;
-    orderId: number;
+    confirmOrder: (publicId: string) => Promise<void>;
+    rejectOrder: (publicId: string) => Promise<void>;
+    orderId: string;
 }
 
 const OrderControllers: FC<Props> = ({

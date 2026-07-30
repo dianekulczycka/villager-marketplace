@@ -12,7 +12,7 @@ import {useMutationHandler} from "../../../helpers/handleMutation.ts";
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
 
 const ItemDetailsPage: FC = () => {
-    const {id} = useParams();
+    const {publicId} = useParams();
     const [openModal, setOpenModal] = useState<boolean>(false);
 
     const {
@@ -21,9 +21,9 @@ const ItemDetailsPage: FC = () => {
         error,
         refetch
     } = useQuery<ItemAdminView>({
-        queryKey: ['item', id],
-        queryFn: () => getById(Number(id)),
-        enabled: !!id,
+        queryKey: ['item', publicId],
+        queryFn: () => getById(publicId!),
+        enabled: !!publicId,
     });
 
     const {
@@ -36,14 +36,14 @@ const ItemDetailsPage: FC = () => {
     } = useMutationHandler(refetch);
 
     useEffect(() => {
-        if (!data?.id) return;
-        increaseViews(data.id);
-    }, [data?.id]);
+        if (!data?.publicId) return;
+        increaseViews(data.publicId);
+    }, [data?.publicId]);
 
     const order = async (dto: OrderRequestDto): Promise<void> => {
         await handleMutation(
             async () => {
-                await orderItem(Number(id), dto);
+                await orderItem(publicId!, dto);
                 setOpenModal(false);
             }, 'Order created!');
     };

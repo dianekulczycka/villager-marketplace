@@ -6,13 +6,13 @@ import OrderControllers from "../buttons/OrderControllers.tsx";
 
 interface Props {
     order: OrderResponseDto;
-    confirmOrder: (id: number) => Promise<void>;
-    rejectOrder: (id: number) => Promise<void>;
+    confirmOrder: (publicId: string) => Promise<void>;
+    rejectOrder: (publicId: string) => Promise<void>;
 }
 
 const OrderCard: FC<Props> = ({order, confirmOrder, rejectOrder}) => {
     const {user: loggedUser} = useAuth();
-    const isOwner = loggedUser?.id === order.sellerId;
+    const isOwner = loggedUser?.publicId === order.seller.publicId;
 
     return (
         <Card
@@ -43,7 +43,7 @@ const OrderCard: FC<Props> = ({order, confirmOrder, rejectOrder}) => {
                     }}
                 >
                     <Typography fontWeight={700}>
-                        Order {order.uuid}
+                        Order {order.publicId}
                     </Typography>
 
                     <Chip
@@ -61,7 +61,7 @@ const OrderCard: FC<Props> = ({order, confirmOrder, rejectOrder}) => {
 
                 <Stack spacing={0.5}>
                     <Typography variant="body2">
-                        Item ID: {order.itemId}
+                        Item ID: {order.publicId}
                     </Typography>
 
                     <Typography variant="body2">
@@ -69,11 +69,11 @@ const OrderCard: FC<Props> = ({order, confirmOrder, rejectOrder}) => {
                     </Typography>
 
                     <Typography variant="body2">
-                        Buyer ID: {order.buyerId}
+                        Buyer ID: {order.buyer.publicId}
                     </Typography>
 
                     <Typography variant="body2">
-                        Seller ID: {order.sellerId}
+                        Seller ID: {order.seller.publicId}
                     </Typography>
                 </Stack>
 
@@ -89,7 +89,7 @@ const OrderCard: FC<Props> = ({order, confirmOrder, rejectOrder}) => {
 
                 {isOwner && order.status === 'PENDING' && (
                     <OrderControllers
-                        orderId={order.id}
+                        orderId={order.publicId}
                         confirmOrder={confirmOrder}
                         rejectOrder={rejectOrder}
                     />

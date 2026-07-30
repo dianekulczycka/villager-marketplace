@@ -10,15 +10,15 @@ export const routes = {
 
     users: {
         root: '/users',
-        byId: 'id/:id',
+        byId: 'id/:publicId',
         me: 'profile',
         stats: 'profile/stats',
     },
 
     items: {
         root: '/items',
-        bySellerId: (id: number) => `/items?sellerId=${id}`,
-        byId: 'id/:id',
+        bySellerId: (publicId: string) => `/items?sellerId=${publicId}`,
+        byId: 'id/:publicId',
         my: 'my',
     },
 
@@ -31,7 +31,7 @@ export const routes = {
         flagged: 'flagged',
         banned: 'banned',
         managers: 'managers',
-        byId: ':id',
+        byId: ':publicId',
     },
     icons: {
         item: (iconUrl: string) => `${API_URL}/icons/item/${iconUrl}`,

@@ -1,9 +1,9 @@
 export interface ItemView {
-  id: number,
-  name: string,
-  price: number,
-  count: number,
-  iconUrl: string,
-  views: number,
-  sellerId: number
+    publicId: string,
+    name: string,
+    price: number,
+    count: number,
+    iconUrl: string,
+    views: number,
+    sellerPublicId: string
 }

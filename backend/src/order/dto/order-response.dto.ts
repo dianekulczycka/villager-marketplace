@@ -11,14 +11,14 @@ export class OrderResponseDto {
   @ApiProperty({ example: 'PENDING' })
   status: order_status;
 
-  @ApiProperty({ example: 1 })
-  buyerId: number;
+  @ApiProperty({ example: 'ea60f1ea' })
+  buyerId: string;
 
-  @ApiProperty({ example: 2 })
-  sellerId: number;
+  @ApiProperty({ example: '26f05569' })
+  sellerId: string;
 
-  @ApiProperty({ example: 5 })
-  itemId: number;
+  @ApiProperty({ example: '82d04b87' })
+  itemId: string;
 
   @ApiProperty({ example: '2000-01-01T12:00:00.000Z' })
   createdAt: Date;
