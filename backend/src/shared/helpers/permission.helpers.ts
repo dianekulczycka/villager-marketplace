@@ -38,20 +38,27 @@ export function canModifyUser(
 export async function canModifyItem(
   prisma: PrismaService,
   request: UserRequest,
-  itemId: number,
+  publicId: string,
 ) {
   const { userId, role } = request.user;
 
-  if (role === user_role.ADMIN || role === user_role.MANAGER) return;
-
   const item = await prisma.item.findUnique({
-    where: { id: itemId },
-    select: { sellerId: true },
+    where: { publicId },
+    select: {
+      id: true,
+      sellerId: true,
+    },
   });
 
   if (!item) throw new NotFoundException(ITEM_ERRORS.NOT_FOUND);
 
-  if (item.sellerId !== userId) {
+  if (
+    role !== user_role.ADMIN &&
+    role !== user_role.MANAGER &&
+    item.sellerId !== userId
+  ) {
     throw new ForbiddenException(ITEM_ERRORS.NOT_ALLOWED);
   }
+
+  return item;
 }

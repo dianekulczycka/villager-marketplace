@@ -31,6 +31,7 @@ import { USER_ERRORS } from '../shared/errors/user.errors';
 import { canModifyItem } from '../shared/helpers/permission.helpers';
 import { ITEM_ICON_MAP } from '../shared/helpers/icon-map.helper';
 import { ItemPublicDetailedDto } from './dto/item-public-detailed.dto';
+import { generatePublicId } from '../shared/generators/private-id.generator';
 
 @Injectable()
 export class ItemService {
@@ -40,7 +41,8 @@ export class ItemService {
     query: ItemQueryDto,
     request: UserRequest,
   ): Promise<PaginationResponse<ItemPublicDto>> {
-    const orderField = ITEM_SORT_MAP[query.sortBy ?? ItemSortFieldEnum.ID];
+    const orderField =
+      ITEM_SORT_MAP[query.sortBy ?? ItemSortFieldEnum.CREATED_AT];
     const role = request.user.role;
 
     const where: Prisma.itemWhereInput =
@@ -75,30 +77,30 @@ export class ItemService {
   }
 
   async findById(
-    id: number,
+    publicId: string,
     request: UserRequest,
   ): Promise<ItemPublicDetailedDto> {
-    const { item } = await this.getItemForUser(id, request);
+    const { item } = await this.getItemForUser(publicId, request);
     return item;
   }
 
-  async incrementViews(id: number, request: UserRequest): Promise<void> {
-    const { isAdmin, isOwner } = await this.getItemForUser(id, request);
+  async incrementViews(publicId: string, request: UserRequest): Promise<void> {
+    const { isAdmin, isOwner } = await this.getItemForUser(publicId, request);
     if (isAdmin || isOwner) return;
     await this.prisma.item.update({
-      where: { id },
+      where: { publicId },
       data: { views: { increment: 1 } },
     });
   }
 
-  private async getItemForUser(id: number, request: UserRequest) {
+  private async getItemForUser(publicId: string, request: UserRequest) {
     const { userId, role } = request.user;
 
     const isAdmin = role === user_role.ADMIN || role === user_role.MANAGER;
 
     const where: Prisma.itemWhereInput = isAdmin
-      ? { id }
-      : { id, isDeleted: 0 };
+      ? { publicId }
+      : { publicId, isDeleted: 0 };
 
     const select = isAdmin ? ITEM_ADMIN_SELECT : ITEM_PUBLIC_DETAILED_SELECT;
 
@@ -151,6 +153,7 @@ export class ItemService {
     return this.prisma.item.create({
       data: {
         ...createItemDto,
+        publicId: generatePublicId(),
         iconUrl: ITEM_ICON_MAP[createItemDto.name],
         seller: { connect: { id: userId } },
       },
@@ -160,10 +163,10 @@ export class ItemService {
 
   async update(
     request: UserRequest,
-    id: number,
+    publicId: string,
     updateItemDto: UpdateItemDto,
   ): Promise<ItemPublicDto> {
-    await canModifyItem(this.prisma, request, id);
+    await canModifyItem(this.prisma, request, publicId);
     if (updateItemDto.name) {
       const user = await this.prisma.user.findUnique({
         where: { id: request.user.userId },
@@ -178,24 +181,23 @@ export class ItemService {
       }
     }
     return this.prisma.item.update({
-      where: { id },
+      where: { publicId },
       data: updateItemDto,
       select: ITEM_PUBLIC_SELECT,
     });
   }
 
-  async softDelete(request: UserRequest, id: number): Promise<void> {
-    await canModifyItem(this.prisma, request, id);
+  async softDelete(request: UserRequest, publicId: string): Promise<void> {
+    const item = await canModifyItem(this.prisma, request, publicId);
 
     await this.prisma.$transaction([
       this.prisma.item.update({
-        where: { id },
+        where: { publicId },
         data: ITEM_SOFT_DELETE_DATA,
       }),
-
       this.prisma.order.updateMany({
         where: {
-          itemId: id,
+          itemId: item.id,
           status: order_status.PENDING,
         },
         data: {

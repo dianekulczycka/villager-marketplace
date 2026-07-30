@@ -9,7 +9,7 @@ export interface SellerStats {
   activeItems: number;
   totalViews: number;
   mostViewedItem: {
-    id: number;
+    publicId: string;
     name: string;
     views: number;
   } | null;

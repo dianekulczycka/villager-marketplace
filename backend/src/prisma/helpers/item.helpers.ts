@@ -10,7 +10,7 @@ export const ITEM_PUBLIC_WHERE_BASE: Prisma.itemWhereInput = {
 };
 
 export const ITEM_PUBLIC_SELECT: Prisma.itemSelect = {
-  id: true,
+  publicId: true,
   name: true,
   price: true,
   count: true,
@@ -28,7 +28,7 @@ export const ITEM_PUBLIC_DETAILED_SELECT: Prisma.itemSelect = {
 };
 
 export const ITEM_ADMIN_SELECT: Prisma.itemSelect = {
-  id: true,
+  publicId: true,
   name: true,
   price: true,
   count: true,

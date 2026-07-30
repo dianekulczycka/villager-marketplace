@@ -3,7 +3,6 @@ import { IsEnum, IsInt, IsOptional, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum OrderSortFieldEnum {
-  ID = 'id',
   AMOUNT = 'amount',
   STATUS = 'status',
   CREATED_AT = 'created_at',
@@ -13,7 +12,6 @@ export enum OrderSortFieldEnum {
 }
 
 export const ORDER_SORT_MAP: Record<OrderSortFieldEnum, string> = {
-  [OrderSortFieldEnum.ID]: 'id',
   [OrderSortFieldEnum.AMOUNT]: 'amount',
   [OrderSortFieldEnum.STATUS]: 'status',
   [OrderSortFieldEnum.CREATED_AT]: 'createdAt',

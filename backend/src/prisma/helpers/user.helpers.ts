@@ -1,7 +1,7 @@
 import { Prisma, user_role, user_sellerType } from '@prisma/client';
 
 export const USER_PUBLIC_SELECT: Prisma.userSelect = {
-  id: true,
+  publicId: true,
   username: true,
   iconUrl: true,
   role: true,
@@ -17,7 +17,7 @@ export const USER_SELF_SELECT: Prisma.userSelect = {
 };
 
 export const USER_ADMIN_SELECT: Prisma.userSelect = {
-  id: true,
+  publicId: true,
   email: true,
   username: true,
   role: true,
@@ -56,7 +56,7 @@ export const USER_SOFT_DELETE_DATA = (
 });
 
 export const ADMIN_USER_SELECT: Prisma.userSelect = {
-  id: true,
+  publicId: true,
   email: true,
   username: true,
   role: true,

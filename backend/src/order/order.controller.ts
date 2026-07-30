@@ -38,13 +38,13 @@ export class OrderController {
   @Roles(user_role.SELLER, user_role.BUYER)
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   @HttpCode(201)
-  @Post('id/:itemId/order')
+  @Post('id/:itemPublicId/order')
   async order(
-    @Param('itemId') itemId: string,
+    @Param('itemPublicId') itemPublicId: string,
     @Request() request: userRequestInterface.UserRequest,
     @Body() orderRequestDto?: OrderRequestDto,
   ): Promise<void> {
-    await this.orderService.create(request, Number(itemId), orderRequestDto);
+    await this.orderService.create(request, itemPublicId, orderRequestDto);
   }
 
   @UseGuards(AllowedRolesGuard)
@@ -70,13 +70,13 @@ export class OrderController {
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.SELLER)
   @HttpCode(204)
-  @Patch('id/:orderId/confirm')
+  @Patch('id/:publicId/confirm')
   async corfirmOrder(
-    @Param('orderId') orderId: string,
+    @Param('publicId') publicId: string,
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<void> {
     const { buyerEmail, sellerEmail, itemName, amount } =
-      await this.orderService.confirmOrder(request, Number(orderId));
+      await this.orderService.confirmOrder(request, publicId);
 
     await this.mailService.notifySellerPurchase(
       buyerEmail,
@@ -95,11 +95,11 @@ export class OrderController {
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.SELLER)
   @HttpCode(204)
-  @Patch('id/:orderId/reject')
+  @Patch('id/:publicId/reject')
   async rejectOrder(
-    @Param('orderId') orderId: string,
+    @Param('publicId') publicId: string,
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<void> {
-    await this.orderService.rejectOrder(request, Number(orderId));
+    await this.orderService.rejectOrder(request, publicId);
   }
 }

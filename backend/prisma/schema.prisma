@@ -20,6 +20,7 @@ model item {
   createdAt   DateTime  @default(now()) @db.DateTime(6)
   updatedAt   DateTime  @default(now()) @db.DateTime(6)
   sellerId    Int
+  publicId    String    @unique @db.VarChar(8)
   seller      user      @relation(fields: [sellerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_7e5265b54c312941a5cef5a9379")
   orders      order[]
 
@@ -57,6 +58,7 @@ model user {
   isDeleted    Int              @default(0) @db.TinyInt
   deletedAt    DateTime?        @db.DateTime(0)
   deletedBy    String?          @db.VarChar(255)
+  publicId     String           @unique @db.VarChar(8)
   item         item[]
   buyerOrders  order[]          @relation("buyerOrders")
   sellerOrders order[]          @relation("sellerOrders")
@@ -71,10 +73,10 @@ model order {
   amount    Int
   status    order_status @default(PENDING)
   createdAt DateTime     @default(now()) @db.DateTime(6)
+  publicId  String       @unique @db.VarChar(8)
   buyer     user         @relation("buyerOrders", fields: [buyerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   item      item         @relation(fields: [itemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   seller    user         @relation("sellerOrders", fields: [sellerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  uuid String @unique
 
   @@index([buyerId])
   @@index([sellerId])

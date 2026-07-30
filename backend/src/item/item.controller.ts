@@ -42,20 +42,20 @@ export class ItemController {
     return this.itemService.findAllPublic(query, request);
   }
 
-  @Get('id/:id')
+  @Get('id/:publicId')
   async getById(
-    @Param('id') id: string,
+    @Param('publicId') publicId: string,
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<ItemPublicDto> {
-    return this.itemService.findById(Number(id), request);
+    return this.itemService.findById(publicId, request);
   }
 
-  @Post('id/:id/views')
+  @Post('id/:publicId/views')
   async incrementViews(
-    @Param('id') id: string,
+    @Param('publicId') publicId: string,
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<void> {
-    await this.itemService.incrementViews(Number(id), request);
+    await this.itemService.incrementViews(publicId, request);
   }
 
   @UseGuards(AllowedRolesGuard)
@@ -84,23 +84,23 @@ export class ItemController {
   @Roles(user_role.SELLER, user_role.MANAGER, user_role.ADMIN)
   @UsePipes(new ModerationPipe(['description']))
   @UseInterceptors(ModerationInterceptor)
-  @Patch('id/:id')
+  @Patch('id/:publicId')
   async update(
-    @Param('id') id: string,
+    @Param('publicId') publicId: string,
     @Request() request: userRequestInterface.UserRequest,
     @Body() updateItemDto: UpdateItemDto,
   ): Promise<ItemPublicDto> {
-    return this.itemService.update(request, Number(id), updateItemDto);
+    return this.itemService.update(request, publicId, updateItemDto);
   }
 
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.SELLER, user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
-  @Delete('id/:id/soft-delete')
+  @Delete('id/:publicId/soft-delete')
   async softDelete(
-    @Param('id') id: string,
+    @Param('publicId') publicId: string,
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<void> {
-    return this.itemService.softDelete(request, Number(id));
+    return this.itemService.softDelete(request, publicId);
   }
 }

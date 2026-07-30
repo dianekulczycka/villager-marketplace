@@ -108,14 +108,18 @@ const CreateItemModal: FC<Props> = ({open, closeModal, onCreateItem}) => {
                     type="number"
                     error={!!errors.price}
                     helperText={errors.price?.message}
-                    {...register('price', {valueAsNumber: true})}
+                    {...register("price", {
+                        setValueAs: (v) => v === "" ? undefined : Number(v)
+                    })}
                 />
                 <TextField
                     label="count"
                     type="number"
                     error={!!errors.count}
                     helperText={errors.count?.message}
-                    {...register('count', {valueAsNumber: true})}
+                    {...register("count", {
+                        setValueAs: (v) => v === "" ? undefined : Number(v)
+                    })}
                 />
                 <TextField
                     label="description"

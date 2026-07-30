@@ -16,6 +16,7 @@ import {
   TOKEN_BLOCK_DATA,
 } from '../../prisma/helpers/token.helpers';
 import { AUTH_ERRORS } from '../../shared/errors/auth.errors';
+import { generatePublicId } from '../../shared/generators/private-id.generator';
 
 @Injectable()
 export class TokenService {
@@ -68,7 +69,7 @@ export class TokenService {
 
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
 
-    const jti = this.generateUniqueJti();
+    const jti = generatePublicId();
     const payload: JwtPayload = {
       userId: user.id,
       email: user.email,
@@ -100,7 +101,7 @@ export class TokenService {
       if (!tokenEntity || tokenEntity.refreshTokenExpirationTime < new Date())
         throw new UnauthorizedException(AUTH_ERRORS.INVALID_TOKEN);
 
-      const jti = this.generateUniqueJti();
+      const jti = generatePublicId();
       const payload = this.buildJwtPayload(tokenEntity.user, jti);
       const tokens = this.generateTokenPair(payload);
 
@@ -185,10 +186,6 @@ export class TokenService {
       accessToken,
       refreshToken,
     };
-  }
-
-  private generateUniqueJti(): string {
-    return Math.random().toString(36).substring(2);
   }
 
   private buildExpirationDate(seconds: number): Date {

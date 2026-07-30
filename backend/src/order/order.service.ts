@@ -21,7 +21,7 @@ import { OrderModeEnum } from './enums/order-mode.enum';
 import { OrderEmailData } from '../mail/models/order-email-data';
 import { ORDER_ERRORS } from '../shared/errors/order.errors';
 import { order_status } from '@prisma/client';
-import crypto from 'crypto';
+import { generatePublicId } from '../shared/generators/private-id.generator';
 
 @Injectable()
 export class OrderService {
@@ -29,7 +29,7 @@ export class OrderService {
 
   async create(
     request: UserRequest,
-    itemId: number,
+    itemPublicId: string,
     orderRequestDto?: OrderRequestDto,
   ): Promise<void> {
     const amount = orderRequestDto?.amount || 1;
@@ -38,7 +38,7 @@ export class OrderService {
     const { userId: buyerId } = request.user;
     const item = await this.prisma.item.findFirst({
       where: {
-        id: itemId,
+        publicId: itemPublicId,
         isDeleted: 0,
         seller: {
           isBanned: 0,
@@ -62,9 +62,9 @@ export class OrderService {
       data: {
         buyerId,
         sellerId: item.sellerId,
-        itemId,
+        itemId: item.id,
         amount,
-        uuid: crypto.randomBytes(4).toString('hex'),
+        publicId: generatePublicId(),
       },
     });
   }
@@ -74,7 +74,8 @@ export class OrderService {
     request: UserRequest,
     mode: OrderModeEnum,
   ): Promise<PaginationResponse<OrderResponseDto>> {
-    const orderField = ORDER_SORT_MAP[query.sortBy ?? OrderSortFieldEnum.ID];
+    const orderField =
+      ORDER_SORT_MAP[query.sortBy ?? OrderSortFieldEnum.CREATED_AT];
     return paginatePrisma<OrderResponseDto>(
       this.prisma.order,
       {
@@ -93,12 +94,10 @@ export class OrderService {
 
   async confirmOrder(
     request: UserRequest,
-    orderId: number,
+    publicId: string,
   ): Promise<OrderEmailData> {
     const order = await this.prisma.order.findFirst({
-      where: {
-        id: orderId,
-      },
+      where: { publicId },
       include: {
         buyer: {
           select: {
@@ -142,7 +141,7 @@ export class OrderService {
         data: { count: newCount },
       }),
       this.prisma.order.update({
-        where: { id: orderId },
+        where: { publicId },
         data: { status: order_status.CONFIRMED },
       }),
     ]);
@@ -155,11 +154,9 @@ export class OrderService {
     };
   }
 
-  async rejectOrder(request: UserRequest, orderId: number): Promise<void> {
+  async rejectOrder(request: UserRequest, publicId: string): Promise<void> {
     const order = await this.prisma.order.findFirst({
-      where: {
-        id: orderId,
-      },
+      where: { publicId },
     });
     if (!order) throw new NotFoundException(ORDER_ERRORS.NOT_FOUND);
 
@@ -172,7 +169,7 @@ export class OrderService {
       throw new ForbiddenException(ORDER_ERRORS.NOT_ALLOWED);
 
     await this.prisma.order.update({
-      where: { id: orderId },
+      where: { publicId },
       data: { status: order_status.REJECTED },
     });
   }

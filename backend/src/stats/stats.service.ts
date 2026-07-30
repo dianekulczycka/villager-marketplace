@@ -34,7 +34,7 @@ export class StatsService {
           this.prisma.item.findFirst({
             where: { sellerId: userId, isDeleted: 0 },
             orderBy: { views: 'desc' },
-            select: { id: true, name: true, views: true },
+            select: { publicId: true, name: true, views: true },
           }),
         ]);
 

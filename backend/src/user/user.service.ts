@@ -59,7 +59,8 @@ export class UserService {
     query: UserQueryDto,
     request: UserRequest,
   ): Promise<PaginationResponse<UserPublicDto>> {
-    const orderField = USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.ID];
+    const orderField =
+      USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.CREATED_AT];
     const role = request.user.role;
 
     const where: Prisma.userWhereInput =
@@ -93,11 +94,11 @@ export class UserService {
     );
   }
 
-  async findById(id: number): Promise<UserPublicDto> {
+  async findById(publicId: string): Promise<UserPublicDto> {
     const user = await this.prisma.user.findFirst({
       where: {
         ...USER_PUBLIC_WHERE_BASE,
-        id,
+        publicId,
       },
       select: USER_PUBLIC_SELECT,
     });

@@ -94,7 +94,9 @@ const UpdateItemModal: FC<Props> = ({open, closeModal, updateItem, selectedItem}
                     type="number"
                     error={!!errors.price}
                     helperText={errors.price?.message}
-                    {...register('price', {valueAsNumber: true})}
+                    {...register("price", {
+                        setValueAs: (v) => v === "" ? undefined : Number(v)
+                    })}
                 />
 
                 <TextField
@@ -102,7 +104,9 @@ const UpdateItemModal: FC<Props> = ({open, closeModal, updateItem, selectedItem}
                     type="number"
                     error={!!errors.count}
                     helperText={errors.count?.message}
-                    {...register('count', {valueAsNumber: true})}
+                    {...register("count", {
+                        setValueAs: (v) => v === "" ? undefined : Number(v)
+                    })}
                 />
 
                 <TextField

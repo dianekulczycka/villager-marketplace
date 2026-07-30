@@ -10,6 +10,7 @@ import { USER_PUBLIC_SELECT } from '../prisma/helpers/user.helpers';
 import { TokenPair } from '../shared/interfaces/token-pair.interface';
 import { AUTH_ERRORS } from '../shared/errors/auth.errors';
 import { BUYER_ICON } from '../shared/helpers/icon-map.helper';
+import { generatePublicId } from '../shared/generators/private-id.generator';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +25,7 @@ export class AuthService {
     return this.prisma.user.create({
       data: {
         ...registerDto,
+        publicId: generatePublicId(),
         iconUrl: BUYER_ICON,
         password: hashedPassword,
       },

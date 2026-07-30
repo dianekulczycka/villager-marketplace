@@ -48,9 +48,9 @@ export class UserController {
     return this.userService.findAllPublic(query, request);
   }
 
-  @Get('id/:id')
-  async getById(@Param('id') id: string): Promise<UserPublicDto> {
-    return this.userService.findById(Number(id));
+  @Get('id/:publicId')
+  async getById(@Param('publicId') publicId: string): Promise<UserPublicDto> {
+    return this.userService.findById(publicId);
   }
 
   @Get('profile')

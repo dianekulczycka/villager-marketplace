@@ -3,7 +3,6 @@ import { SortQueryDto } from '../../shared/pagination/sort-query.dto';
 import { Type } from 'class-transformer';
 
 export enum ItemSortFieldEnum {
-  ID = 'id',
   NAME = 'name',
   PRICE = 'price',
   COUNT = 'count',
@@ -13,7 +12,6 @@ export enum ItemSortFieldEnum {
 }
 
 export const ITEM_SORT_MAP: Record<ItemSortFieldEnum, string> = {
-  [ItemSortFieldEnum.ID]: 'id',
   [ItemSortFieldEnum.NAME]: 'name',
   [ItemSortFieldEnum.PRICE]: 'price',
   [ItemSortFieldEnum.COUNT]: 'count',
