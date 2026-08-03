@@ -70,7 +70,7 @@ export const HeaderComponent: FC = () => {
                     <Avatar
                         component={RouterLink}
                         to={`${routes.users.root}/${routes.users.me}`}
-                        src={routes.icons.user(user.iconUrl)}
+                        src={user.iconUrl}
                         alt={user.username}
                         sx={{
                             width: 42,

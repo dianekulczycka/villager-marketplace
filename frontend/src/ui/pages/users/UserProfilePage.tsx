@@ -46,6 +46,8 @@ import type {ProfileStats} from '../../../models/stats/ProfileStats.ts';
 import {useQuery} from '@tanstack/react-query';
 import {useMutationHandler} from "../../../helpers/handleMutation.ts";
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
+import type {ItemQueryParams} from "../../../models/item/ItemQueryParams.ts";
+import PreloaderComponent from "../../components/shared/PreloaderComponent.tsx";
 
 export type PageView = 'ITEMS' | 'USERS' | 'BANNED_USERS' | 'FLAGGED_USERS' | 'MANAGERS';
 
@@ -57,7 +59,9 @@ const UserProfilePage: FC = () => {
     const [activeModal, setActiveModal] = useState<ActiveModal>(null);
     const [selectedItem, setSelectedItem] = useState<ItemAdminView | null>(null);
     const [selectedUser, setSelectedUser] = useState<UserAdminView | null>(null);
-    const [pageView, setPageView] = useState<PageView>('ITEMS');
+    const [pageView, setPageView] = useState<PageView>(
+        isAuthority ? 'MANAGERS' : 'ITEMS'
+    );
     const openItemModal = createOpenModal<ItemAdminView>(setActiveModal, setSelectedItem);
     const openUserModal = createOpenModal<UserAdminView>(setActiveModal, setSelectedUser);
 
@@ -159,6 +163,7 @@ const UserProfilePage: FC = () => {
         snackbarText,
         snackbarStatus,
         handleMutation,
+        isMutating
     } = useMutationHandler(refetch);
 
     const onBecomeSeller = async (data: BecomeSellerDto) => {
@@ -284,6 +289,9 @@ const UserProfilePage: FC = () => {
 
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+
+            {isMutating && <PreloaderComponent />}
+
             <UserProfileComponent
                 user={user}
                 openBecomeModal={openBecomeModal}
@@ -298,7 +306,7 @@ const UserProfilePage: FC = () => {
 
             {userRole === 'SELLER' && pageView === 'ITEMS' && (
                 <SellerView
-                    query={query as UserQueryParams}
+                    query={query as ItemQueryParams}
                     setQuery={setQuery}
                     items={data as PaginationRes<ItemAdminView>}
                     loading={isLoading}
@@ -309,6 +317,7 @@ const UserProfilePage: FC = () => {
 
             {isAuthority && pageView !== 'ITEMS' && (
                 <AdminView
+                    pageView={pageView}
                     query={query as UserQueryParams}
                     setQuery={setQuery}
                     users={data as PaginationRes<UserAdminView>}

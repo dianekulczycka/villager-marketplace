@@ -4,14 +4,14 @@ import SortSearchComponent from '../../shared/SortSearchComponent.tsx';
 import DataStateComponent from '../../shared/DataStateComponent.tsx';
 import ItemsComponent from '../../item/ItemsComponent.tsx';
 import {PaginationComponent} from '../../shared/PaginationComponent.tsx';
-import type {UserQueryParams} from '../../../../models/user/UserQueryParams.ts';
 import type {PaginationRes} from '../../../../models/pagiantion/PaginationRes.ts';
 import type {QueryParams} from "../../../../models/pagiantion/QueryParams.ts";
-import {UserSortField} from "../../../../models/enums/UserSortField.ts";
+import {ItemSortField} from "../../../../models/enums/ItemSortField.ts";
+import type {ItemQueryParams} from "../../../../models/item/ItemQueryParams.ts";
 
 interface Props {
-    query: UserQueryParams;
-    setQuery: (q: Partial<UserQueryParams>) => void;
+    query: ItemQueryParams;
+    setQuery: (q: Partial<ItemQueryParams>) => void;
     items: PaginationRes<ItemAdminView> | null;
     loading: boolean;
     error: Error | null;
@@ -36,9 +36,9 @@ const SellerView: FC<Props> = ({
     return (
         <>
             <SortSearchComponent
-                query={query as QueryParams<UserSortField>}
+                query={query as QueryParams<ItemSortField>}
                 setQuery={setQuery}
-                fields={Object.values(UserSortField)}
+                fields={Object.values(ItemSortField)}
             />
             <DataStateComponent
                 loading={loading}

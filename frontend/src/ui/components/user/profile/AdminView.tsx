@@ -9,6 +9,7 @@ import UsersComponent from '../UsersComponent.tsx';
 import {UserSortField} from '../../../../models/enums/UserSortField.ts';
 
 interface Props {
+    pageView: string;
     query: UserQueryParams;
     setQuery: (q: Partial<UserQueryParams>) => void;
     users: PaginationRes<UserAdminView> | null;
@@ -24,6 +25,7 @@ interface Props {
 }
 
 const AdminView: FC<Props> = ({
+                                  pageView,
                                   query,
                                   setQuery,
                                   users,
@@ -38,15 +40,25 @@ const AdminView: FC<Props> = ({
                                   openHardDeleteModal,
                               }) => {
 
+    const fields =
+        pageView === 'MANAGERS'
+            ? Object.values(UserSortField).filter(
+                field => field !== UserSortField.SELLER_TYPE
+            )
+            : Object.values(UserSortField);
+
     const handlePageChange = (newPage: number) => {
         setQuery({page: newPage});
     };
 
     return (
         <>
-            <SortSearchComponent fields={Object.values(UserSortField)}
-                                 query={query}
-                                 setQuery={setQuery}/>
+            <SortSearchComponent
+                fields={fields}
+                query={query}
+                setQuery={setQuery}
+            />
+
             <DataStateComponent
                 loading={loading}
                 error={error}

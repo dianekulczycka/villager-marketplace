@@ -1,7 +1,6 @@
 import {type FC} from 'react';
 import {Box, Button, Card, Chip, Typography} from '@mui/material';
 import UserCard from '../user/UserCard.tsx';
-import {routes} from '../../../routes/routes.ts';
 import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
 import {useAuth} from "../../../store/helpers/useAuth.ts";
 import Alert from "@mui/material/Alert";
@@ -38,7 +37,7 @@ const ItemDetailsCard: FC<Props> = ({item, order, openModal}) => {
             >
                 <Box
                     component="img"
-                    src={routes.icons.item(item.iconUrl)}
+                    src={item.iconUrl}
                     alt={item.name}
                     sx={{
                         width: '100%',
@@ -71,7 +70,7 @@ const ItemDetailsCard: FC<Props> = ({item, order, openModal}) => {
                     )}
                     <Chip sx={{mt: 1}} size="small" label={`views: ${item.views}`}/>
 
-                    {loggedUser?.publicId !== item.sellerPublicId && !isAuthority &&
+                    {(loggedUser && loggedUser.publicId === item.sellerPublicId) && !isAuthority &&
                         <Box sx={{mt: 2}}>
                             <Button
                                 variant="contained"

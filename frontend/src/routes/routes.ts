@@ -1,5 +1,3 @@
-const API_URL: string = import.meta.env.VITE_API_URL;
-
 export const routes = {
     auth: {
         root: '/auth',
@@ -32,10 +30,6 @@ export const routes = {
         banned: 'banned',
         managers: 'managers',
         byId: ':publicId',
-    },
-    icons: {
-        item: (iconUrl: string) => `${API_URL}/icons/item/${iconUrl}`,
-        user: (iconUrl: string) => `${API_URL}/icons/user/${iconUrl}`,
     }
 } as const;
 

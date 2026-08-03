@@ -12,7 +12,7 @@ const BackgroundLayout: FC<Props> = ({children}) => {
                 minHeight: '100vh',
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundImage: 'url(/bg/bg.jpg)',
+                backgroundImage: 'url("https://res.cloudinary.com/exku39jb/image/upload/v1785761514/bg_gveh6h.jpg")',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundAttachment: 'fixed',

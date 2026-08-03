@@ -69,7 +69,7 @@ export class UserController {
     @Request() request: userRequestInterface.UserRequest,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserSelfDto> {
-    return this.userService.update(request, request.user.userId, updateUserDto);
+    return this.userService.update(request, updateUserDto);
   }
 
   @UseGuards(AllowedRolesGuard)

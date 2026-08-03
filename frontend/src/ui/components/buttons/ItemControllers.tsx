@@ -8,7 +8,7 @@ interface Props<T> {
     openUpdateModal: (element: T) => void;
 }
 
-const Controllers = <T, >({openUpdateModal, openDeleteModal, element}: Props<T>) => {
+const ItemControllers = <T, >({openUpdateModal, openDeleteModal, element}: Props<T>) => {
     return (
         <Box
             sx={{
@@ -43,4 +43,4 @@ const Controllers = <T, >({openUpdateModal, openDeleteModal, element}: Props<T>)
     );
 };
 
-export default Controllers;
+export default ItemControllers;

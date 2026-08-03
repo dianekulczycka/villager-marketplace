@@ -62,3 +62,29 @@ export async function canModifyItem(
 
   return item;
 }
+
+export async function resolveTargetUser(
+  prisma: PrismaService,
+  request: UserRequest,
+  targetUserPublicId?: string,
+): Promise<{ id: number; role: user_role }> {
+  if (!targetUserPublicId) {
+    const user = await prisma.user.findUnique({
+      where: { id: request.user.userId },
+      select: { id: true, role: true },
+    });
+
+    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+
+    return user;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { publicId: targetUserPublicId },
+    select: { id: true, role: true },
+  });
+
+  if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+
+  return user;
+}

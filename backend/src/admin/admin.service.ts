@@ -27,31 +27,31 @@ export class AdminService {
     return await this.userService.findAllManagers(query);
   }
 
-  async banUser(userId: number, request: UserRequest): Promise<string> {
-    return await this.userService.banUser(userId, request);
+  async banUser(publicId: string, request: UserRequest): Promise<string> {
+    return await this.userService.banUser(publicId, request);
   }
 
-  async unbanUser(userId: number): Promise<string> {
-    return await this.userService.unbanUser(userId);
+  async unbanUser(publicId: string): Promise<string> {
+    return await this.userService.unbanUser(publicId);
   }
 
-  async hardDeleteUser(userId: number): Promise<void> {
-    return await this.userService.hardDeleteUser(userId);
+  async hardDeleteUser(publicId: string): Promise<void> {
+    return await this.userService.hardDeleteUser(publicId);
   }
 
-  async promoteManager(userId: number): Promise<void> {
-    return await this.userService.promoteManager(userId);
+  async promoteManager(publicId: string): Promise<void> {
+    return await this.userService.promoteManager(publicId);
   }
 
-  async demoteManager(userId: number): Promise<void> {
-    return await this.userService.demoteManager(userId);
+  async demoteManager(publicId: string): Promise<void> {
+    return await this.userService.demoteManager(publicId);
   }
 
-  async unflagUser(userId: number): Promise<string> {
-    return await this.userService.unflagUser(userId);
+  async unflagUser(publicId: string): Promise<string> {
+    return await this.userService.unflagUser(publicId);
   }
 
-  async restoreUser(userId: number): Promise<string> {
-    return await this.userService.restoreUser(userId);
+  async restoreUser(publicId: string): Promise<string> {
+    return await this.userService.restoreUser(publicId);
   }
 }

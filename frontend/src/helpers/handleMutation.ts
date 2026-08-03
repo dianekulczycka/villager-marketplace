@@ -4,7 +4,7 @@ import type {AlertColor} from "@mui/material";
 export const useMutationHandler = (
     refetch: () => Promise<unknown>,
 ) => {
-    const [isLoading, setIsLoading] = useState(false);
+    const [isMutating, setIsMutating] = useState(false);
 
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarText, setSnackbarText] = useState('');
@@ -15,7 +15,7 @@ export const useMutationHandler = (
         action: () => Promise<void>,
         successMessage: string,
     ) => {
-        setIsLoading(true);
+        setIsMutating(true);
         try {
             await action();
             setSnackbarText(successMessage);
@@ -29,12 +29,12 @@ export const useMutationHandler = (
                 setOpenSnackbar(true);
             }
         } finally {
-            setIsLoading(false);
+            setIsMutating(false);
         }
     };
 
     return {
-        isLoading,
+        isMutating,
         openSnackbar,
         setOpenSnackbar,
         snackbarText,

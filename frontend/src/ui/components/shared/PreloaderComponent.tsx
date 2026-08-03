@@ -10,7 +10,9 @@ const PreloaderComponent: FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                zIndex: 10,
+                bgcolor: 'rgba(0,0,0,0.2)',
+                backdropFilter: 'blur(1px)',
+                zIndex: 1000,
             }}
         >
             <CircularProgress color="secondary" size="5rem" thickness={4}/>

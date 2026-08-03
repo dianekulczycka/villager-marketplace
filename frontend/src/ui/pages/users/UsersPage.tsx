@@ -28,6 +28,7 @@ import {useQuery} from '@tanstack/react-query';
 import type {QueryParams} from "../../../models/pagiantion/QueryParams.ts";
 import {useMutationHandler} from "../../../helpers/handleMutation.ts";
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
+import PreloaderComponent from "../../components/shared/PreloaderComponent.tsx";
 
 const UsersPage: FC = () => {
     const [activeModal, setActiveModal] = useState<ActiveModal>(null);
@@ -72,7 +73,7 @@ const UsersPage: FC = () => {
     });
 
     const {
-        isLoading: isUpdatingUser,
+        isMutating,
         openSnackbar,
         setOpenSnackbar,
         snackbarText,
@@ -160,6 +161,9 @@ const UsersPage: FC = () => {
             flexDirection: 'column',
             alignItems: 'center',
         }}>
+
+            {isLoading && <PreloaderComponent />}
+
             <SortSearchComponent
                 query={query as QueryParams<UserSortField>}
                 setQuery={setQuery}
@@ -168,7 +172,7 @@ const UsersPage: FC = () => {
             <DataStateComponent
                 data={data}
                 error={error}
-                loading={isLoading || isUpdatingUser}
+                loading={isLoading || isMutating}
                 isEmpty={data?.data.length === 0}>
                 {data &&
                     <>

@@ -38,7 +38,10 @@ import {
 import { USER_ERRORS } from '../shared/errors/user.errors';
 import { ITEM_SOFT_DELETE_DATA } from '../prisma/helpers/item.helpers';
 import { TOKEN_BLOCK_DATA } from '../prisma/helpers/token.helpers';
-import { canModifyUser } from '../shared/helpers/permission.helpers';
+import {
+  canModifyUser,
+  resolveTargetUser,
+} from '../shared/helpers/permission.helpers';
 import {
   BUYER_ICON,
   MANAGER_ICON,
@@ -125,49 +128,52 @@ export class UserService {
 
   async update(
     request: UserRequest,
-    targetUserId: number,
     updateUserDto: UpdateUserDto,
+    targetUserPublicId?: string,
   ): Promise<UserSelfDto> {
-    targetUserId = targetUserId ?? request.user.userId;
-    const target = await this.prisma.user.findUnique({
-      where: { id: targetUserId },
-      select: { role: true },
-    });
+    const target = await resolveTargetUser(
+      this.prisma,
+      request,
+      targetUserPublicId,
+    );
 
-    if (!target) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
-    canModifyUser(request, targetUserId, target.role);
+    canModifyUser(request, target.id, target.role);
 
     return this.prisma.user.update({
-      where: { id: targetUserId },
+      where: { id: target.id },
       data: updateUserDto,
       select: USER_SELF_SELECT,
     });
   }
 
-  async softDelete(request: UserRequest, targetUserId?: number): Promise<void> {
-    targetUserId = targetUserId ?? request.user.userId;
-    const target = await this.prisma.user.findUnique({
-      where: { id: targetUserId },
-      select: { role: true },
-    });
+  async softDelete(
+    request: UserRequest,
+    targetUserPublicId?: string,
+  ): Promise<number> {
+    const target = await resolveTargetUser(
+      this.prisma,
+      request,
+      targetUserPublicId,
+    );
 
-    if (!target) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
-    canModifyUser(request, targetUserId, target.role);
+    canModifyUser(request, target.id, target.role);
 
     await this.prisma.$transaction([
       this.prisma.user.update({
-        where: { id: targetUserId },
+        where: { id: target.id },
         data: USER_SOFT_DELETE_DATA(request.user.email),
       }),
       this.prisma.token.updateMany({
-        where: { userId: targetUserId },
+        where: { userId: target.id },
         data: TOKEN_BLOCK_DATA,
       }),
       this.prisma.item.updateMany({
-        where: { sellerId: targetUserId },
+        where: { sellerId: target.id },
         data: ITEM_SOFT_DELETE_DATA,
       }),
     ]);
+
+    return target.id;
   }
 
   async makeUserSeller(
@@ -178,7 +184,7 @@ export class UserService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { role: true },
+      select: { role: true, publicId: true },
     });
 
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
@@ -265,9 +271,9 @@ export class UserService {
 
   // -------------------------------------------- PATCH -----------------------------------------------------
 
-  async banUser(userId: number, request: UserRequest): Promise<string> {
+  async banUser(publicId: string, request: UserRequest): Promise<string> {
     const user = await this.prisma.user.findFirst({
-      where: { id: userId, isDeleted: 0 },
+      where: { publicId, isDeleted: 0 },
       select: { id: true, email: true },
     });
 
@@ -275,23 +281,23 @@ export class UserService {
 
     await this.prisma.$transaction([
       this.prisma.user.update({
-        where: { id: userId },
+        where: { publicId },
         data: USER_BAN_DATA(request.user.email),
       }),
 
       this.prisma.token.updateMany({
-        where: { userId },
+        where: { userId: user.id },
         data: TOKEN_BLOCK_DATA,
       }),
 
       this.prisma.item.updateMany({
-        where: { sellerId: userId },
+        where: { sellerId: user.id },
         data: ITEM_SOFT_DELETE_DATA,
       }),
 
       this.prisma.order.updateMany({
         where: {
-          sellerId: userId,
+          sellerId: user.id,
           status: order_status.PENDING,
         },
         data: {
@@ -303,9 +309,9 @@ export class UserService {
     return user.email;
   }
 
-  async unbanUser(userId: number): Promise<string> {
+  async unbanUser(publicId: string): Promise<string> {
     const user = await this.prisma.user.findFirst({
-      where: { id: userId, isDeleted: 0 },
+      where: { publicId, isDeleted: 0 },
       select: { id: true, email: true },
     });
 
@@ -313,12 +319,12 @@ export class UserService {
 
     await this.prisma.$transaction([
       this.prisma.user.update({
-        where: { id: userId },
+        where: { id: user.id },
         data: USER_UNBAN_DATA,
       }),
 
       this.prisma.item.updateMany({
-        where: { sellerId: userId },
+        where: { sellerId: user.id },
         data: {
           isDeleted: 0,
         },
@@ -328,16 +334,16 @@ export class UserService {
     return user.email;
   }
 
-  async unflagUser(userId: number): Promise<string> {
+  async unflagUser(publicId: string): Promise<string> {
     const user = await this.prisma.user.findFirst({
-      where: { id: userId, isDeleted: 0 },
+      where: { publicId, isDeleted: 0 },
       select: { id: true, email: true },
     });
 
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
 
     await this.prisma.user.update({
-      where: { id: userId },
+      where: { id: user.id },
       data: {
         isFlagged: 0,
       },
@@ -345,10 +351,10 @@ export class UserService {
     return user.email;
   }
 
-  async promoteManager(userId: number): Promise<void> {
+  async promoteManager(publicId: string): Promise<void> {
     const user = await this.prisma.user.findFirst({
-      where: { id: userId },
-      select: { role: true },
+      where: { publicId },
+      select: { id: true, role: true },
     });
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
     if (!(user.role === user_role.BUYER || user.role === user_role.SELLER))
@@ -356,12 +362,12 @@ export class UserService {
 
     await this.prisma.$transaction([
       this.prisma.item.updateMany({
-        where: { sellerId: userId },
+        where: { sellerId: user.id },
         data: ITEM_SOFT_DELETE_DATA,
       }),
 
       this.prisma.user.update({
-        where: { id: userId },
+        where: { id: user.id },
         data: {
           role: user_role.MANAGER,
           sellerType: null,
@@ -371,17 +377,17 @@ export class UserService {
     ]);
   }
 
-  async demoteManager(userId: number): Promise<void> {
+  async demoteManager(publicId: string): Promise<void> {
     const user = await this.prisma.user.findFirst({
-      where: { id: userId, isDeleted: 0 },
-      select: { role: true },
+      where: { publicId, isDeleted: 0 },
+      select: { id: true, role: true },
     });
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
     if (user.role !== user_role.MANAGER)
       throw new BadRequestException(USER_ERRORS.NOT_ALLOWED_UPDATE);
 
     await this.prisma.user.update({
-      where: { id: userId },
+      where: { id: user.id },
       data: {
         role: user_role.BUYER,
         sellerType: null,
@@ -390,17 +396,17 @@ export class UserService {
     });
   }
 
-  async restoreUser(userId: number): Promise<string> {
+  async restoreUser(publicId: string): Promise<string> {
     const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { isDeleted: true, email: true },
+      where: { publicId },
+      select: { id: true, isDeleted: true, email: true },
     });
 
     if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
     if (!user.isDeleted) throw new BadRequestException(USER_ERRORS.NOT_DELETED);
 
     await this.prisma.user.update({
-      where: { id: userId },
+      where: { id: user.id },
       data: {
         isDeleted: 0,
         deletedAt: null,
@@ -413,21 +419,28 @@ export class UserService {
 
   // -------------------------------------------- DELETE -----------------------------------------------------
 
-  async hardDeleteUser(userId: number): Promise<void> {
+  async hardDeleteUser(publicId: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { publicId },
+      select: { id: true },
+    });
+
+    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+
     await this.prisma.$transaction([
       this.prisma.order.deleteMany({
         where: {
-          OR: [{ buyerId: userId }, { sellerId: userId }],
+          OR: [{ buyerId: user.id }, { sellerId: user.id }],
         },
       }),
       this.prisma.item.deleteMany({
-        where: { sellerId: userId },
+        where: { sellerId: user.id },
       }),
       this.prisma.token.deleteMany({
-        where: { userId },
+        where: { userId: user.id },
       }),
       this.prisma.user.delete({
-        where: { id: userId },
+        where: { id: user.id },
       }),
     ]);
   }

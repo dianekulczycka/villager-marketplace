@@ -1,7 +1,6 @@
 import type {FC} from 'react';
 import {Avatar, Box, Typography} from '@mui/material';
 import type {UserSelfView} from '../../../models/user/UserSelfView.ts';
-import {routes} from '../../../routes/routes.ts';
 
 interface Props {
     user: UserSelfView;
@@ -11,7 +10,7 @@ const UserProfileCard: FC<Props> = ({user}) => {
     return (
         <>
             <Avatar
-                src={routes.icons.user(user.iconUrl)}
+                src={user.iconUrl}
                 alt={user.username}
                 sx={{
                     width: 120,

@@ -61,65 +61,65 @@ export class AdminController {
 
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
-  @Patch('id/:id')
+  @Patch('id/:publicId')
   updateUserByAdmin(
-    @Param('id') id: string,
+    @Param('publicId') publicId: string,
     @Request() request: userRequestInterface.UserRequest,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserSelfDto> {
-    return this.userService.update(request, Number(id), updateUserDto);
+    return this.userService.update(request, updateUserDto, publicId);
   }
 
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
-  @Delete('id/:id/soft-delete')
+  @Delete('id/:publicId/soft-delete')
   async softDeleteUserByAdmin(
-    @Param('id') id: string,
+    @Param('publicId') publicId: string,
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<void> {
-    return this.userService.softDelete(request, Number(id));
+    await this.userService.softDelete(request, publicId);
   }
 
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
-  @Patch('id/:id/ban')
+  @Patch('id/:publicId/ban')
   async banUser(
-    @Param('id') id: string,
+    @Param('publicId') publicId: string,
     @Request() request: userRequestInterface.UserRequest,
   ) {
-    const userEmail = await this.adminService.banUser(Number(id), request);
-    await this.tokenService.blockTokensForUser(Number(id));
+    const userEmail = await this.adminService.banUser(publicId, request);
+    await this.tokenService.blockTokensForUser(publicId);
     await this.mailService.notifyUserBanned(userEmail);
   }
 
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
-  @Patch('id/:id/unban')
-  async unbanUser(@Param('id') id: string) {
-    const userEmail = await this.adminService.unbanUser(Number(id));
-    await this.tokenService.blockTokensForUser(Number(id));
+  @Patch('id/:publicId/unban')
+  async unbanUser(@Param('publicId') publicId: string) {
+    const userEmail = await this.adminService.unbanUser(publicId);
+    await this.tokenService.blockTokensForUser(publicId);
     await this.mailService.sendRecoveryApproved(userEmail);
   }
 
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
-  @Patch('id/:id/unflag')
-  async unflagUser(@Param('id') id: string) {
-    const userEmail = await this.adminService.unflagUser(Number(id));
-    await this.tokenService.blockTokensForUser(Number(id));
+  @Patch('id/:publicId/unflag')
+  async unflagUser(@Param('publicId') publicId: string) {
+    const userEmail = await this.adminService.unflagUser(publicId);
+    await this.tokenService.blockTokensForUser(publicId);
     await this.mailService.sendRecoveryApproved(userEmail);
   }
 
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.MANAGER, user_role.ADMIN)
   @HttpCode(204)
-  @Patch('id/:id/restore')
-  async restoreUser(@Param('id') id: string): Promise<void> {
-    const userEmail = await this.adminService.restoreUser(Number(id));
+  @Patch('id/:publicId/restore')
+  async restoreUser(@Param('publicId') publicId: string): Promise<void> {
+    const userEmail = await this.adminService.restoreUser(publicId);
     await this.mailService.sendRecoveryApproved(userEmail);
   }
 
@@ -137,27 +137,27 @@ export class AdminController {
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.ADMIN)
   @HttpCode(204)
-  @Delete('id/:id')
-  async hardDeleteUser(@Param('id') id: string) {
-    await this.adminService.hardDeleteUser(Number(id));
-    await this.tokenService.blockTokensForUser(Number(id));
+  @Delete('id/:publicId')
+  async hardDeleteUser(@Param('publicId') publicId: string) {
+    await this.adminService.hardDeleteUser(publicId);
+    await this.tokenService.blockTokensForUser(publicId);
   }
 
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.ADMIN)
   @HttpCode(204)
-  @Patch('id/:id/promote-manager')
-  async promoteManager(@Param('id') id: string): Promise<void> {
-    await this.adminService.promoteManager(Number(id));
-    await this.tokenService.blockTokensForUser(Number(id));
+  @Patch('id/:publicId/promote-manager')
+  async promoteManager(@Param('publicId') publicId: string): Promise<void> {
+    await this.adminService.promoteManager(publicId);
+    await this.tokenService.blockTokensForUser(publicId);
   }
 
   @UseGuards(AllowedRolesGuard)
   @Roles(user_role.ADMIN)
   @HttpCode(204)
-  @Patch('id/:id/demote')
-  async demoteManager(@Param('id') id: string): Promise<void> {
-    await this.adminService.demoteManager(Number(id));
-    await this.tokenService.blockTokensForUser(Number(id));
+  @Patch('id/:publicId/demote')
+  async demoteManager(@Param('publicId') publicId: string): Promise<void> {
+    await this.adminService.demoteManager(publicId);
+    await this.tokenService.blockTokensForUser(publicId);
   }
 }

@@ -2,7 +2,7 @@ import type {FC} from 'react';
 import {Box, Card, Typography} from '@mui/material';
 import {Link as RouterLink} from 'react-router-dom';
 import {routes} from '../../../routes/routes.ts';
-import Controllers from '../buttons/Controllers.tsx';
+import ItemControllers from '../buttons/ItemControllers.tsx';
 import {useAuth} from '../../../store/helpers/useAuth.ts';
 import type {UserAdminView} from '../../../models/user/UserAdminView.ts';
 import UserAdminControllers from '../buttons/UserAdminControllers.tsx';
@@ -63,7 +63,7 @@ const UserCard: FC<Props> = ({
         >
             <Box
                 component="img"
-                src={routes.icons.user(user.iconUrl)}
+                src={user.iconUrl}
                 alt={user.username}
                 sx={{
                     width: isSmall ? 48 : '100%',
@@ -133,8 +133,8 @@ const UserCard: FC<Props> = ({
                                                                                             openHardDeleteModal={openHardDeleteModal!}
                                                                                             user={user}/> </Box>)}
             {variant === 'L' && canModify && !user.isDeleted && (
-                <Box sx={{pointerEvents: 'auto'}}> <Controllers openDeleteModal={openDeleteModal!}
-                                                                openUpdateModal={openUpdateModal!} element={user}/>
+                <Box sx={{pointerEvents: 'auto'}}> <ItemControllers openDeleteModal={openDeleteModal!}
+                                                                    openUpdateModal={openUpdateModal!} element={user}/>
                 </Box>)}
         </Card>
     );

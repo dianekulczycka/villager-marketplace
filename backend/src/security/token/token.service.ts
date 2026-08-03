@@ -135,10 +135,28 @@ export class TokenService {
     }
   }
 
-  async blockTokensForUser(userId: number): Promise<void> {
+  async blockTokensForUser(userId: number): Promise<void>;
+  async blockTokensForUser(publicId: string): Promise<void>;
+
+  async blockTokensForUser(userIdOrPublicId: number | string): Promise<void> {
+    const user =
+      typeof userIdOrPublicId === 'number'
+        ? await this.prisma.user.findUnique({
+            where: { id: userIdOrPublicId },
+            select: { id: true },
+          })
+        : await this.prisma.user.findUnique({
+            where: { publicId: userIdOrPublicId },
+            select: { id: true },
+          });
+
+    if (!user) {
+      throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+    }
+
     await this.prisma.token.updateMany({
       where: {
-        userId,
+        userId: user.id,
         isBlocked: 0,
       },
       data: TOKEN_BLOCK_DATA,

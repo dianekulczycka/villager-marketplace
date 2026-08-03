@@ -1,9 +1,8 @@
 import {type FC} from 'react';
 import {Box, Card, CardContent, CardMedia, Chip, Typography} from '@mui/material';
 import {Link as RouterLink} from 'react-router-dom';
-import {routes} from '../../../routes/routes.ts';
 import {useAuth} from '../../../store/helpers/useAuth.ts';
-import Controllers from '../buttons/Controllers.tsx';
+import ItemControllers from '../buttons/ItemControllers.tsx';
 import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
 
 interface Props {
@@ -18,7 +17,7 @@ const ItemCard: FC<Props> = ({
                                  openUpdateModal,
                              }) => {
     const {user} = useAuth();
-    const canModify: boolean = (item.sellerPublicId === user?.publicId) || (user?.role === 'ADMIN' || user?.role === 'MANAGER');
+    const canModify: boolean = (item.seller.publicId === user?.publicId) || (user?.role === 'ADMIN' || user?.role === 'MANAGER');
 
     return (
         <Card
@@ -40,7 +39,7 @@ const ItemCard: FC<Props> = ({
             <CardMedia
                 component="img"
                 height="300"
-                image={routes.icons.item(item.iconUrl)}
+                image={item.iconUrl}
                 alt={item.name}
                 sx={{
                     objectFit: 'cover',
@@ -72,7 +71,7 @@ const ItemCard: FC<Props> = ({
                     <Chip size="small" label={`views: ${item.views}`}/>
                 </Box>
             </CardContent>
-            {canModify && !item.isDeleted && <Controllers
+            {canModify && !item.isDeleted && <ItemControllers
                 openDeleteModal={openDeleteModal}
                 openUpdateModal={openUpdateModal}
                 element={item}/>}
