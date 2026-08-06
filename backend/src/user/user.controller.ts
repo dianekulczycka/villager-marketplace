@@ -9,6 +9,7 @@ import {
   Query,
   Request,
   Res,
+  UploadedFile,
   UseGuards,
   UseInterceptors,
   UsePipes,
@@ -30,6 +31,9 @@ import { ModerationInterceptor } from '../moderation/moderation.interceptor.serv
 import { TokenService } from '../security/token/token.service';
 import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';
 import * as userRequestInterface from './interfaces/user-request.interface';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ImageUploadPipe } from '../shared/pipes/image-upload.pipe';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiErrorResponses()
 @UseGuards(AuthGuard('jwt'))
@@ -70,6 +74,19 @@ export class UserController {
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserSelfDto> {
     return this.userService.update(request, updateUserDto);
+  }
+
+  @UseGuards(AllowedRolesGuard)
+  @Roles(user_role.BUYER, user_role.SELLER)
+  @Patch('profile/upload-avatar')
+  @UseInterceptors(FileInterceptor('file'))
+  @Throttle({ default: { limit: 2, ttl: 60000 } })
+  async uploadAvatar(
+    @Request() request: userRequestInterface.UserRequest,
+    @UploadedFile(new ImageUploadPipe())
+    file: Express.Multer.File,
+  ): Promise<UserSelfDto> {
+    return this.userService.uploadAvatar(request, file);
   }
 
   @UseGuards(AllowedRolesGuard)

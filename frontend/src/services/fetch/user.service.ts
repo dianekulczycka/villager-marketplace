@@ -27,6 +27,19 @@ export const update = async (dto: UpdateUserDto): Promise<UserAdminView> => {
     return data;
 };
 
+export const uploadAvatar = async (
+    file: File,
+): Promise<UserAdminView> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return await api.patch(
+        endpoints.users.uploadAvatar,
+        formData,
+        {headers: {'Content-Type': 'multipart/form-data'},},
+    );
+};
+
 export const softDelete = async (): Promise<void> => {
     await api.delete(endpoints.users.delete);
 };

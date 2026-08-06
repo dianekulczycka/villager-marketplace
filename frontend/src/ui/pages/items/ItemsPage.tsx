@@ -63,7 +63,7 @@ const ItemsPage: FC = () => {
     });
 
     const {
-        isLoading: isUpdatingItem,
+        isMutating,
         openSnackbar,
         setOpenSnackbar,
         snackbarText,
@@ -105,7 +105,7 @@ const ItemsPage: FC = () => {
             <DataStateComponent
                 data={data}
                 error={error}
-                loading={isLoading || isUpdatingItem}
+                loading={isLoading || isMutating}
                 isEmpty={data?.data.length === 0}>
                 {data &&
                     <>

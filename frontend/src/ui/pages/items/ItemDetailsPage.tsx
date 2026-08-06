@@ -27,7 +27,7 @@ const ItemDetailsPage: FC = () => {
     });
 
     const {
-        isLoading: isOrdering,
+        isMutating,
         openSnackbar,
         setOpenSnackbar,
         snackbarText,
@@ -50,7 +50,7 @@ const ItemDetailsPage: FC = () => {
 
     return (
         <>
-            <DataStateComponent data={data} error={error} loading={isLoading || isOrdering}>
+            <DataStateComponent data={data} error={error} loading={isLoading || isMutating}>
                 {data &&
                     (<>
                         <ItemDetailsCard item={data} order={order} openModal={() => {

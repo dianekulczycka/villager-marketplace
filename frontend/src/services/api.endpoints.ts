@@ -25,6 +25,7 @@ export const endpoints = {
         stats: `${roots.users}/profile/stats`,
         delete: `${roots.users}/profile/soft-delete`,
         becomeSeller: `${roots.users}/profile/become-seller`,
+        uploadAvatar: `${roots.users}/profile/upload-avatar`,
     },
     items: {
         root: roots.items,

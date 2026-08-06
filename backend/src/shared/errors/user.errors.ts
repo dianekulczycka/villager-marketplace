@@ -9,4 +9,6 @@ export const USER_ERRORS = {
   NOT_BANNED: 'User is not banned',
   NOT_DELETED: 'User is not deleted',
   NOT_SELLER: 'User not a seller',
+  EXISTING_USER:
+    'Account with this email was deleted. Please restore it, instead of creating new one',
 };

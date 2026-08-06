@@ -11,10 +11,11 @@ interface Props<T extends string> {
 const SortSearchComponent = <T extends string>({fields, query, setQuery}: Props<T>) => {
     const [inputValue, setInputValue] = useState(query.search ?? '');
 
+    const currentDirection = query.sortDirection ?? 'asc';
+
     const toggleDirection = () => {
         setQuery({
-            sortDirection:
-                query.sortDirection === 'asc' ? 'desc' : 'asc',
+            sortDirection: currentDirection === 'asc' ? 'desc' : 'asc',
             page: 1,
         });
     };

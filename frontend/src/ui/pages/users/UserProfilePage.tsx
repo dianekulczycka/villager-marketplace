@@ -1,4 +1,4 @@
-import {type FC, useState} from 'react';
+import React, {type FC, useRef, useState} from 'react';
 import UserProfileComponent from '../../components/user/UserProfileComponent.tsx';
 import {useAuth} from '../../../store/helpers/useAuth.ts';
 import {
@@ -7,7 +7,14 @@ import {
     softDelete as itemSoftDelete,
     update as itemUpdate,
 } from '../../../services/fetch/item.service.ts';
-import {becomeSeller, getAll, stats as loadStats, update} from '../../../services/fetch/user.service.ts';
+import {
+    becomeSeller,
+    getAll,
+    softDelete,
+    stats as loadStats,
+    update,
+    uploadAvatar,
+} from '../../../services/fetch/user.service.ts';
 import {NumberParam, StringParam, useQueryParams, withDefault} from 'use-query-params';
 import {ItemSortField} from '../../../models/enums/ItemSortField.ts';
 import type {BecomeSellerDto} from '../../../models/user/BecomeSellerDto.ts';
@@ -38,7 +45,7 @@ import {
     hardDelete,
     promote,
     restore,
-    softDelete,
+    softDelete as adminSoftDelete,
     unban,
     unflag,
 } from '../../../services/fetch/admin.service.ts';
@@ -48,11 +55,13 @@ import {useMutationHandler} from "../../../helpers/handleMutation.ts";
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
 import type {ItemQueryParams} from "../../../models/item/ItemQueryParams.ts";
 import PreloaderComponent from "../../components/shared/PreloaderComponent.tsx";
+import {ALLOWED_AVATAR_TYPES, MAX_AVATAR_SIZE} from "../../../validation/avatar-upload.constraints.ts";
 
 export type PageView = 'ITEMS' | 'USERS' | 'BANNED_USERS' | 'FLAGGED_USERS' | 'MANAGERS';
 
 const UserProfilePage: FC = () => {
-    const {user, loadUser} = useAuth();
+    const {user, loadUser, logoutUser} = useAuth();
+
     const userRole = user?.role;
     const isAuthority = userRole === 'ADMIN' || userRole === 'MANAGER';
 
@@ -60,7 +69,7 @@ const UserProfilePage: FC = () => {
     const [selectedItem, setSelectedItem] = useState<ItemAdminView | null>(null);
     const [selectedUser, setSelectedUser] = useState<UserAdminView | null>(null);
     const [pageView, setPageView] = useState<PageView>(
-        isAuthority ? 'MANAGERS' : 'ITEMS'
+        isAuthority ? 'USERS' : 'ITEMS'
     );
     const openItemModal = createOpenModal<ItemAdminView>(setActiveModal, setSelectedItem);
     const openUserModal = createOpenModal<UserAdminView>(setActiveModal, setSelectedUser);
@@ -71,6 +80,7 @@ const UserProfilePage: FC = () => {
     const openDeleteItemModal = (item: ItemAdminView) => openItemModal('deleteItem', item);
     const openUpdateUserModal = (user: UserAdminView) => openUserModal('updateUser', user);
     const openDeleteUserModal = (user: UserAdminView) => openUserModal('deleteUser', user);
+    const openDeleteMyProfileModal = (user: UserAdminView) => openUserModal('deleteMyProfile', user);
     const openHardDeleteModal = (user: UserAdminView) => openUserModal('hardDeleteUser', user);
 
     const closeModal = () => setActiveModal(null);
@@ -220,10 +230,18 @@ const UserProfilePage: FC = () => {
 
     const deleteUser = async () => {
         if (!selectedUser) return;
+
         await handleMutation(
             async () => {
-                await softDelete(selectedUser.publicId)
-            }, 'User deleted');
+                await adminSoftDelete(selectedUser.publicId);
+            },
+            'User deleted',
+        );
+    };
+
+    const deleteMyProfile = async () => {
+        await softDelete();
+        logoutUser();
     };
 
     const hardDeleteUser = async () => {
@@ -285,23 +303,52 @@ const UserProfilePage: FC = () => {
         setQuery({page: 1});
     };
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleUploadAvatar = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleAvatarChange = async (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
+        const file = e.target.files?.[0];
+
+        if (!file) return;
+        if (!ALLOWED_AVATAR_TYPES.includes(file.type)) throw new Error('Avatar must be PNG or JPEG');
+        if (file.size > MAX_AVATAR_SIZE) throw new Error('Avatar size must not be gt 5 MB');
+
+        await handleMutation(
+            async () => {
+                await uploadAvatar(file);
+                loadUser();
+            },
+            'Avatar chnaged!',
+        );
+
+        e.target.value = '';
+    };
+
     if (!user) return null;
 
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
 
-            {isMutating && <PreloaderComponent />}
+            {isMutating && <PreloaderComponent/>}
 
             <UserProfileComponent
                 user={user}
                 openBecomeModal={openBecomeModal}
                 openCreateModal={openCreateModal}
                 openUpdateUserModal={openUpdateUserModal}
-                openDeleteUserModal={openDeleteUserModal}
+                openDeleteMyProfileModal={openDeleteMyProfileModal}
                 changeView={changeView}
                 stats={stats}
                 error={statsError}
                 loading={statsLoading}
+                onUploadAvatar={handleUploadAvatar}
+                onAvatarChange={handleAvatarChange}
+                fileInputRef={fileInputRef}
             />
 
             {userRole === 'SELLER' && pageView === 'ITEMS' && (
@@ -317,7 +364,6 @@ const UserProfilePage: FC = () => {
 
             {isAuthority && pageView !== 'ITEMS' && (
                 <AdminView
-                    pageView={pageView}
                     query={query as UserQueryParams}
                     setQuery={setQuery}
                     users={data as PaginationRes<UserAdminView>}
@@ -341,17 +387,20 @@ const UserProfilePage: FC = () => {
 
             <ConfirmDeleteModal
                 open={
+                    activeModal === 'deleteMyProfile' ||
                     activeModal === 'deleteUser' ||
                     activeModal === 'hardDeleteUser' ||
                     activeModal === 'deleteItem'
                 }
                 closeModal={closeModal}
                 deleteEntity={
-                    activeModal === 'hardDeleteUser'
-                        ? hardDeleteUser
-                        : activeModal === 'deleteItem'
-                            ? deleteItem
-                            : deleteUser
+                    activeModal === 'deleteMyProfile'
+                        ? deleteMyProfile
+                        : activeModal === 'hardDeleteUser'
+                            ? hardDeleteUser
+                            : activeModal === 'deleteItem'
+                                ? deleteItem
+                                : deleteUser
                 }
             />
 

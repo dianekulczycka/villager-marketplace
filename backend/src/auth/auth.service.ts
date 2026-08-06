@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserSignInRequestDto } from './dto/user-sign-in-request.dto';
 import { UserLoginRequestDto } from './dto/user-login-request.dto';
 import { UserPublicDto } from '../user/dto/user-public.dto';
@@ -11,6 +15,7 @@ import { TokenPair } from '../shared/interfaces/token-pair.interface';
 import { AUTH_ERRORS } from '../shared/errors/auth.errors';
 import { BUYER_ICON } from '../shared/helpers/icon-map.helper';
 import { generatePublicId } from '../shared/generators/private-id.generator';
+import { USER_ERRORS } from '../shared/errors/user.errors';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +25,19 @@ export class AuthService {
   ) {}
 
   async register(registerDto: UserSignInRequestDto): Promise<UserPublicDto> {
+    const existingUser = await this.prisma.user.findUnique({
+      where: {
+        email: registerDto.email,
+      },
+      select: {
+        isDeleted: true,
+      },
+    });
+
+    if (existingUser?.isDeleted) {
+      throw new ConflictException(USER_ERRORS.EXISTING_USER);
+    }
+
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
     return this.prisma.user.create({

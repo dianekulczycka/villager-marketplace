@@ -68,7 +68,7 @@ const OrdersPage: FC = () => {
     });
 
     const {
-        isLoading: isUpdatingOrder,
+        isMutating,
         openSnackbar,
         setOpenSnackbar,
         snackbarText,
@@ -138,7 +138,7 @@ const OrdersPage: FC = () => {
             <DataStateComponent
                 data={data}
                 error={error}
-                loading={isLoading || isUpdatingOrder}
+                loading={isLoading || isMutating}
                 isEmpty={data?.data.length === 0}>
                 {data &&
                     <>

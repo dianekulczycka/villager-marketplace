@@ -47,10 +47,14 @@ import {
   MANAGER_ICON,
   USER_ICON_MAP,
 } from '../shared/helpers/icon-map.helper';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   // ----------------------------------------------------------------------------------------------------------
   // ---------------------------------------------- USER ------------------------------------------------------
@@ -142,6 +146,21 @@ export class UserService {
     return this.prisma.user.update({
       where: { id: target.id },
       data: updateUserDto,
+      select: USER_SELF_SELECT,
+    });
+  }
+
+  async uploadAvatar(
+    request: UserRequest,
+    file: Express.Multer.File,
+  ): Promise<UserSelfDto> {
+    const newAvatarUrl: string = await this.cloudinaryService.upload(file);
+
+    return this.prisma.user.update({
+      where: { id: request.user.userId },
+      data: {
+        iconUrl: newAvatarUrl,
+      },
       select: USER_SELF_SELECT,
     });
   }

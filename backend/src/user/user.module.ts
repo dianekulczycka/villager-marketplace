@@ -6,9 +6,16 @@ import { ModerationModule } from '../moderation/moderation.module';
 import { SecurityModule } from '../security/security.module';
 import { MailModule } from '../mail/mail.module';
 import { TokenService } from '../security/token/token.service';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
-  imports: [PrismaModule, ModerationModule, SecurityModule, MailModule],
+  imports: [
+    PrismaModule,
+    ModerationModule,
+    SecurityModule,
+    MailModule,
+    CloudinaryModule,
+  ],
   controllers: [UserController],
   providers: [UserService, TokenService],
   exports: [UserService],

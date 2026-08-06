@@ -20,6 +20,7 @@ import { RequestDetailsLoggerInteceptor } from './shared/interceptors/request-de
 import { CleanUpJobModule } from './shared/jobs/clean-up.job.module';
 import { ItemModule } from './item/item.module';
 import { OrderModule } from './order/order.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { OrderModule } from './order/order.module';
     ModerationModule,
     SecurityModule,
     OrderModule,
+    CloudinaryModule,
   ],
   providers: [
     {

@@ -1,4 +1,4 @@
-import {type FC} from 'react';
+import React, {type FC, type Ref} from 'react';
 import UserProfileCard from './UserProfileCard.tsx';
 import {Box, Card, CardContent} from '@mui/material';
 import ActionButton from '../buttons/ActionButton.tsx';
@@ -12,12 +12,15 @@ interface Props {
     user: UserAdminView;
     openBecomeModal: () => void;
     openCreateModal: () => void;
-    openDeleteUserModal: (user: UserAdminView) => void;
+    openDeleteMyProfileModal: (user: UserAdminView) => void;
     openUpdateUserModal: (user: UserAdminView) => void;
     changeView: (pageView: PageView) => void;
     stats: ProfileStats | undefined;
     error: Error | null;
     loading: boolean;
+    onUploadAvatar: () => void;
+    fileInputRef: Ref<HTMLInputElement>;
+    onAvatarChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
 }
 
 const UserProfileComponent: FC<Props> = ({
@@ -25,11 +28,14 @@ const UserProfileComponent: FC<Props> = ({
                                              openBecomeModal,
                                              openCreateModal,
                                              openUpdateUserModal,
-                                             openDeleteUserModal,
+                                             openDeleteMyProfileModal,
                                              changeView,
                                              stats,
                                              error,
                                              loading,
+                                             onUploadAvatar,
+                                             fileInputRef,
+                                             onAvatarChange
                                          }) => {
 
     const isAdmin = user.role === 'ADMIN';
@@ -65,7 +71,13 @@ const UserProfileComponent: FC<Props> = ({
                         alignItems: {xs: 'center', sm: 'flex-start'},
                     }}
                 >
-                    <UserProfileCard user={user}/>
+                    <UserProfileCard
+                        user={user}
+                        onUploadAvatar={onUploadAvatar}
+                        fileInputRef={fileInputRef}
+                        onAvatarChange={onAvatarChange}
+                        canLoadAvatar={canEditProfile}
+                    />
 
                     <DataStateComponent
                         loading={loading}
@@ -81,7 +93,7 @@ const UserProfileComponent: FC<Props> = ({
                         )}
 
                         {canDeleteProfile && (
-                            <ActionButton action="Delete profile" actionHandler={() => openDeleteUserModal(user)}/>
+                            <ActionButton action="Delete profile" actionHandler={() => openDeleteMyProfileModal(user)}/>
                         )}
 
                         {isBuyer && (
