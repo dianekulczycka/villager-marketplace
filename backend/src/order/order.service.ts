@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserRequest } from '../user/interfaces/user-request.interface';
-import { OrderRequestDto } from './dto/order-request.dto';
+import { CreateOrderDto } from './dto/create-order.dto';
 import { ITEM_ERRORS } from '../shared/errors/item.errors';
 import { PaginationResponse } from '../shared/pagination/pagination-response.interface';
 import { OrderResponseDto } from './dto/order-response.dto';
@@ -31,7 +31,7 @@ export class OrderService {
   async create(
     request: UserRequest,
     itemPublicId: string,
-    orderRequestDto?: OrderRequestDto,
+    orderRequestDto?: CreateOrderDto,
   ): Promise<void> {
     const amount = orderRequestDto?.amount || 1;
     if (amount <= 0) throw new BadRequestException(ITEM_ERRORS.INVALID_AMOUNT);

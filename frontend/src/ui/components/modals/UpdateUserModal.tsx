@@ -52,7 +52,8 @@ const UpdateUserModal: FC<Props> = ({open, closeModal, onUpdateUser, selectedUse
 
 
     return (
-        <Modal slots={{backdrop: Backdrop}}
+        <Modal disableScrollLock
+               slots={{backdrop: Backdrop}}
                slotProps={{
                    backdrop: {
                        sx: {

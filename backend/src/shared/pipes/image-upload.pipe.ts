@@ -12,7 +12,7 @@ export class ImageUploadPipe extends ParseFilePipe {
           maxSize: 5 * 1024 * 1024,
         }),
         new FileTypeValidator({
-          fileType: /(jpg|jpeg|png|webp)$/,
+          fileType: /(jpg|jpeg|png)$/,
         }),
       ],
     });

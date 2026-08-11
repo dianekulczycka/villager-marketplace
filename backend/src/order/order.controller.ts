@@ -18,7 +18,7 @@ import { AllowedRolesGuard } from '../auth/guards/allowed-roles.guard';
 import { Roles } from '../auth/guards/allowed-roles.decorator';
 import { user_role } from '@prisma/client';
 import * as userRequestInterface from '../user/interfaces/user-request.interface';
-import { OrderRequestDto } from './dto/order-request.dto';
+import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderService } from './order.service';
 import { PaginationResponse } from '../shared/pagination/pagination-response.interface';
 import { OrderResponseDto } from './dto/order-response.dto';
@@ -42,7 +42,7 @@ export class OrderController {
   async order(
     @Param('itemPublicId') itemPublicId: string,
     @Request() request: userRequestInterface.UserRequest,
-    @Body() orderRequestDto?: OrderRequestDto,
+    @Body() orderRequestDto?: CreateOrderDto,
   ): Promise<void> {
     await this.orderService.create(request, itemPublicId, orderRequestDto);
   }

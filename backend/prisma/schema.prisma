@@ -42,27 +42,29 @@ model token {
 }
 
 model user {
-  id           Int              @id @default(autoincrement())
-  email        String           @unique(map: "IDX_e12875dfb3b1d92d7d7c5377e2") @db.VarChar(255)
-  password     String           @db.VarChar(255)
-  username     String           @db.VarChar(255)
-  role         user_role        @default(BUYER)
-  iconUrl      String?          @db.VarChar(255)
-  sellerType   user_sellerType?
-  isBanned     Int              @default(0) @db.TinyInt
-  bannedBy     String?          @db.VarChar(255)
-  bannedAt     DateTime?        @db.DateTime(0)
-  isFlagged    Int              @default(0) @db.TinyInt
-  createdAt    DateTime         @default(now()) @db.DateTime(6)
-  updatedAt    DateTime         @default(now()) @db.DateTime(6)
-  isDeleted    Int              @default(0) @db.TinyInt
-  deletedAt    DateTime?        @db.DateTime(0)
-  deletedBy    String?          @db.VarChar(255)
-  publicId     String           @unique @db.VarChar(8)
-  item         item[]
-  buyerOrders  order[]          @relation("buyerOrders")
-  sellerOrders order[]          @relation("sellerOrders")
-  token        token[]
+  id                Int              @id @default(autoincrement())
+  email             String           @unique(map: "IDX_e12875dfb3b1d92d7d7c5377e2") @db.VarChar(255)
+  password          String           @db.VarChar(255)
+  username          String           @db.VarChar(255)
+  role              user_role        @default(BUYER)
+  iconUrl           String?          @db.VarChar(255)
+  sellerType        user_sellerType?
+  isBanned          Int              @default(0) @db.TinyInt
+  bannedBy          String?          @db.VarChar(255)
+  bannedAt          DateTime?        @db.DateTime(0)
+  isFlagged         Int              @default(0) @db.TinyInt
+  createdAt         DateTime         @default(now()) @db.DateTime(6)
+  updatedAt         DateTime         @default(now()) @db.DateTime(6)
+  isDeleted         Int              @default(0) @db.TinyInt
+  deletedAt         DateTime?        @db.DateTime(0)
+  deletedBy         String?          @db.VarChar(255)
+  publicId          String           @unique @db.VarChar(8)
+  item              item[]
+  recipientMessages message[]        @relation("recipientMessages")
+  senderMessages    message[]        @relation("senderMessages")
+  buyerOrders       order[]          @relation("buyerOrders")
+  sellerOrders      order[]          @relation("sellerOrders")
+  token             token[]
 }
 
 model order {
@@ -81,6 +83,20 @@ model order {
   @@index([buyerId])
   @@index([sellerId])
   @@index([itemId])
+}
+
+model message {
+  id          Int      @id @default(autoincrement())
+  uuid        String   @unique @default(uuid())
+  body        String   @db.VarChar(255)
+  createdAt   DateTime @default(now()) @db.DateTime(6)
+  recipientId Int
+  senderId    Int
+  recipient   user     @relation("recipientMessages", fields: [recipientId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sender      user     @relation("senderMessages", fields: [senderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([senderId])
+  @@index([recipientId])
 }
 
 enum item_name {

@@ -41,7 +41,8 @@ const RecoverModal: FC<Props> = ({open, closeModal, recover}) => {
     };
 
     return (
-        <Modal slots={{backdrop: Backdrop}}
+        <Modal disableScrollLock
+               slots={{backdrop: Backdrop}}
                slotProps={{
                    backdrop: {
                        sx: {

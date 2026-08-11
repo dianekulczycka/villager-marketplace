@@ -42,7 +42,8 @@ const BecomeSellerModal: FC<Props> = ({open, closeModal, onBecomeSeller}) => {
     };
 
     return (
-        <Modal slots={{backdrop: Backdrop}}
+        <Modal disableScrollLock
+               slots={{backdrop: Backdrop}}
                slotProps={{
                    backdrop: {
                        sx: {

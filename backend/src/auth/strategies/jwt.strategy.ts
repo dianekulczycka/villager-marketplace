@@ -1,16 +1,18 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Request } from 'express';
 import { JwtPayload } from '../../shared/interfaces/jwt-payload.interface';
+import { TokenService } from '../../security/token/token.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly tokenService: TokenService,
   ) {
     const jwtSecret: string = configService.get<string>('JWT_SECRET') || '';
     if (!jwtSecret) throw new Error('JWT_SECRET is not defined');
@@ -28,20 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload): Promise<JwtPayload> {
-    const tokenEntity = await this.prisma.token.findUnique({
-      where: {
-        jti: payload.jti,
-        isBlocked: 0,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!tokenEntity) {
-      throw new UnauthorizedException('Token is blocked or invalid');
-    }
-
+    await this.tokenService.validateTokenJti(payload.jti);
     return payload;
   }
 }

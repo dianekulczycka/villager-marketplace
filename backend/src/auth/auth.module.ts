@@ -6,6 +6,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { MailModule } from '../mail/mail.module';
 import { ModerationModule } from '../moderation/moderation.module';
 import { SecurityModule } from '../security/security.module';
+import { WsJwtGuard } from './guards/ws-jwt.guard';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { SecurityModule } from '../security/security.module';
     SecurityModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService],
+  providers: [AuthService, JwtStrategy, WsJwtGuard],
+  exports: [AuthService, WsJwtGuard],
 })
 export class AuthModule {}

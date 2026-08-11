@@ -57,7 +57,8 @@ const UpdateItemModal: FC<Props> = ({open, closeModal, updateItem, selectedItem}
     };
 
     return (
-        <Modal slots={{backdrop: Backdrop}}
+        <Modal disableScrollLock
+               slots={{backdrop: Backdrop}}
                slotProps={{
                    backdrop: {
                        sx: {

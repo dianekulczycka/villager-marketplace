@@ -191,6 +191,42 @@ export class TokenService {
     res.clearCookie('refreshToken');
   }
 
+  async validateTokenJti(jti: string): Promise<void> {
+    const tokenEntity = await this.prisma.token.findUnique({
+      where: {
+        jti,
+        isBlocked: 0,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!tokenEntity) {
+      throw new UnauthorizedException(AUTH_ERRORS.INVALID_TOKEN);
+    }
+  }
+
+  async validateAccessToken(accessToken: string): Promise<JwtPayload> {
+    try {
+      const jwtSecret = this.configService.get<string>('JWT_SECRET');
+
+      if (!jwtSecret) {
+        throw new Error('JWT_SECRET is not defined');
+      }
+
+      const payload = this.jwtService.verify<JwtPayload>(accessToken, {
+        secret: jwtSecret,
+      });
+
+      await this.validateTokenJti(payload.jti);
+
+      return payload;
+    } catch {
+      throw new UnauthorizedException(AUTH_ERRORS.INVALID_TOKEN);
+    }
+  }
+
   private generateTokenPair(payload: JwtPayload): TokenPair {
     const accessToken: string = this.jwtService.sign(payload, {
       expiresIn: `${this.accessTokenExpirationTime}s`,
