@@ -13,6 +13,7 @@ import ErrorPage404 from '../ui/pages/error/ErrorPage404.tsx';
 import {routes} from './routes.ts';
 import UserProfilePage from '../ui/pages/users/UserProfilePage.tsx';
 import OrdersPage from "../ui/pages/orders/OrdersPage.tsx";
+import ChatsPage from "../ui/pages/chats/ChatsPage.tsx";
 
 export const router = createBrowserRouter([
     {
@@ -55,6 +56,13 @@ export const router = createBrowserRouter([
                         children: [
                             {index: true, element: <UsersPage/>},
                             {path: routes.users.me, element: <UserProfilePage/>},
+                        ],
+                    },
+                    {
+                        path: routes.chats.root,
+                        children: [
+                            {index: true, element: <ChatsPage/>},
+                            {path: routes.chats.byId, element: <ChatsPage/>},
                         ],
                     },
                 ],

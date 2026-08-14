@@ -4,6 +4,7 @@ export const MESSAGE_PUBLIC_SELECT: Prisma.messageSelect = {
   uuid: true,
   body: true,
   createdAt: true,
+  isRead: true,
   recipient: {
     select: {
       publicId: true,

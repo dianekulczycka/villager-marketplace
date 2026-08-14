@@ -1,10 +1,11 @@
 import {type FC} from 'react';
 import {Box, Button, Card, Chip, Typography} from '@mui/material';
-import UserCard from '../user/UserCard.tsx';
 import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
 import {useAuth} from "../../../store/helpers/useAuth.ts";
 import Alert from "@mui/material/Alert";
 import type {OrderRequestDto} from "../../../models/order/OrderRequestDto.ts";
+import UserSmallCard from "../user/cards/UserSmallCard.tsx";
+import {routes} from "../../../routes/routes.ts";
 
 interface Props {
     item: ItemAdminView;
@@ -89,7 +90,11 @@ const ItemDetailsCard: FC<Props> = ({item, order, openModal}) => {
 
                 {!!item.isDeleted && <Alert variant="filled" severity="error"> ITEM IS REMOVED </Alert>}
 
-                <UserCard user={item.seller} disabled={!!item.seller.isBanned} variant="S"/>
+                <UserSmallCard
+                    user={item.seller}
+                    disabled={!!item.seller.isBanned}
+                    to={routes.items.bySellerId(item.seller.publicId)}
+                />
             </Box>
         </Card>
     );

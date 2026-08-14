@@ -162,13 +162,14 @@ const UsersPage: FC = () => {
             alignItems: 'center',
         }}>
 
-            {isLoading && <PreloaderComponent />}
+            {isLoading && <PreloaderComponent/>}
 
             <SortSearchComponent
                 query={query as QueryParams<UserSortField>}
                 setQuery={setQuery}
                 fields={Object.values(UserSortField)}
             />
+
             <DataStateComponent
                 data={data}
                 error={error}

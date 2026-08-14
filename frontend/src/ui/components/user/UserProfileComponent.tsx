@@ -1,5 +1,5 @@
 import React, {type FC, type Ref} from 'react';
-import UserProfileCard from './UserProfileCard.tsx';
+import UserProfileCard from './cards/UserProfileCard.tsx';
 import {Box, Card, CardContent} from '@mui/material';
 import ActionButton from '../buttons/ActionButton.tsx';
 import type {UserAdminView} from '../../../models/user/UserAdminView.ts';

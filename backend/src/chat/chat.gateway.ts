@@ -12,17 +12,23 @@ import { JwtPayload } from '../shared/interfaces/jwt-payload.interface';
 import { Socket } from 'socket.io';
 
 @UseGuards(WsJwtGuard)
-@WebSocketGateway(3004)
+@WebSocketGateway(3004, {
+  cors: {
+    origin: 'http://localhost:5173',
+    credentials: true,
+  },
+})
 export class ChatGateway {
   constructor(private readonly chatService: ChatService) {}
 
   @SubscribeMessage('newMessage')
   async handleNewMessage(
-    @MessageBody() body: string,
+    @MessageBody() createMessageDto: CreateMessageDto,
     @ConnectedSocket() client: Socket,
   ) {
-    const createMessageDto = JSON.parse(body) as CreateMessageDto;
     const user = client.data as JwtPayload;
-    return this.chatService.saveMessage(user, createMessageDto);
+    const message = await this.chatService.saveMessage(user, createMessageDto);
+    client.emit('newMessage', message);
+    return message;
   }
 }

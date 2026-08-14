@@ -1,38 +1,51 @@
 export const routes = {
     auth: {
         root: '/auth',
-        login: 'login',
-        register: 'register',
-        recovery: 'account-recovery',
+        login: '/auth/login',
+        register: '/auth/register',
+        recovery: '/auth/account-recovery',
     },
 
     users: {
         root: '/users',
-        byId: 'id/:publicId',
-        me: 'profile',
-        stats: 'profile/stats',
+        byId: '/users/id/:publicId',
+        buildById: (publicId: string) => `/users/id/${publicId}`,
+        me: '/users/profile',
+        stats: '/users/profile/stats',
     },
 
     items: {
         root: '/items',
         bySellerId: (publicId: string) => `/items?sellerId=${publicId}`,
-        byId: 'id/:publicId',
-        my: 'my',
+        byId: '/items/id/:publicId',
+        buildById: (publicId: string) => `/items/id/${publicId}`,
+        my: '/items/my',
     },
 
     orders: {
         root: '/orders',
     },
 
+    chats: {
+        root: '/chats',
+        byId: '/chats/user-id/:userPublicId',
+        buildById: (userPublicId: string) =>
+            `/chats/user-id/${userPublicId}`,
+    },
+
     admin: {
         root: '/admin/users',
-        flagged: 'flagged',
-        banned: 'banned',
-        managers: 'managers',
-        byId: ':publicId',
-    }
+        flagged: '/admin/users/flagged',
+        banned: '/admin/users/banned',
+        managers: '/admin/users/managers',
+        byId: '/admin/users/id/:publicId',
+        buildById: (publicId: string) =>
+            `/admin/users/id/${publicId}`,
+    },
 } as const;
 
-export const publicRoutes = [
-    '/auth/register', '/auth/login', '/auth/account-recovery',
+export const publicRoutes: string[] = [
+    routes.auth.register,
+    routes.auth.login,
+    routes.auth.recovery,
 ];

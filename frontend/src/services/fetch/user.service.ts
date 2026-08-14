@@ -12,6 +12,11 @@ export const getAll = async (params?: UserQueryParams): Promise<PaginationRes<Us
     return data;
 };
 
+export const getById = async (publicId: string): Promise<UserAdminView> => {
+    const {data} = await api.get(endpoints.users.byId(publicId));
+    return data;
+};
+
 export const getMe = async (): Promise<UserAdminView> => {
     const {data} = await api.get(endpoints.users.me);
     return data;

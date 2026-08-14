@@ -17,9 +17,19 @@ import { MessageResponseDto } from './dto/message-response.dto';
 import { UserRequest } from '../user/interfaces/user-request.interface';
 import { paginatePrisma } from '../shared/pagination/prisma-paginator';
 import { PaginationResponse } from '../shared/pagination/pagination-response.interface';
-import { PaginationRequestDto } from '../shared/pagination/pagination-request.dto';
+import { SortDirectionEnum } from '../shared/pagination/pagination-request.dto';
 import { UserPublicDto } from '../user/dto/user-public.dto';
-import { USER_PUBLIC_SELECT } from '../prisma/helpers/user.helpers';
+import {
+  buildUserPublicSearchWhere,
+  USER_PUBLIC_SELECT,
+  USER_PUBLIC_WHERE_BASE,
+} from '../prisma/helpers/user.helpers';
+import {
+  USER_SORT_MAP,
+  UserQueryDto,
+  UserSortFieldEnum,
+} from '../user/dto/user-query.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ChatService {
@@ -48,7 +58,10 @@ export class ChatService {
     });
   }
 
-  async findAll(request: UserRequest): Promise<UserPublicDto[]> {
+  async findAll(
+    request: UserRequest,
+    query: UserQueryDto,
+  ): Promise<PaginationResponse<UserPublicDto>> {
     const userId = request.user.userId;
 
     const messages = await this.prisma.message.findMany({
@@ -64,17 +77,33 @@ export class ChatService {
       ),
     ];
 
-    return this.prisma.user.findMany({
-      where: { id: { in: userIds } },
-      select: USER_PUBLIC_SELECT,
-    });
+    const orderField =
+      USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.CREATED_AT];
+
+    const where: Prisma.userWhereInput = {
+      ...USER_PUBLIC_WHERE_BASE,
+      id: { in: userIds },
+      ...buildUserPublicSearchWhere(query.search),
+    };
+
+    return paginatePrisma<UserPublicDto>(
+      this.prisma.user,
+      {
+        where,
+        select: USER_PUBLIC_SELECT,
+        orderBy: {
+          [orderField]: query.sortDirection ?? SortDirectionEnum.ASC,
+        },
+      },
+      query.page,
+      query.perPage,
+    );
   }
 
-  async findByChatId(
+  async findChatByUserId(
     userPublicId: string,
     request: UserRequest,
-    query: PaginationRequestDto,
-  ): Promise<PaginationResponse<MessageResponseDto>> {
+  ): Promise<MessageResponseDto[]> {
     const otherUser = await this.prisma.user.findUnique({
       where: { publicId: userPublicId },
       select: { id: true },
@@ -82,17 +111,33 @@ export class ChatService {
 
     if (!otherUser) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
 
-    return paginatePrisma<MessageResponseDto>(
-      this.prisma.message,
-      {
-        where: buildChatWhere(request.user.userId, otherUser.id),
-        select: MESSAGE_PUBLIC_SELECT,
-        orderBy: {
-          createdAt: 'desc',
-        },
+    return this.prisma.message.findMany({
+      where: buildChatWhere(request.user.userId, otherUser.id),
+      select: MESSAGE_PUBLIC_SELECT,
+      orderBy: {
+        createdAt: 'asc',
       },
-      query.page,
-      query.perPage,
-    );
+    });
+  }
+
+  async markAsRead(uuid: string, request: UserRequest): Promise<void> {
+    const message = await this.prisma.message.findUnique({
+      where: { uuid },
+      select: {
+        recipientId: true,
+        isRead: true,
+      },
+    });
+
+    if (!message) throw new NotFoundException('Message not found');
+    if (request.user.userId !== message.recipientId) return;
+    if (message.isRead) return;
+
+    await this.prisma.message.update({
+      where: { uuid },
+      data: {
+        isRead: true,
+      },
+    });
   }
 }

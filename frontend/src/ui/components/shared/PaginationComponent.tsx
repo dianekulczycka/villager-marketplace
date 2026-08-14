@@ -18,7 +18,6 @@ export const PaginationComponent: FC<Props> = ({page, pageCount, onChange}) => {
             m: 2,
             p: 1,
             backgroundColor: '#ffffff',
-            width: '20%',
         }}>
             <Pagination
                 page={page}

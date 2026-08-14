@@ -92,6 +92,7 @@ model message {
   createdAt   DateTime @default(now()) @db.DateTime(6)
   recipientId Int
   senderId    Int
+  isRead      Boolean  @default(false)
   recipient   user     @relation("recipientMessages", fields: [recipientId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   sender      user     @relation("senderMessages", fields: [senderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 

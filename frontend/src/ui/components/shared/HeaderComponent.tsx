@@ -12,7 +12,7 @@ export const HeaderComponent: FC = () => {
 
     const handleLogout = async () => {
         logoutUser();
-        navigate(`${routes.auth.root}/${routes.auth.login}`);
+        navigate(routes.auth.login);
     };
 
     if (!user) return <ErrorComponent error="no user"/>;
@@ -51,13 +51,24 @@ export const HeaderComponent: FC = () => {
                 >
                     Users
                 </Link>
-                {!isAuthority && <Link
-                    component={RouterLink}
-                    to={routes.orders.root}
-                    underline="hover"
-                >
-                    Orders
-                </Link>}
+                {!isAuthority &&
+                    <>
+                        <Link
+                            component={RouterLink}
+                            to={routes.orders.root}
+                            underline="hover"
+                        >
+                            Orders
+                        </Link>
+                        <Link
+                            component={RouterLink}
+                            to={routes.chats.root}
+                            underline="hover"
+                        >
+                            Chats
+                        </Link>
+                    </>
+                }
             </Toolbar>
             <Toolbar
                 sx={{
@@ -69,7 +80,7 @@ export const HeaderComponent: FC = () => {
                 <>
                     <Avatar
                         component={RouterLink}
-                        to={`${routes.users.root}/${routes.users.me}`}
+                        to={routes.users.me}
                         src={user.iconUrl}
                         alt={user.username}
                         sx={{

@@ -1,7 +1,7 @@
 import React, {type FC, type Ref} from 'react';
 import {Avatar, Box, Typography} from '@mui/material';
-import type {UserSelfView} from '../../../models/user/UserSelfView.ts';
-import ActionButton from "../buttons/ActionButton.tsx";
+import type {UserSelfView} from '../../../../models/user/UserSelfView.ts';
+import ActionButton from "../../buttons/ActionButton.tsx";
 
 interface Props {
     user: UserSelfView;
@@ -14,7 +14,6 @@ interface Props {
 const UserProfileCard: FC<Props> = ({user, onUploadAvatar, fileInputRef, onAvatarChange, canLoadAvatar}) => {
     return (
         <>
-
             <Box>
                 <Avatar
                     src={user.iconUrl}

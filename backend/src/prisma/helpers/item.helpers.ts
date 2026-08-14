@@ -27,7 +27,10 @@ export const ITEM_PUBLIC_DETAILED_SELECT: Prisma.itemSelect = {
   ...ITEM_PUBLIC_SELECT,
   description: true,
   seller: {
-    select: USER_PUBLIC_SELECT,
+    select: {
+      ...USER_PUBLIC_SELECT,
+      id: true,
+    },
   },
 };
 

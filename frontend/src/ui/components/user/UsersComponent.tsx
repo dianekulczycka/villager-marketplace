@@ -1,7 +1,7 @@
 import {type FC} from 'react';
 import {Box} from '@mui/material';
-import UserCard from './UserCard.tsx';
 import type {UserAdminView} from '../../../models/user/UserAdminView.ts';
+import UserDetailsCard from "./cards/UserDetailsCard.tsx";
 
 interface Props {
     users: UserAdminView[];
@@ -12,7 +12,6 @@ interface Props {
     togglePromote: (user: UserAdminView) => void;
     unflagUser: (user: UserAdminView) => void;
     restoreUser: (user: UserAdminView) => void;
-
 }
 
 const UsersComponent: FC<Props> = ({
@@ -36,7 +35,7 @@ const UsersComponent: FC<Props> = ({
             }}>
             {
                 users.map((user) => (
-                    <UserCard
+                    <UserDetailsCard
                         key={user.publicId}
                         user={user}
                         openDeleteModal={openDeleteModal}
@@ -46,7 +45,7 @@ const UsersComponent: FC<Props> = ({
                         togglePromote={togglePromote}
                         unflagUser={unflagUser}
                         restoreUser={restoreUser}
-                        variant="L"/>
+                    />
                 ))
             }
         </Box>
