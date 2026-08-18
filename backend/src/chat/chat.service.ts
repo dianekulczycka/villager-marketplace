@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { JwtPayload } from '../shared/interfaces/jwt-payload.interface';
 import { USER_ERRORS } from '../shared/errors/user.errors';
@@ -13,7 +9,7 @@ import {
   MESSAGE_PARTICIPANTS_SELECT,
   MESSAGE_PUBLIC_SELECT,
 } from '../prisma/helpers/message.helpers';
-import { MessageResponseDto } from './dto/message-response.dto';
+import { MessageSentResponseDto } from './dto/message-sent-response.dto';
 import { UserRequest } from '../user/interfaces/user-request.interface';
 import { paginatePrisma } from '../shared/pagination/prisma-paginator';
 import { PaginationResponse } from '../shared/pagination/pagination-response.interface';
@@ -30,6 +26,9 @@ import {
   ChatQueryDto,
   ChatSortFieldEnum,
 } from './dto/chat-query.dto';
+import { validateExists } from '../shared/helpers/validate-exists';
+import { MESSAGE_ERRORS } from '../shared/errors/message.errors';
+import { MessageReadResponseDto } from './dto/message-read-response.dto';
 
 @Injectable()
 export class ChatService {
@@ -37,21 +36,24 @@ export class ChatService {
   async saveMessage(
     user: JwtPayload,
     createMessageDto: CreateMessageDto,
-  ): Promise<MessageResponseDto> {
-    const senderId = user.userId;
-    const recipient = await this.prisma.user.findUnique({
-      where: { publicId: createMessageDto.recipientPublicId },
-      select: { id: true },
-    });
-    if (!recipient) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+  ): Promise<MessageSentResponseDto> {
+    if (!createMessageDto.body?.trim())
+      throw new BadRequestException(MESSAGE_ERRORS.EMPTY_MESSAGE);
 
-    if (senderId === recipient.id)
-      throw new BadRequestException('You cannot message yourself');
+    const recipient = validateExists(
+      await this.prisma.user.findUnique({
+        where: { publicId: createMessageDto.recipientPublicId },
+        select: { id: true },
+      }),
+      USER_ERRORS.NOT_FOUND,
+    );
+
+    this.canMessage(user.userId, recipient.id);
 
     return this.prisma.message.create({
       data: {
         body: createMessageDto.body,
-        senderId,
+        senderId: user.userId,
         recipientId: recipient.id,
       },
       select: MESSAGE_PUBLIC_SELECT,
@@ -63,7 +65,6 @@ export class ChatService {
     query: ChatQueryDto,
   ): Promise<PaginationResponse<ChatPublicDto>> {
     const userId = request.user.userId;
-
     const messages = await this.prisma.message.findMany({
       where: buildUserMessagesWhere(userId),
       select: MESSAGE_PARTICIPANTS_SELECT,
@@ -104,25 +105,23 @@ export class ChatService {
       data: await Promise.all(
         result.data.map(async (user) => ({
           ...user,
-          unreadMessages: await this.countUnreadMessages(
-            user.publicId,
-            request,
-          ),
+          unreadMessages: await this.getUnreadCountFromUser(user.id, userId),
         })),
       ),
     };
   }
 
   async findChatByUserId(
-    userPublicId: string,
+    otherUserPublicId: string,
     request: UserRequest,
-  ): Promise<MessageResponseDto[]> {
-    const otherUser = await this.prisma.user.findUnique({
-      where: { publicId: userPublicId },
-      select: { id: true },
-    });
-
-    if (!otherUser) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+  ): Promise<MessageSentResponseDto[]> {
+    const otherUser = validateExists(
+      await this.prisma.user.findUnique({
+        where: { publicId: otherUserPublicId },
+        select: { id: true },
+      }),
+      USER_ERRORS.NOT_FOUND,
+    );
 
     return this.prisma.message.findMany({
       where: buildChatWhere(request.user.userId, otherUser.id),
@@ -133,7 +132,43 @@ export class ChatService {
     });
   }
 
-  async countUnreadMessages(
+  async markChatAsRead(
+    otherUserPublicId: string,
+    currentUserId: number,
+  ): Promise<MessageReadResponseDto> {
+    const otherUser = validateExists(
+      await this.prisma.user.findUnique({
+        where: { publicId: otherUserPublicId },
+        select: { id: true, publicId: true },
+      }),
+      USER_ERRORS.NOT_FOUND,
+    );
+
+    this.canMessage(otherUser.id, currentUserId);
+
+    const count = await this.getUnreadCountFromUser(
+      otherUser.id,
+      currentUserId,
+    );
+
+    await this.prisma.message.updateMany({
+      where: {
+        senderId: otherUser.id,
+        recipientId: currentUserId,
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+      },
+    });
+
+    return {
+      otherUserPublicId: otherUser.publicId,
+      count,
+    };
+  }
+
+  private async getUnreadCountFromUser(
     senderId: number,
     recipientId: number,
   ): Promise<number> {
@@ -146,16 +181,9 @@ export class ChatService {
     });
   }
 
-  async markChatAsRead(senderId: number, recipientId: number): Promise<void> {
-    await this.prisma.message.updateMany({
-      where: {
-        senderId,
-        recipientId,
-        isRead: false,
-      },
-      data: {
-        isRead: true,
-      },
-    });
+  private canMessage(senderId: number, recipientId: number): void {
+    if (senderId === recipientId)
+      throw new BadRequestException(MESSAGE_ERRORS.CANNOT_MESSAGE_SELF);
+    return;
   }
 }

@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Param,
-  Patch,
   Query,
   Request,
   UseGuards,
@@ -12,7 +11,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ChatService } from './chat.service';
 import * as userRequestInterface from '../user/interfaces/user-request.interface';
 import { PaginationResponse } from '../shared/pagination/pagination-response.interface';
-import { MessageResponseDto } from './dto/message-response.dto';
+import { MessageSentResponseDto } from './dto/message-sent-response.dto';
 import { ChatPublicDto } from './dto/chat-public.dto';
 import { ChatQueryDto } from './dto/chat-query.dto';
 
@@ -34,15 +33,7 @@ export class ChatController {
   async getChatByUserId(
     @Param('userPublicId') userPublicId: string,
     @Request() request: userRequestInterface.UserRequest,
-  ): Promise<MessageResponseDto[]> {
+  ): Promise<MessageSentResponseDto[]> {
     return this.chatService.findChatByUserId(userPublicId, request);
-  }
-
-  @Patch('message-id/:userPublicId/read')
-  async markChatAsRead(
-    @Param('userPublicId') userPublicId: string,
-    @Request() request: userRequestInterface.UserRequest,
-  ): Promise<void> {
-    await this.chatService.markChatAsRead(userPublicId, request);
   }
 }

@@ -21,6 +21,7 @@ interface Props {
     togglePromote: (user: UserAdminView) => void;
     unflagUser: (user: UserAdminView) => void;
     restoreUser: (user: UserAdminView) => void;
+    handlePageChange: (newPage: number) => void;
 }
 
 const AdminView: FC<Props> = ({
@@ -36,11 +37,8 @@ const AdminView: FC<Props> = ({
                                   unflagUser,
                                   restoreUser,
                                   openHardDeleteModal,
+                                  handlePageChange
                               }) => {
-
-    const handlePageChange = (newPage: number) => {
-        setQuery({page: newPage});
-    };
 
     return (
         <>

@@ -1,28 +1,17 @@
 import React, {type FC, useRef, useState} from 'react';
 import UserProfileComponent from '../../components/user/UserProfileComponent.tsx';
 import {useAuth} from '../../../store/helpers/useAuth.ts';
-import {
-    getMy,
-    post,
-    softDelete as itemSoftDelete,
-    update as itemUpdate,
-} from '../../../services/fetch/item.service.ts';
+import {getMy,} from '../../../services/fetch/item.service.ts';
 import {
     becomeSeller,
     getAll,
     softDelete,
     stats as loadStats,
-    update,
     uploadAvatar,
 } from '../../../services/fetch/user.service.ts';
-import {NumberParam, StringParam, useQueryParams, withDefault} from 'use-query-params';
 import {ItemSortField} from '../../../models/enums/ItemSortField.ts';
 import type {BecomeSellerDto} from '../../../models/user/BecomeSellerDto.ts';
 import {Box} from '@mui/material';
-import type {ActiveModal} from '../../../models/item/ActiveModal.ts';
-import type {CreateItemDto} from '../../../models/item/CreateItemDto.ts';
-import type {UpdateItemDto} from '../../../models/item/UpdateItemDto.ts';
-import {createOpenModal} from '../../../helpers/createOpenModal.ts';
 import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal.tsx';
 import UpdateItemModal from '../../components/modals/UpdateItemModal.tsx';
 import CreateItemModal from '../../components/modals/CreateItemModal.tsx';
@@ -36,28 +25,20 @@ import type {UserQueryParams} from '../../../models/user/UserQueryParams.ts';
 import AdminView from '../../components/user/profile/AdminView.tsx';
 import type {PaginationRes} from '../../../models/pagiantion/PaginationRes.ts';
 import type {UserSortField} from '../../../models/enums/UserSortField.ts';
-import {
-    ban,
-    demote,
-    getBanned,
-    getFlagged,
-    getManagers,
-    hardDelete,
-    promote,
-    restore,
-    softDelete as adminSoftDelete,
-    unban,
-    unflag,
-} from '../../../services/fetch/admin.service.ts';
+import {getBanned, getFlagged, getManagers,} from '../../../services/fetch/admin.service.ts';
 import type {ProfileStats} from '../../../models/stats/ProfileStats.ts';
 import {useQuery} from '@tanstack/react-query';
-import {useMutationHandler} from "../../../helpers/handleMutation.ts";
+import {useMutationHandler} from "../../../hooks/useMutationHandler.ts";
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
 import type {ItemQueryParams} from "../../../models/item/ItemQueryParams.ts";
 import PreloaderComponent from "../../components/shared/PreloaderComponent.tsx";
 import {ALLOWED_AVATAR_TYPES, MAX_AVATAR_SIZE} from "../../../validation/avatar-upload.constraints.ts";
-
-export type PageView = 'ITEMS' | 'USERS' | 'BANNED_USERS' | 'FLAGGED_USERS' | 'MANAGERS';
+import {useAdminUserActions} from "../../../hooks/useAdminUserActions.ts";
+import {useItemActions} from "../../../hooks/useItemActions.ts";
+import {ProfilePageView} from "../../../models/enums/ProfilePageView.ts";
+import type {UpdateItemDto} from "../../../models/item/UpdateItemDto.ts";
+import {useModalState} from "../../../hooks/useModalState.ts";
+import {type PaginationQuery, usePaginatedQuery} from "../../../hooks/usePaginatedQuery.ts";
 
 const UserProfilePage: FC = () => {
     const {user, loadUser, logoutUser} = useAuth();
@@ -65,97 +46,107 @@ const UserProfilePage: FC = () => {
     const userRole = user?.role;
     const isAuthority = userRole === 'ADMIN' || userRole === 'MANAGER';
 
-    const [activeModal, setActiveModal] = useState<ActiveModal>(null);
-    const [selectedItem, setSelectedItem] = useState<ItemAdminView | null>(null);
-    const [selectedUser, setSelectedUser] = useState<UserAdminView | null>(null);
-    const [pageView, setPageView] = useState<PageView>(
-        isAuthority ? 'USERS' : 'ITEMS'
+    const [pageView, setPageView] = useState<ProfilePageView>(
+        isAuthority ? ProfilePageView.USERS : ProfilePageView.ITEMS,
     );
-    const openItemModal = createOpenModal<ItemAdminView>(setActiveModal, setSelectedItem);
-    const openUserModal = createOpenModal<UserAdminView>(setActiveModal, setSelectedUser);
+
+    const {
+        activeModal,
+        selected: selectedItem,
+        openModal: openItemModal,
+        closeModal,
+    } = useModalState<ItemAdminView>();
+
+    const {
+        selected: selectedUser,
+        openModal: openUserModal,
+    } = useModalState<UserAdminView>();
 
     const openBecomeModal = () => openItemModal('become');
     const openCreateModal = () => openItemModal('create');
-    const openUpdateItemModal = (item: ItemAdminView) => openItemModal('updateItem', item);
-    const openDeleteItemModal = (item: ItemAdminView) => openItemModal('deleteItem', item);
-    const openUpdateUserModal = (user: UserAdminView) => openUserModal('updateUser', user);
-    const openDeleteUserModal = (user: UserAdminView) => openUserModal('deleteUser', user);
-    const openDeleteMyProfileModal = (user: UserAdminView) => openUserModal('deleteMyProfile', user);
-    const openHardDeleteModal = (user: UserAdminView) => openUserModal('hardDeleteUser', user);
 
-    const closeModal = () => setActiveModal(null);
+    const openUpdateItemModal = (item: ItemAdminView) =>
+        openItemModal('updateItem', item);
 
-    const [query, setQuery] = useQueryParams({
-        page: withDefault(NumberParam, 1),
-        perPage: withDefault(NumberParam, 8),
-        sortBy: StringParam,
-        sortDirection: StringParam,
-        search: StringParam,
-    });
+    const openDeleteItemModal = (item: ItemAdminView) =>
+        openItemModal('deleteItem', item);
 
-    const fetchPageData = () => {
-        if (userRole === 'SELLER' && pageView === 'ITEMS') {
-            return getMy({
-                page: query.page,
-                perPage: query.perPage,
-                sortBy: query.sortBy as ItemSortField | undefined,
-                sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
-                search: query.search ?? undefined,
-            });
+    const openUpdateUserModal = (user: UserAdminView) =>
+        openUserModal('updateUser', user);
+
+    const openDeleteUserModal = (user: UserAdminView) =>
+        openUserModal('deleteUser', user);
+
+    const openDeleteMyProfileModal = (user: UserAdminView) =>
+        openUserModal('deleteMyProfile', user);
+
+    const openHardDeleteModal = (user: UserAdminView) =>
+        openUserModal('hardDeleteUser', user);
+
+    const fetchPageData = (
+        query: PaginationQuery,
+    ): Promise<PaginationRes<ItemAdminView | UserAdminView>> => {
+        const params = {
+            page: query.page,
+            perPage: query.perPage,
+        };
+        const sortDirection =
+            query.sortDirection as 'asc' | 'desc' | undefined;
+        const errorMsg = 'Invalid query state';
+
+        switch (pageView) {
+            case ProfilePageView.ITEMS:
+                if (userRole !== 'SELLER') throw new Error(errorMsg);
+
+                return getMy({
+                    ...params,
+                    sortBy: query.sortBy as ItemSortField | undefined,
+                    sortDirection,
+                    search: query.search ?? undefined,
+                });
+
+            case ProfilePageView.USERS:
+                if (!isAuthority) throw new Error(errorMsg);
+
+                return getAll({
+                    ...params,
+                    sortBy: query.sortBy as UserSortField | undefined,
+                    sortDirection,
+                    search: query.search ?? undefined,
+                });
+
+            case ProfilePageView.FLAGGED:
+                if (!isAuthority) throw new Error(errorMsg);
+                return getFlagged(params);
+
+            case ProfilePageView.BANNED:
+                if (!isAuthority) throw new Error(errorMsg);
+                return getBanned(params);
+
+            case ProfilePageView.MANAGERS:
+                if (userRole !== 'ADMIN') throw new Error(errorMsg);
+                return getManagers(params);
+
+            default:
+                throw new Error(errorMsg);
         }
-
-        if (isAuthority && pageView === 'USERS') {
-            return getAll({
-                page: query.page,
-                perPage: query.perPage,
-                sortBy: query.sortBy as UserSortField | undefined,
-                sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
-                search: query.search ?? undefined,
-            });
-        }
-
-        if (isAuthority && pageView === 'FLAGGED_USERS') {
-            return getFlagged({
-                page: query.page,
-                perPage: query.perPage,
-            });
-        }
-
-        if (isAuthority && pageView === 'BANNED_USERS') {
-            return getBanned({
-                page: query.page,
-                perPage: query.perPage,
-            });
-        }
-
-        if (userRole === 'ADMIN' && pageView === 'MANAGERS') {
-            return getManagers({
-                page: query.page,
-                perPage: query.perPage,
-            });
-        }
-        throw new Error('Invalid query state');
     };
 
     const {
+        query,
+        setQuery,
         data,
         isLoading,
         error,
         refetch,
-    } = useQuery<PaginationRes<ItemAdminView | UserAdminView> | null>({
-        queryKey: [
-            'profilePage',
-            pageView,
-            userRole,
-            query.page,
-            query.perPage,
-            query.sortBy,
-            query.sortDirection,
-            query.search,
-        ],
-        queryFn: fetchPageData,
-        enabled: !!userRole,
-    });
+        handlePageChange,
+    } = usePaginatedQuery<PaginationRes<ItemAdminView | UserAdminView>>(
+        'profilePage',
+        fetchPageData,
+        undefined,
+        undefined,
+        {enabled: !!userRole}
+    );
 
     const {
         data: stats,
@@ -176,6 +167,47 @@ const UserProfilePage: FC = () => {
         isMutating
     } = useMutationHandler(refetch);
 
+    const {
+        updateUser,
+        deleteUser,
+        hardDeleteUser,
+        toggleBan,
+        togglePromote,
+        unflagUser,
+        restoreUser,
+    } = useAdminUserActions(handleMutation);
+
+    const {
+        createItem,
+        updateItem,
+        deleteItem,
+    } = useItemActions(handleMutation);
+
+    const handleUpdateUser = async (dto: UpdateUserDto) => {
+        if (!selectedUser) return;
+        await updateUser(selectedUser.publicId, dto);
+    };
+
+    const handleDeleteUser = async () => {
+        if (!selectedUser) return;
+        await deleteUser(selectedUser.publicId);
+    };
+
+    const handleHardDeleteUser = async () => {
+        if (!selectedUser) return;
+        await hardDeleteUser(selectedUser.publicId);
+    };
+
+    const handleUpdateItem = async (dto: UpdateItemDto) => {
+        if (!selectedItem) return;
+        await updateItem(selectedItem.publicId, dto);
+    };
+
+    const handleDeleteItem = async () => {
+        if (!selectedItem) return;
+        await deleteItem(selectedItem.publicId);
+    };
+
     const onBecomeSeller = async (data: BecomeSellerDto) => {
         await handleMutation(
             async () => {
@@ -186,119 +218,12 @@ const UserProfilePage: FC = () => {
         );
     };
 
-    const createItem = async (data: CreateItemDto) => {
-        await handleMutation(
-            async () => {
-                await post({
-                    ...data,
-                    description: data.description?.trim() || undefined,
-                });
-            },
-            'Item created',
-        );
-    };
-
-    const updateItem = async (dto: UpdateItemDto) => {
-        if (!selectedItem) return;
-        await handleMutation(
-            async () => {
-                await itemUpdate(selectedItem.publicId, dto);
-            },
-            'Item updated',
-        );
-    };
-
-    const updateUser = async (dto: UpdateUserDto) => {
-        if (!selectedUser) return;
-
-        await handleMutation(
-            async () => {
-                await update(dto);
-                loadUser();
-            },
-            'User updated',
-        );
-    };
-
-    const deleteItem = async () => {
-        if (!selectedItem) return;
-        await handleMutation(
-            async () => {
-                await itemSoftDelete(selectedItem.publicId);
-            }, 'Item deleted');
-    };
-
-    const deleteUser = async () => {
-        if (!selectedUser) return;
-
-        await handleMutation(
-            async () => {
-                await adminSoftDelete(selectedUser.publicId);
-            },
-            'User deleted',
-        );
-    };
-
     const deleteMyProfile = async () => {
         await softDelete();
         logoutUser();
     };
 
-    const hardDeleteUser = async () => {
-        if (!selectedUser) return;
-        await handleMutation(
-            async () => {
-                await hardDelete(selectedUser.publicId)
-            }, 'User hard deleted');
-    };
-
-    const toggleBan = async (user: UserAdminView) => {
-        await handleMutation(
-            async () => {
-                await (user.isBanned
-                    ? unban(user.publicId)
-                    : ban(user.publicId));
-            },
-            user.isBanned
-                ? 'User unbanned'
-                : 'User banned',
-        );
-    };
-
-    const togglePromote = async (user: UserAdminView) => {
-        await handleMutation(
-            async () => {
-                await (
-                    user.role !== 'MANAGER'
-                        ? promote(user.publicId)
-                        : demote(user.publicId)
-                );
-            },
-            user.role !== 'MANAGER'
-                ? 'User promoted'
-                : 'User demoted',
-        );
-    };
-
-    const unflagUser = async (user: UserAdminView) => {
-        await handleMutation(
-            async () => {
-                if (user.isFlagged) {
-                    await unflag(user.publicId)
-                }
-            }, 'User unflagged');
-    };
-
-    const restoreUser = async (user: UserAdminView) => {
-        await handleMutation(
-            async () => {
-                if (user.isDeleted) {
-                    await restore(user.publicId);
-                }
-            }, 'User restored');
-    };
-
-    const changeView = (view: PageView) => {
+    const changeView = (view: ProfilePageView) => {
         setPageView(view);
         setQuery({page: 1});
     };
@@ -351,18 +276,20 @@ const UserProfilePage: FC = () => {
                 fileInputRef={fileInputRef}
             />
 
-            {userRole === 'SELLER' && pageView === 'ITEMS' && (
+            {userRole === 'SELLER' && pageView === ProfilePageView.ITEMS && (
                 <SellerView
                     query={query as ItemQueryParams}
                     setQuery={setQuery}
                     items={data as PaginationRes<ItemAdminView>}
                     loading={isLoading}
                     error={error}
+                    handlePageChange={handlePageChange}
                     openUpdateModal={openUpdateItemModal}
-                    openDeleteModal={openDeleteItemModal}/>
+                    openDeleteModal={openDeleteItemModal}
+                />
             )}
 
-            {isAuthority && pageView !== 'ITEMS' && (
+            {isAuthority && pageView !== ProfilePageView.ITEMS && (
                 <AdminView
                     query={query as UserQueryParams}
                     setQuery={setQuery}
@@ -376,12 +303,14 @@ const UserProfilePage: FC = () => {
                     togglePromote={togglePromote}
                     unflagUser={unflagUser}
                     restoreUser={restoreUser}
-                />)}
+                    handlePageChange={handlePageChange}
+                />
+            )}
 
             <UpdateUserModal
                 open={activeModal === 'updateUser'}
                 closeModal={closeModal}
-                onUpdateUser={updateUser}
+                onUpdateUser={handleUpdateUser}
                 selectedUser={selectedUser}
             />
 
@@ -397,10 +326,10 @@ const UserProfilePage: FC = () => {
                     activeModal === 'deleteMyProfile'
                         ? deleteMyProfile
                         : activeModal === 'hardDeleteUser'
-                            ? hardDeleteUser
+                            ? handleHardDeleteUser
                             : activeModal === 'deleteItem'
-                                ? deleteItem
-                                : deleteUser
+                                ? handleDeleteItem
+                                : handleDeleteUser
                 }
             />
 
@@ -412,7 +341,7 @@ const UserProfilePage: FC = () => {
             <UpdateItemModal
                 open={activeModal === 'updateItem'}
                 closeModal={closeModal}
-                updateItem={updateItem}
+                updateItem={handleUpdateItem}
                 selectedItem={selectedItem}
             />
             <BecomeSellerModal

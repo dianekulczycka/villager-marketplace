@@ -31,12 +31,13 @@ const UserDetailsCard: FC<Props> = ({
                                     }) => {
     const {user: loggedUser} = useAuth();
     const isAuthority = loggedUser!.role === 'ADMIN' || loggedUser!.role === 'MANAGER';
-    const isUserSeller = user.role !== "SELLER"
+    const isUserSeller = user.role === 'SELLER';
+    const canNavigate = !isAuthority && isUserSeller;
 
     return (
         <Card
-            component={isAuthority && isUserSeller ? 'div' : Link}
-            to={isAuthority && isUserSeller ? undefined : routes.items.bySellerId(user.publicId)}
+            component={canNavigate ? Link : 'div'}
+            to={canNavigate ? routes.items.bySellerId(user.publicId) : undefined}
             sx={{
                 position: 'relative',
                 borderRadius: 3,

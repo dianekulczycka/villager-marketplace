@@ -18,10 +18,12 @@ export class RestrictedUserGuard implements CanActivate {
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req = ctx.switchToHttp().getRequest<Request & UserRequest>();
+    const userId = req.user?.userId;
+    if (!userId) return true;
 
     const user = validateExists(
       await this.prisma.user.findUnique({
-        where: { id: req.user?.userId },
+        where: { id: userId },
         select: { isBanned: true, isDeleted: true },
       }),
       USER_ERRORS.RESTRICTED,

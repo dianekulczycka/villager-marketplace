@@ -28,7 +28,7 @@ export const getMy = async (params?: ItemQueryParams): Promise<PaginationRes<Ite
     return data;
 };
 
-export const post = async (dto: CreateItemDto): Promise<ItemView> => {
+export const create = async (dto: CreateItemDto): Promise<ItemView> => {
     const {data} = await api.post(endpoints.items.root, dto);
     return data;
 };

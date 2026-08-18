@@ -2,6 +2,7 @@ import {
   CallHandler,
   ExecutionContext,
   Injectable,
+  Logger,
   NestInterceptor,
 } from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
@@ -9,6 +10,7 @@ import { UserRequest } from '../../user/interfaces/user-request.interface';
 
 @Injectable()
 export class RequestDetailsLoggerInteceptor implements NestInterceptor {
+  private readonly logger = new Logger(RequestDetailsLoggerInteceptor.name);
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const started = Date.now();
 
@@ -26,7 +28,7 @@ export class RequestDetailsLoggerInteceptor implements NestInterceptor {
         const role: string = request.user
           ? `ROLE: ${request.user.role.toLowerCase()}`
           : '';
-        console.log(
+        this.logger.log(
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           `${method} ${originalUrl}, STATUS: ${response.statusCode}, TIME: ${new Date().toISOString()}, DURATION: ${Date.now() - started} ms, ${user}, ${role}, IP: ${ip}`,
         );

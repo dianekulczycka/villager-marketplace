@@ -8,7 +8,7 @@ import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
 import OrderModal from "../../components/modals/OrderModal.tsx";
 import type {OrderRequestDto} from "../../../models/order/OrderRequestDto.ts";
 import {order as orderItem} from "../../../services/fetch/order.service.ts";
-import {useMutationHandler} from "../../../helpers/handleMutation.ts";
+import {useMutationHandler} from "../../../hooks/useMutationHandler.ts";
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
 
 const ItemDetailsPage: FC = () => {

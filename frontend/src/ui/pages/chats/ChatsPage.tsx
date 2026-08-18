@@ -6,22 +6,24 @@ import MessagesComponent from "../../components/chats/messages/MessagesComponent
 import MessageInput from "../../components/chats/messages/MessageInput.tsx";
 import DataStateComponent from "../../components/shared/DataStateComponent.tsx";
 import {PaginationComponent} from "../../components/shared/PaginationComponent.tsx";
-import {NumberParam, StringParam, useQueryParams, withDefault} from "use-query-params";
 import {routes} from "../../../routes/routes.ts";
-import {useNavigate, useParams} from "react-router";
+import {useLocation, useNavigate, useParams} from "react-router";
 import {useQuery, useQueryClient} from "@tanstack/react-query";
 import {getAll, getById} from "../../../services/fetch/chat.service.ts";
 import PreloaderComponent from "../../components/shared/PreloaderComponent.tsx";
-import {UserSortField} from "../../../models/enums/UserSortField.ts";
 import SortSearchComponent from "../../components/shared/SortSearchComponent.tsx";
 import type {QueryParams} from "../../../models/pagiantion/QueryParams.ts";
 import {getById as getUserById} from "../../../services/fetch/user.service.ts";
 import {chatWsService} from "../../../services/websocket/chat.service.ts";
 import type {MessageView} from "../../../models/chats/MessageView.ts";
 import {ChatSortField} from "../../../models/enums/ChatSortField.ts";
+import {usePaginatedQuery} from "../../../hooks/usePaginatedQuery.ts";
+import type {PaginationRes} from "../../../models/pagiantion/PaginationRes.ts";
+import type {ChatView} from "../../../models/chats/ChatView.ts";
 
 const ChatsPage: FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const queryClient = useQueryClient();
     const {userPublicId} = useParams();
     const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -33,37 +35,27 @@ const ChatsPage: FC = () => {
         };
     }, []);
 
-    const [query, setQuery] = useQueryParams({
-        page: withDefault(NumberParam, 1),
-        perPage: withDefault(NumberParam, 7),
-        sortBy: StringParam,
-        sortDirection: StringParam,
-        search: StringParam,
-    });
-
     const {
+        query,
+        setQuery,
         data: chats,
         isLoading: chatsLoading,
         error: chatsError,
-    } = useQuery({
-        queryKey: [
-            'chats',
-            query.page,
-            query.perPage,
-            query.sortBy,
-            query.sortDirection,
-            query.search,
-        ],
-        queryFn: () =>
+        handlePageChange,
+    } = usePaginatedQuery<PaginationRes<ChatView>>(
+        'chats',
+        (query) =>
             getAll({
                 page: query.page,
                 perPage: query.perPage,
-                sortBy: query.sortBy as UserSortField | undefined,
+                sortBy: query.sortBy as ChatSortField | undefined,
                 sortDirection:
                     query.sortDirection as 'asc' | 'desc' | undefined,
                 search: query.search ?? undefined,
             }),
-    });
+        undefined,
+        7
+    );
 
     const {
         data: selectedUser,
@@ -108,24 +100,17 @@ const ChatsPage: FC = () => {
             messagesContainerRef.current.scrollHeight;
     }, [userPublicId, messages]);
 
-    const handlePageChange = (newPage: number) => {
-        setQuery({page: newPage});
-    };
-
     const handleChatLoad = (publicId: string) => {
-        navigate(routes.chats.buildById(publicId));
+        navigate({
+            pathname: routes.chats.buildById(publicId),
+            search: location.search,
+        });
     };
 
     const sendMessage = (body: string) => {
         if (!userPublicId) return;
         chatWsService.newMessage({recipientPublicId: userPublicId, body});
     };
-
-    // const markChatAsRead = async (): Promise<void> => {
-    //     if (!userPublicId || !selectedUser?.unreadMessages) return;
-    //
-    //     await markAsRead(userPublicId);
-    // };
 
     return (
         <Box

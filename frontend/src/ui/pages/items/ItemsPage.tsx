@@ -1,66 +1,57 @@
-import {type FC, useState} from 'react';
+import {type FC} from 'react';
 import ItemsComponent from '../../components/item/ItemsComponent.tsx';
 import {PaginationComponent} from '../../components/shared/PaginationComponent.tsx';
-import {NumberParam, StringParam, useQueryParams, withDefault} from 'use-query-params';
-import {getAll, softDelete as itemSoftDelete, update as itemUpdate} from '../../../services/fetch/item.service.ts';
+import {getAll} from '../../../services/fetch/item.service.ts';
 import {ItemSortField} from '../../../models/enums/ItemSortField.ts';
 import DataStateComponent from '../../components/shared/DataStateComponent.tsx';
 import SortSearchComponent from '../../components/shared/SortSearchComponent.tsx';
 import {Box} from '@mui/material';
 import UpdateItemModal from '../../components/modals/UpdateItemModal.tsx';
 import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal.tsx';
-import type {ActiveModal} from '../../../models/item/ActiveModal.ts';
-import type {UpdateItemDto} from '../../../models/item/UpdateItemDto.ts';
-import {createOpenModal} from '../../../helpers/createOpenModal.ts';
 import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
-import {useQuery} from '@tanstack/react-query';
 import type {QueryParams} from "../../../models/pagiantion/QueryParams.ts";
-import {useMutationHandler} from "../../../helpers/handleMutation.ts";
+import {useMutationHandler} from "../../../hooks/useMutationHandler.ts";
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
+import {useItemActions} from "../../../hooks/useItemActions.ts";
+import type {UpdateItemDto} from "../../../models/item/UpdateItemDto.ts";
+import {useModalState} from "../../../hooks/useModalState.ts";
+import {usePaginatedQuery} from "../../../hooks/usePaginatedQuery.ts";
+import type {PaginationRes} from "../../../models/pagiantion/PaginationRes.ts";
 
 const ItemsPage: FC = () => {
-    const [activeModal, setActiveModal] = useState<ActiveModal>(null);
-    const [selectedItem, setSelectedItem] = useState<ItemAdminView | null>(null);
-    const openItemModal = createOpenModal<ItemAdminView>(setActiveModal, setSelectedItem);
+    const {
+        activeModal,
+        selected: selectedItem,
+        openModal,
+        closeModal,
+    } = useModalState<ItemAdminView>();
+    const openUpdateItemModal = (item: ItemAdminView) =>
+        openModal('updateItem', item);
 
-    const openUpdateItemModal = (item: ItemAdminView) => openItemModal('updateItem', item);
-    const openDeleteItemModal = (item: ItemAdminView) => openItemModal('deleteItem', item);
-    const closeModal = () => setActiveModal(null);
-
-    const [query, setQuery] = useQueryParams({
-        page: withDefault(NumberParam, 1),
-        perPage: withDefault(NumberParam, 8),
-        sortBy: StringParam,
-        sortDirection: StringParam,
-        search: StringParam,
-        sellerId: StringParam,
-    });
+    const openDeleteItemModal = (item: ItemAdminView) =>
+        openModal('deleteItem', item);
 
     const {
+        query,
+        setQuery,
         data,
         isLoading,
         error,
         refetch,
-    } = useQuery({
-        queryKey: [
-            'items',
-            query.page,
-            query.perPage,
-            query.sortBy,
-            query.sortDirection,
-            query.search,
-            query.sellerId
-        ],
-        queryFn: () =>
+        handlePageChange,
+    } = usePaginatedQuery<PaginationRes<ItemAdminView>>(
+        'items',
+        (query) =>
             getAll({
                 page: query.page,
                 perPage: query.perPage,
                 sortBy: query.sortBy as ItemSortField | undefined,
-                sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
+                sortDirection:
+                    query.sortDirection as 'asc' | 'desc' | undefined,
                 search: query.search ?? undefined,
                 sellerId: query.sellerId ?? undefined,
             }),
-    });
+    );
 
     const {
         isMutating,
@@ -71,24 +62,16 @@ const ItemsPage: FC = () => {
         handleMutation,
     } = useMutationHandler(refetch);
 
-    const handlePageChange = (newPage: number) => {
-        setQuery({page: newPage});
+    const {updateItem, deleteItem} = useItemActions(handleMutation);
+
+    const handleUpdateItem = async (dto: UpdateItemDto) => {
+        if (!selectedItem) return;
+        await updateItem(selectedItem.publicId, dto);
     };
 
-    const updateItem = async (dto: UpdateItemDto) => {
+    const handleDeleteItem = async () => {
         if (!selectedItem) return;
-        await handleMutation(
-            async () => {
-                await itemUpdate(selectedItem.publicId, dto);
-            }, 'Item updated');
-    };
-
-    const deleteItem = async () => {
-        if (!selectedItem) return;
-        await handleMutation(
-            async () => {
-                await itemSoftDelete(selectedItem.publicId);
-            }, 'Item deleted');
+        await deleteItem(selectedItem.publicId);
     };
 
     return (
@@ -126,13 +109,13 @@ const ItemsPage: FC = () => {
             <UpdateItemModal
                 open={activeModal === 'updateItem'}
                 closeModal={closeModal}
-                updateItem={updateItem}
+                updateItem={handleUpdateItem}
                 selectedItem={selectedItem}
             />
             <ConfirmDeleteModal
                 open={activeModal === 'deleteItem'}
                 closeModal={closeModal}
-                deleteEntity={deleteItem}
+                deleteEntity={handleDeleteItem}
             />
 
             <InfoSnackbar

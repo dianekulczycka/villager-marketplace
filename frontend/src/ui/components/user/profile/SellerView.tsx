@@ -17,6 +17,7 @@ interface Props {
     error: Error | null;
     openUpdateModal: (item: ItemAdminView) => void;
     openDeleteModal: (item: ItemAdminView) => void;
+    handlePageChange: (newPage: number) => void;
 }
 
 const SellerView: FC<Props> = ({
@@ -27,12 +28,8 @@ const SellerView: FC<Props> = ({
                                    error,
                                    openUpdateModal,
                                    openDeleteModal,
+                                   handlePageChange
                                }) => {
-
-    const handlePageChange = (newPage: number) => {
-        setQuery({page: newPage});
-    };
-
     return (
         <>
             <SortSearchComponent

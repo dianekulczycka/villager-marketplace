@@ -42,7 +42,6 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   await app.listen(process.env.DEFAULT_PORT ?? 3003);
-  console.log('Server listening on 3003');
 }
 
 bootstrap();

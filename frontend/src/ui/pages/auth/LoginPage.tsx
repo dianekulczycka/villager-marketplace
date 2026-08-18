@@ -13,6 +13,7 @@ import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
 const LoginPage: FC = () => {
     const navigate = useNavigate();
     const {loadUser} = useAuth();
+
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [activeModal, setActiveModal] = useState<ActiveModal>(null);
 

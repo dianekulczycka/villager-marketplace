@@ -1,6 +1,4 @@
 import {type FC, useState} from "react";
-import {NumberParam, StringParam, useQueryParams, withDefault} from "use-query-params";
-import {useQuery} from "@tanstack/react-query";
 import {Box, MenuItem, Select} from "@mui/material";
 import SortSearchComponent from "../../components/shared/SortSearchComponent.tsx";
 import type {QueryParams} from "../../../models/pagiantion/QueryParams.ts";
@@ -10,8 +8,11 @@ import {OrderSortField} from "../../../models/enums/OrderSortField.ts";
 import {confirm, getMyBuyingOrders, getMySellingOrders, reject} from "../../../services/fetch/order.service.ts";
 import OrdersComponent from "../../components/orders/OrdersComponent.tsx";
 import {useAuth} from "../../../store/helpers/useAuth.ts";
-import {useMutationHandler} from "../../../helpers/handleMutation.ts";
+import {useMutationHandler} from "../../../hooks/useMutationHandler.ts";
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
+import {usePaginatedQuery} from "../../../hooks/usePaginatedQuery.ts";
+import type {PaginationRes} from "../../../models/pagiantion/PaginationRes.ts";
+import type {OrderResponseDto} from "../../../models/order/OrderResponseDto.ts";
 
 type OrderMode = "SELL" | "BUY";
 
@@ -26,46 +27,31 @@ const OrdersPage: FC = () => {
         (field) => field !== OrderSortField.SELLER_ID,
     );
 
-    const [query, setQuery] = useQueryParams({
-        page: withDefault(NumberParam, 1),
-        perPage: withDefault(NumberParam, 12),
-        sortBy: StringParam,
-        sortDirection: StringParam,
-        search: StringParam,
-    });
-
     const {
+        query,
+        setQuery,
         data,
         isLoading,
         error,
-        refetch
-    } = useQuery({
-        queryKey: [
-            'orders',
-            displayMode,
-            query.page,
-            query.perPage,
-            query.sortBy,
-            query.sortDirection,
-            query.search,
-        ],
-        queryFn: () =>
-            displayMode === "BUY" ?
-                getMyBuyingOrders({
-                    page: query.page,
-                    perPage: query.perPage,
-                    sortBy: query.sortBy as OrderSortField | undefined,
-                    sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
-                    search: query.search ?? undefined,
-                }) :
-                getMySellingOrders({
-                    page: query.page,
-                    perPage: query.perPage,
-                    sortBy: query.sortBy as OrderSortField | undefined,
-                    sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
-                    search: query.search ?? undefined,
-                }),
-    });
+        refetch,
+        handlePageChange,
+    } = usePaginatedQuery<PaginationRes<OrderResponseDto>>(
+        'orders',
+        (query) => {
+            const params = {
+                page: query.page,
+                perPage: query.perPage,
+                sortBy: query.sortBy as OrderSortField | undefined,
+                sortDirection:
+                    query.sortDirection as 'asc' | 'desc' | undefined,
+                search: query.search ?? undefined,
+            };
+            return displayMode === 'BUY'
+                ? getMyBuyingOrders(params)
+                : getMySellingOrders(params);
+        },
+        [displayMode]
+    );
 
     const {
         isMutating,
@@ -75,10 +61,6 @@ const OrdersPage: FC = () => {
         snackbarStatus,
         handleMutation,
     } = useMutationHandler(refetch);
-
-    const handlePageChange = (newPage: number) => {
-        setQuery({page: newPage});
-    };
 
     const confirmOrder = async (publicId: string) => {
         await handleMutation(

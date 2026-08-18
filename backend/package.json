@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "start": "npx nest start",
-    "start:dev": "node --watch -r ts-node/register -r tsconfig-paths/register src/main.ts",
+    "dev": "node --watch -r ts-node/register -r tsconfig-paths/register src/main.ts",
     "build": "nest build",
     "start:prod": "node dist/main.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
