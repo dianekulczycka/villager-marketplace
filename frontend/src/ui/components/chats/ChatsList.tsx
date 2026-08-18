@@ -1,22 +1,35 @@
 import {type FC} from 'react';
-import type {UserAdminView} from "../../../models/user/UserAdminView.ts";
 import ChatComponent from "./ChatComponent.tsx";
+import {Box} from "@mui/material";
+import type {ChatView} from "../../../models/chats/ChatView.ts";
 
 interface Props {
-    chats: UserAdminView[];
+    chats: ChatView[];
     handleChatLoad: (publicId: string) => void;
 }
 
 const ChatsList: FC<Props> = ({chats, handleChatLoad}) => {
     return (
-        <ul>
-            {chats.map((chat) => <li key={chat.publicId}>
-                <ChatComponent
-                    user={chat}
-                    handleChatLoad={handleChatLoad}
-                />
-            </li>)}
-        </ul>
+        <Box
+            component="ul"
+            sx={{
+                listStyle: 'none',
+                p: 0,
+                m: 0,
+            }}
+        >
+            {chats.map((chat) => (
+                <Box
+                    component="li"
+                    key={chat.publicId}
+                >
+                    <ChatComponent
+                        chat={chat}
+                        handleChatLoad={handleChatLoad}
+                    />
+                </Box>
+            ))}
+        </Box>
     );
 };
 

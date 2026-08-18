@@ -12,9 +12,9 @@ import { AuthGuard } from '@nestjs/passport';
 import { ChatService } from './chat.service';
 import * as userRequestInterface from '../user/interfaces/user-request.interface';
 import { PaginationResponse } from '../shared/pagination/pagination-response.interface';
-import { UserPublicDto } from '../user/dto/user-public.dto';
 import { MessageResponseDto } from './dto/message-response.dto';
-import { UserQueryDto } from '../user/dto/user-query.dto';
+import { ChatPublicDto } from './dto/chat-public.dto';
+import { ChatQueryDto } from './dto/chat-query.dto';
 
 @ApiErrorResponses()
 @UseGuards(AuthGuard('jwt'))
@@ -25,8 +25,8 @@ export class ChatController {
   @Get('')
   async getAll(
     @Request() request: userRequestInterface.UserRequest,
-    @Query() query: UserQueryDto,
-  ): Promise<PaginationResponse<UserPublicDto>> {
+    @Query() query: ChatQueryDto,
+  ): Promise<PaginationResponse<ChatPublicDto>> {
     return this.chatService.findAll(request, query);
   }
 
@@ -38,11 +38,11 @@ export class ChatController {
     return this.chatService.findChatByUserId(userPublicId, request);
   }
 
-  @Patch('message-id/:uuid/read')
-  async markAsRead(
-    @Param('uuid') uuid: string,
+  @Patch('message-id/:userPublicId/read')
+  async markChatAsRead(
+    @Param('userPublicId') userPublicId: string,
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<void> {
-    await this.chatService.markAsRead(uuid, request);
+    await this.chatService.markChatAsRead(userPublicId, request);
   }
 }

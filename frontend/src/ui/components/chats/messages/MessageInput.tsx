@@ -3,6 +3,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {messageSchema} from "../../../../validation/message.schema.ts";
 import type {FC} from "react";
 import {Box, Button, TextField} from "@mui/material";
+import SendIcon from '@mui/icons-material/Send';
 
 interface Props {
     onSend: (body: string) => void;
@@ -37,7 +38,7 @@ const MessageInput: FC<Props> = ({onSend, disabled = false}) => {
             onSubmit={handleSubmit(onSubmit)}
             sx={{
                 display: 'flex',
-                alignItems: 'flex-start',
+                alignItems: 'center',
                 gap: 1,
                 p: 2,
                 flexShrink: 0,
@@ -58,8 +59,12 @@ const MessageInput: FC<Props> = ({onSend, disabled = false}) => {
                 type="submit"
                 variant="contained"
                 disabled={disabled}
+                sx={{
+                    minWidth: 56,
+                    height: 56,
+                }}
             >
-                send
+                <SendIcon />
             </Button>
         </Box>
     );

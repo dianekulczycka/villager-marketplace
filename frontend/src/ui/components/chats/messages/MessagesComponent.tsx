@@ -5,10 +5,9 @@ import type {MessageView} from "../../../../models/chats/MessageView.ts";
 
 interface Props {
     messages: MessageView[];
-    currentUserPublicId: string;
 }
 
-const MessagesComponent: FC<Props> = ({messages, currentUserPublicId}) => {
+const MessagesComponent: FC<Props> = ({messages}) => {
     return (
         <Box
             sx={{
@@ -22,7 +21,6 @@ const MessagesComponent: FC<Props> = ({messages, currentUserPublicId}) => {
                 <MessageComponent
                     key={message.uuid}
                     message={message}
-                    currentUserPublicId={currentUserPublicId}
                 />
             ))}
         </Box>

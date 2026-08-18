@@ -1,24 +1,24 @@
 import {type FC} from 'react';
 import {Box, Typography} from '@mui/material';
 import type {MessageView} from "../../../../models/chats/MessageView.ts";
+import {useAuth} from "../../../../store/helpers/useAuth.ts";
 
 interface Props {
     message: MessageView;
-    currentUserPublicId: string;
 }
 
-const MessageComponent: FC<Props> = ({
-                                         message,
-                                         currentUserPublicId,
-                                     }) => {
-    const isOwnMessage =
-        message.sender.publicId === currentUserPublicId;
+const MessageComponent: FC<Props> = ({message}) => {
+    const {user: loggedUser} = useAuth();
+    if (!loggedUser) return null;
+
+    const isMyMessage =
+        message.sender.publicId === loggedUser.publicId;
 
     return (
         <Box
             sx={{
                 display: 'flex',
-                justifyContent: isOwnMessage ? 'flex-end' : 'flex-start',
+                justifyContent: isMyMessage ? 'flex-end' : 'flex-start',
                 px: 2,
                 py: 0.5,
             }}
@@ -29,12 +29,12 @@ const MessageComponent: FC<Props> = ({
                     px: 2,
                     py: 1,
                     borderRadius: 2,
-                    backgroundColor: isOwnMessage
-                        ? 'primary.main'
-                        : 'action.hover',
-                    color: isOwnMessage
-                        ? 'primary.contrastText'
-                        : 'text.primary',
+                    color: isMyMessage
+                        ? 'secondary.contrastText'
+                        : 'success.contrastText',
+                    backgroundColor: isMyMessage
+                        ? 'secondary.main'
+                        : 'success.main',
                 }}
             >
                 <Typography
@@ -64,7 +64,7 @@ const MessageComponent: FC<Props> = ({
                     })}
                 </Typography>
 
-                {isOwnMessage && (
+                {isMyMessage && (
                     <Typography
                         variant="caption"
                         sx={{

@@ -1,38 +1,43 @@
 import {Box, Card} from '@mui/material';
-import type {UserAdminView} from "../../../models/user/UserAdminView.ts";
 import type {FC} from "react";
 import UserInfo from "../user/cards/UserInfo.tsx";
+import type {ChatView} from "../../../models/chats/ChatView.ts";
 
 interface Props {
-    user: UserAdminView;
+    chat: ChatView;
     handleChatLoad: (publicId: string) => void;
 }
 
-const ChatComponent: FC<Props> = ({user, handleChatLoad}) => {
+const ChatComponent: FC<Props> = ({chat, handleChatLoad}) => {
     return (
         <Card
-            onClick={() => handleChatLoad(user.publicId)}
+            onClick={() => handleChatLoad(chat.publicId)}
             elevation={0}
             sx={{
-                borderRadius: 0,
+                borderRadius: 2,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 2,
                 p: 2,
+                mx: 1,
+                my: 0.75,
+                border: '1px solid',
+                borderColor: 'divider',
                 transition: '0.2s ease',
                 '&:hover': {
                     backgroundColor: 'action.hover',
+                    borderColor: 'text.secondary',
                 },
             }}
         >
             <Box
                 component="img"
-                src={user.iconUrl}
-                alt={user.username}
+                src={chat.iconUrl}
+                alt={chat.username}
                 sx={{
-                    width: 48,
-                    height: 48,
+                    width: 52,
+                    height: 52,
                     borderRadius: '50%',
                     objectFit: 'cover',
                     backgroundColor: '#f5f5f5',
@@ -40,11 +45,46 @@ const ChatComponent: FC<Props> = ({user, handleChatLoad}) => {
                 }}
             />
 
-            <UserInfo
-                user={user}
-                small
-                detailed={false}
-            />
+            <Box
+                sx={{
+                    minWidth: 0,
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    '& .MuiTypography-root': {
+                        fontSize: '1.05rem',
+                    },
+                }}
+            >
+                <Box sx={{minWidth: 0, flex: 1}}>
+                    <UserInfo
+                        user={chat}
+                        small
+                        detailed={false}
+                    />
+                </Box>
+
+                {chat.unreadMessages > 0 && (
+                    <Box
+                        sx={{
+                            width: 26,
+                            height: 26,
+                            borderRadius: '50%',
+                            backgroundColor: 'secondary.main',
+                            color: 'secondary.contrastText',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            flexShrink: 0,
+                        }}
+                    >
+                        {chat.unreadMessages}
+                    </Box>
+                )}
+            </Box>
         </Card>
     );
 };

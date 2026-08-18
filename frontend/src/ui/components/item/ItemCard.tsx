@@ -2,7 +2,7 @@ import {type FC} from 'react';
 import {Box, Card, CardContent, CardMedia, Chip, Typography} from '@mui/material';
 import {Link as RouterLink} from 'react-router-dom';
 import {useAuth} from '../../../store/helpers/useAuth.ts';
-import ItemControllers from '../buttons/ItemControllers.tsx';
+import EditDeleteControllers from '../buttons/EditDeleteControllers.tsx';
 import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
 
 interface Props {
@@ -71,7 +71,7 @@ const ItemCard: FC<Props> = ({
                     <Chip size="small" label={`views: ${item.views}`}/>
                 </Box>
             </CardContent>
-            {canModify && !item.isDeleted && <ItemControllers
+            {canModify && !item.isDeleted && <EditDeleteControllers
                 openDeleteModal={openDeleteModal}
                 openUpdateModal={openUpdateModal}
                 element={item}/>}

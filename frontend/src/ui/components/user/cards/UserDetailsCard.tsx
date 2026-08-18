@@ -3,9 +3,10 @@ import type {UserAdminView} from "../../../../models/user/UserAdminView";
 import {Box, Card, Typography} from "@mui/material";
 import UserInfo from "./UserInfo.tsx";
 import UserAdminControllers from "../../buttons/UserAdminControllers.tsx";
-import ItemControllers from "../../buttons/ItemControllers.tsx";
+import EditDeleteControllers from "../../buttons/EditDeleteControllers.tsx";
 import {Link} from 'react-router-dom';
 import {routes} from "../../../../routes/routes.ts";
+import {useAuth} from "../../../../store/helpers/useAuth.ts";
 
 interface Props {
     user: UserAdminView;
@@ -28,10 +29,14 @@ const UserDetailsCard: FC<Props> = ({
                                         unflagUser,
                                         restoreUser,
                                     }) => {
+    const {user: loggedUser} = useAuth();
+    const isAuthority = loggedUser!.role === 'ADMIN' || loggedUser!.role === 'MANAGER';
+    const isUserSeller = user.role !== "SELLER"
+
     return (
         <Card
-            component={Link}
-            to={routes.items.bySellerId(user.publicId)}
+            component={isAuthority && isUserSeller ? 'div' : Link}
+            to={isAuthority && isUserSeller ? undefined : routes.items.bySellerId(user.publicId)}
             sx={{
                 position: 'relative',
                 borderRadius: 3,
@@ -95,9 +100,9 @@ const UserDetailsCard: FC<Props> = ({
                 />
             </Box>
 
-            {!user.isDeleted && (
+            {isAuthority && !user.isDeleted && (
                 <Box sx={{pointerEvents: 'auto'}}>
-                    <ItemControllers
+                    <EditDeleteControllers
                         openDeleteModal={openDeleteModal}
                         openUpdateModal={openUpdateModal}
                         element={user}

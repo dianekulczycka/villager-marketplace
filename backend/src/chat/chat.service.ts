@@ -18,18 +18,18 @@ import { UserRequest } from '../user/interfaces/user-request.interface';
 import { paginatePrisma } from '../shared/pagination/prisma-paginator';
 import { PaginationResponse } from '../shared/pagination/pagination-response.interface';
 import { SortDirectionEnum } from '../shared/pagination/pagination-request.dto';
-import { UserPublicDto } from '../user/dto/user-public.dto';
 import {
   buildUserPublicSearchWhere,
   USER_PUBLIC_SELECT,
   USER_PUBLIC_WHERE_BASE,
 } from '../prisma/helpers/user.helpers';
-import {
-  USER_SORT_MAP,
-  UserQueryDto,
-  UserSortFieldEnum,
-} from '../user/dto/user-query.dto';
 import { Prisma } from '@prisma/client';
+import { ChatPublicDto } from './dto/chat-public.dto';
+import {
+  CHAT_SORT_MAP,
+  ChatQueryDto,
+  ChatSortFieldEnum,
+} from './dto/chat-query.dto';
 
 @Injectable()
 export class ChatService {
@@ -60,8 +60,8 @@ export class ChatService {
 
   async findAll(
     request: UserRequest,
-    query: UserQueryDto,
-  ): Promise<PaginationResponse<UserPublicDto>> {
+    query: ChatQueryDto,
+  ): Promise<PaginationResponse<ChatPublicDto>> {
     const userId = request.user.userId;
 
     const messages = await this.prisma.message.findMany({
@@ -78,7 +78,7 @@ export class ChatService {
     ];
 
     const orderField =
-      USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.CREATED_AT];
+      CHAT_SORT_MAP[query.sortBy ?? ChatSortFieldEnum.USERNAME];
 
     const where: Prisma.userWhereInput = {
       ...USER_PUBLIC_WHERE_BASE,
@@ -86,7 +86,7 @@ export class ChatService {
       ...buildUserPublicSearchWhere(query.search),
     };
 
-    return paginatePrisma<UserPublicDto>(
+    const result = await paginatePrisma<ChatPublicDto>(
       this.prisma.user,
       {
         where,
@@ -98,6 +98,19 @@ export class ChatService {
       query.page,
       query.perPage,
     );
+
+    return {
+      ...result,
+      data: await Promise.all(
+        result.data.map(async (user) => ({
+          ...user,
+          unreadMessages: await this.countUnreadMessages(
+            user.publicId,
+            request,
+          ),
+        })),
+      ),
+    };
   }
 
   async findChatByUserId(
@@ -120,21 +133,26 @@ export class ChatService {
     });
   }
 
-  async markAsRead(uuid: string, request: UserRequest): Promise<void> {
-    const message = await this.prisma.message.findUnique({
-      where: { uuid },
-      select: {
-        recipientId: true,
-        isRead: true,
+  async countUnreadMessages(
+    senderId: number,
+    recipientId: number,
+  ): Promise<number> {
+    return this.prisma.message.count({
+      where: {
+        senderId,
+        recipientId,
+        isRead: false,
       },
     });
+  }
 
-    if (!message) throw new NotFoundException('Message not found');
-    if (request.user.userId !== message.recipientId) return;
-    if (message.isRead) return;
-
-    await this.prisma.message.update({
-      where: { uuid },
+  async markChatAsRead(senderId: number, recipientId: number): Promise<void> {
+    await this.prisma.message.updateMany({
+      where: {
+        senderId,
+        recipientId,
+        isRead: false,
+      },
       data: {
         isRead: true,
       },

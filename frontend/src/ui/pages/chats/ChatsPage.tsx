@@ -11,7 +11,6 @@ import {routes} from "../../../routes/routes.ts";
 import {useNavigate, useParams} from "react-router";
 import {useQuery, useQueryClient} from "@tanstack/react-query";
 import {getAll, getById} from "../../../services/fetch/chat.service.ts";
-import {useAuth} from "../../../store/helpers/useAuth.ts";
 import PreloaderComponent from "../../components/shared/PreloaderComponent.tsx";
 import {UserSortField} from "../../../models/enums/UserSortField.ts";
 import SortSearchComponent from "../../components/shared/SortSearchComponent.tsx";
@@ -19,12 +18,12 @@ import type {QueryParams} from "../../../models/pagiantion/QueryParams.ts";
 import {getById as getUserById} from "../../../services/fetch/user.service.ts";
 import {chatWsService} from "../../../services/websocket/chat.service.ts";
 import type {MessageView} from "../../../models/chats/MessageView.ts";
+import {ChatSortField} from "../../../models/enums/ChatSortField.ts";
 
 const ChatsPage: FC = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const {userPublicId} = useParams();
-    const {user} = useAuth();
     const messagesContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -36,7 +35,7 @@ const ChatsPage: FC = () => {
 
     const [query, setQuery] = useQueryParams({
         page: withDefault(NumberParam, 1),
-        perPage: withDefault(NumberParam, 8),
+        perPage: withDefault(NumberParam, 7),
         sortBy: StringParam,
         sortDirection: StringParam,
         search: StringParam,
@@ -122,7 +121,11 @@ const ChatsPage: FC = () => {
         chatWsService.newMessage({recipientPublicId: userPublicId, body});
     };
 
-    if (!user) return null;
+    // const markChatAsRead = async (): Promise<void> => {
+    //     if (!userPublicId || !selectedUser?.unreadMessages) return;
+    //
+    //     await markAsRead(userPublicId);
+    // };
 
     return (
         <Box
@@ -159,9 +162,9 @@ const ChatsPage: FC = () => {
                     }}
                 >
                     <SortSearchComponent
-                        query={query as QueryParams<UserSortField>}
+                        query={query as QueryParams<ChatSortField>}
                         setQuery={setQuery}
-                        fields={Object.values(UserSortField)}
+                        fields={Object.values(ChatSortField)}
                     />
                 </Box>
 
@@ -261,7 +264,6 @@ const ChatsPage: FC = () => {
                             >
                                 <MessagesComponent
                                     messages={messages ?? []}
-                                    currentUserPublicId={user.publicId}
                                 />
                             </Box>
                         </DataStateComponent>

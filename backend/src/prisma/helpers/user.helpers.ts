@@ -100,7 +100,9 @@ export const ADMIN_MANAGERS_WHERE: Prisma.userWhereInput = {
 };
 
 export const USER_PUBLIC_WHERE_BASE: Prisma.userWhereInput = {
-  role: user_role.SELLER,
+  role: {
+    in: [user_role.SELLER, user_role.BUYER],
+  },
   isDeleted: 0,
   isBanned: 0,
 };

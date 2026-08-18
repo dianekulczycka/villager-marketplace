@@ -3,12 +3,12 @@ import {endpoints} from "../api.endpoints.ts";
 import type {PaginationRes} from "../../models/pagiantion/PaginationRes.ts";
 import type {QueryParams} from "../../models/pagiantion/QueryParams.ts";
 import type {MessageView} from "../../models/chats/MessageView.ts";
-import type {UserAdminView} from "../../models/user/UserAdminView.ts";
-import {UserSortField} from "../../models/enums/UserSortField.ts";
+import type {ChatView} from "../../models/chats/ChatView.ts";
+import type {ChatSortField} from "../../models/enums/ChatSortField.ts";
 
 export const getAll = async (
-    params?: QueryParams<UserSortField>,
-): Promise<PaginationRes<UserAdminView>> => {
+    params?: QueryParams<ChatSortField>,
+): Promise<PaginationRes<ChatView>> => {
     const {data} = await api.get(endpoints.chats.root, {params});
     return data;
 };

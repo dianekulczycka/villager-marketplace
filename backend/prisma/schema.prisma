@@ -98,6 +98,8 @@ model message {
 
   @@index([senderId])
   @@index([recipientId])
+  @@index([senderId, recipientId, createdAt])
+  @@index([senderId, recipientId, isRead])
 }
 
 enum item_name {
