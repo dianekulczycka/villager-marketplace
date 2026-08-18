@@ -4,6 +4,7 @@ import { UserRequest } from '../user/interfaces/user-request.interface';
 import { UserAdminDto } from '../user/dto/user-admin.dto';
 import { UserService } from '../user/user.service';
 import { PaginationResponse } from '../shared/pagination/pagination-response.interface';
+import { UserAdminListEnum } from '../user/enums/user-admin-list.enum';
 
 @Injectable()
 export class AdminService {
@@ -12,19 +13,28 @@ export class AdminService {
   async findFlaggedUsers(
     query: UserQueryDto,
   ): Promise<PaginationResponse<UserAdminDto>> {
-    return await this.userService.findFlaggedUsers(query);
+    return await this.userService.findUsersAdmin(
+      query,
+      UserAdminListEnum.FLAGGED,
+    );
   }
 
   async findBannedUsers(
     query: UserQueryDto,
   ): Promise<PaginationResponse<UserAdminDto>> {
-    return await this.userService.findBannedUsers(query);
+    return await this.userService.findUsersAdmin(
+      query,
+      UserAdminListEnum.BANNED,
+    );
   }
 
   async findAllManagers(
     query: UserQueryDto,
   ): Promise<PaginationResponse<UserAdminDto>> {
-    return await this.userService.findAllManagers(query);
+    return await this.userService.findUsersAdmin(
+      query,
+      UserAdminListEnum.MANAGERS,
+    );
   }
 
   async banUser(publicId: string, request: UserRequest): Promise<string> {

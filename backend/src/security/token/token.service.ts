@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { user } from '@prisma/client';
@@ -17,6 +13,7 @@ import {
 } from '../../prisma/helpers/token.helpers';
 import { AUTH_ERRORS } from '../../shared/errors/auth.errors';
 import { generatePublicId } from '../../shared/generators/private-id.generator';
+import { validateExists } from '../../shared/helpers/validate-exists';
 
 @Injectable()
 export class TokenService {
@@ -62,12 +59,13 @@ export class TokenService {
   }
 
   async issueTokenPairForUser(userId: number): Promise<TokenPair> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, email: true, role: true },
-    });
-
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+    const user = validateExists(
+      await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, email: true, role: true },
+      }),
+      USER_ERRORS.NOT_FOUND,
+    );
 
     const jti = generatePublicId();
     const payload: JwtPayload = {
@@ -93,12 +91,15 @@ export class TokenService {
     try {
       this.jwtService.verify<JwtPayload>(refreshToken);
 
-      const tokenEntity = await this.prisma.token.findFirst({
-        where: TOKEN_ACTIVE_WHERE(refreshToken),
-        include: { user: true },
-      });
+      const tokenEntity = validateExists(
+        await this.prisma.token.findFirst({
+          where: TOKEN_ACTIVE_WHERE(refreshToken),
+          include: { user: true },
+        }),
+        AUTH_ERRORS.INVALID_TOKEN,
+      );
 
-      if (!tokenEntity || tokenEntity.refreshTokenExpirationTime < new Date())
+      if (tokenEntity.refreshTokenExpirationTime < new Date())
         throw new UnauthorizedException(AUTH_ERRORS.INVALID_TOKEN);
 
       const jti = generatePublicId();
@@ -128,7 +129,6 @@ export class TokenService {
           },
         });
       });
-
       return tokens;
     } catch {
       throw new UnauthorizedException(AUTH_ERRORS.INVALID_TOKEN);
@@ -139,20 +139,18 @@ export class TokenService {
   async blockTokensForUser(publicId: string): Promise<void>;
 
   async blockTokensForUser(userIdOrPublicId: number | string): Promise<void> {
-    const user =
+    const where =
       typeof userIdOrPublicId === 'number'
-        ? await this.prisma.user.findUnique({
-            where: { id: userIdOrPublicId },
-            select: { id: true },
-          })
-        : await this.prisma.user.findUnique({
-            where: { publicId: userIdOrPublicId },
-            select: { id: true },
-          });
+        ? { id: userIdOrPublicId }
+        : { publicId: userIdOrPublicId };
 
-    if (!user) {
-      throw new NotFoundException(USER_ERRORS.NOT_FOUND);
-    }
+    const user = validateExists(
+      await this.prisma.user.findUnique({
+        where,
+        select: { id: true },
+      }),
+      USER_ERRORS.NOT_FOUND,
+    );
 
     await this.prisma.token.updateMany({
       where: {
@@ -192,19 +190,18 @@ export class TokenService {
   }
 
   async validateTokenJti(jti: string): Promise<void> {
-    const tokenEntity = await this.prisma.token.findUnique({
-      where: {
-        jti,
-        isBlocked: 0,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!tokenEntity) {
-      throw new UnauthorizedException(AUTH_ERRORS.INVALID_TOKEN);
-    }
+    validateExists(
+      await this.prisma.token.findUnique({
+        where: {
+          jti,
+          isBlocked: 0,
+        },
+        select: {
+          id: true,
+        },
+      }),
+      AUTH_ERRORS.INVALID_TOKEN,
+    );
   }
 
   async validateAccessToken(accessToken: string): Promise<JwtPayload> {

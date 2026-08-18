@@ -1,7 +1,7 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { order_status, Prisma, user_role } from '@prisma/client';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -22,9 +22,6 @@ import { BecomeSellerRequestDto } from './dto/become-seller-request';
 import { UserAdminDto } from './dto/user-admin.dto';
 import {
   ADMIN_ALL_USERS_WHERE,
-  ADMIN_BANNED_USERS_WHERE,
-  ADMIN_FLAGGED_USERS_WHERE,
-  ADMIN_MANAGERS_WHERE,
   ADMIN_USER_SELECT,
   buildUserPublicSearchWhere,
   USER_ADMIN_SELECT,
@@ -39,15 +36,13 @@ import { USER_ERRORS } from '../shared/errors/user.errors';
 import { ITEM_SOFT_DELETE_DATA } from '../prisma/helpers/item.helpers';
 import { TOKEN_BLOCK_DATA } from '../prisma/helpers/token.helpers';
 import {
-  canModifyUser,
-  resolveTargetUser,
-} from '../shared/helpers/permission.helpers';
-import {
   BUYER_ICON,
   MANAGER_ICON,
   USER_ICON_MAP,
 } from '../shared/helpers/icon-map.helper';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { UserAdminListEnum, whereMap } from './enums/user-admin-list.enum';
+import { validateExists } from '../shared/helpers/validate-exists';
 
 @Injectable()
 export class UserService {
@@ -102,30 +97,29 @@ export class UserService {
   }
 
   async findById(publicId: string): Promise<UserPublicDto> {
-    const user = await this.prisma.user.findFirst({
-      where: {
-        ...USER_PUBLIC_WHERE_BASE,
-        publicId,
-      },
-      select: USER_PUBLIC_SELECT,
-    });
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
-    return user;
+    return validateExists(
+      await this.prisma.user.findFirst({
+        where: {
+          ...USER_PUBLIC_WHERE_BASE,
+          publicId,
+        },
+        select: USER_PUBLIC_SELECT,
+      }),
+      USER_ERRORS.NOT_FOUND,
+    );
   }
 
   async findSelf(request: UserRequest): Promise<UserSelfDto> {
-    const { userId } = request.user;
-    const user = await this.prisma.user.findUnique({
-      where: {
-        isDeleted: 0,
-        id: userId,
-      },
-      select: USER_SELF_SELECT,
-    });
-
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
-
-    return user;
+    return validateExists(
+      await this.prisma.user.findUnique({
+        where: {
+          isDeleted: 0,
+          id: request.user.userId,
+        },
+        select: USER_SELF_SELECT,
+      }),
+      USER_ERRORS.NOT_FOUND,
+    );
   }
 
   // -------------------------------------------- PATCH -----------------------------------------------------
@@ -135,13 +129,8 @@ export class UserService {
     updateUserDto: UpdateUserDto,
     targetUserPublicId?: string,
   ): Promise<UserSelfDto> {
-    const target = await resolveTargetUser(
-      this.prisma,
-      request,
-      targetUserPublicId,
-    );
-
-    canModifyUser(request, target.id, target.role);
+    const target = await this.findTargetUser(request, targetUserPublicId);
+    this.canModifyUser(request, target.id, target.role);
 
     return this.prisma.user.update({
       where: { id: target.id },
@@ -169,13 +158,8 @@ export class UserService {
     request: UserRequest,
     targetUserPublicId?: string,
   ): Promise<number> {
-    const target = await resolveTargetUser(
-      this.prisma,
-      request,
-      targetUserPublicId,
-    );
-
-    canModifyUser(request, target.id, target.role);
+    const target = await this.findTargetUser(request, targetUserPublicId);
+    this.canModifyUser(request, target.id, target.role);
 
     await this.prisma.$transaction([
       this.prisma.user.update({
@@ -199,27 +183,20 @@ export class UserService {
     request: UserRequest,
     becomeSellerRequestDto: BecomeSellerRequestDto,
   ): Promise<number> {
-    const userId = request.user.userId;
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { role: true, publicId: true },
-    });
-
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+    const user = await this.findUserByRequest(request);
 
     await this.prisma.$transaction([
       ...(user.role === user_role.SELLER
         ? [
             this.prisma.item.updateMany({
-              where: { sellerId: userId },
+              where: { sellerId: user.id },
               data: ITEM_SOFT_DELETE_DATA,
             }),
           ]
         : []),
 
       this.prisma.user.update({
-        where: { id: userId },
+        where: { id: user.id },
         data: {
           role: user_role.SELLER,
           sellerType: becomeSellerRequestDto.sellerType,
@@ -228,7 +205,7 @@ export class UserService {
       }),
     ]);
 
-    return userId;
+    return user.id;
   }
 
   // --------------------------------------------------------------------------------------------------------
@@ -237,25 +214,9 @@ export class UserService {
 
   // -------------------------------------------- GET -----------------------------------------------------
 
-  async findFlaggedUsers(
+  async findUsersAdmin(
     query: UserQueryDto,
-  ): Promise<PaginationResponse<UserAdminDto>> {
-    const orderField =
-      USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.CREATED_AT];
-    return paginatePrisma<UserAdminDto>(
-      this.prisma.user,
-      {
-        where: ADMIN_FLAGGED_USERS_WHERE,
-        select: ADMIN_USER_SELECT,
-        orderBy: { [orderField]: query.sortDirection ?? SortDirectionEnum.ASC },
-      },
-      query.page,
-      query.perPage,
-    );
-  }
-
-  async findBannedUsers(
-    query: UserQueryDto,
+    mode: UserAdminListEnum,
   ): Promise<PaginationResponse<UserAdminDto>> {
     const orderField =
       USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.CREATED_AT];
@@ -263,25 +224,11 @@ export class UserService {
     return paginatePrisma<UserAdminDto>(
       this.prisma.user,
       {
-        where: ADMIN_BANNED_USERS_WHERE,
+        where: whereMap[mode],
         select: ADMIN_USER_SELECT,
-        orderBy: { [orderField]: query.sortDirection ?? SortDirectionEnum.ASC },
-      },
-      query.page,
-      query.perPage,
-    );
-  }
-
-  async findAllManagers(query: UserQueryDto) {
-    const orderField =
-      USER_SORT_MAP[query.sortBy ?? UserSortFieldEnum.CREATED_AT];
-
-    return paginatePrisma<UserAdminDto>(
-      this.prisma.user,
-      {
-        where: ADMIN_MANAGERS_WHERE,
-        select: ADMIN_USER_SELECT,
-        orderBy: { [orderField]: query.sortDirection ?? SortDirectionEnum.ASC },
+        orderBy: {
+          [orderField]: query.sortDirection ?? SortDirectionEnum.ASC,
+        },
       },
       query.page,
       query.perPage,
@@ -291,12 +238,7 @@ export class UserService {
   // -------------------------------------------- PATCH -----------------------------------------------------
 
   async banUser(publicId: string, request: UserRequest): Promise<string> {
-    const user = await this.prisma.user.findFirst({
-      where: { publicId, isDeleted: 0 },
-      select: { id: true, email: true },
-    });
-
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+    const user = await this.findUserByPublicId(publicId);
 
     await this.prisma.$transaction([
       this.prisma.user.update({
@@ -329,12 +271,7 @@ export class UserService {
   }
 
   async unbanUser(publicId: string): Promise<string> {
-    const user = await this.prisma.user.findFirst({
-      where: { publicId, isDeleted: 0 },
-      select: { id: true, email: true },
-    });
-
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+    const user = await this.findUserByPublicId(publicId);
 
     await this.prisma.$transaction([
       this.prisma.user.update({
@@ -354,12 +291,7 @@ export class UserService {
   }
 
   async unflagUser(publicId: string): Promise<string> {
-    const user = await this.prisma.user.findFirst({
-      where: { publicId, isDeleted: 0 },
-      select: { id: true, email: true },
-    });
-
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+    const user = await this.findUserByPublicId(publicId);
 
     await this.prisma.user.update({
       where: { id: user.id },
@@ -371,11 +303,8 @@ export class UserService {
   }
 
   async promoteManager(publicId: string): Promise<void> {
-    const user = await this.prisma.user.findFirst({
-      where: { publicId },
-      select: { id: true, role: true },
-    });
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+    const user = await this.findUserByPublicId(publicId);
+
     if (!(user.role === user_role.BUYER || user.role === user_role.SELLER))
       throw new BadRequestException(USER_ERRORS.NOT_ALLOWED_UPDATE);
 
@@ -397,11 +326,8 @@ export class UserService {
   }
 
   async demoteManager(publicId: string): Promise<void> {
-    const user = await this.prisma.user.findFirst({
-      where: { publicId, isDeleted: 0 },
-      select: { id: true, role: true },
-    });
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+    const user = await this.findUserByPublicId(publicId);
+
     if (user.role !== user_role.MANAGER)
       throw new BadRequestException(USER_ERRORS.NOT_ALLOWED_UPDATE);
 
@@ -416,12 +342,7 @@ export class UserService {
   }
 
   async restoreUser(publicId: string): Promise<string> {
-    const user = await this.prisma.user.findUnique({
-      where: { publicId },
-      select: { id: true, isDeleted: true, email: true },
-    });
-
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+    const user = await this.findUserByPublicId(publicId);
     if (!user.isDeleted) throw new BadRequestException(USER_ERRORS.NOT_DELETED);
 
     await this.prisma.user.update({
@@ -439,12 +360,7 @@ export class UserService {
   // -------------------------------------------- DELETE -----------------------------------------------------
 
   async hardDeleteUser(publicId: string): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: { publicId },
-      select: { id: true },
-    });
-
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+    const user = await this.findUserByPublicId(publicId);
 
     await this.prisma.$transaction([
       this.prisma.order.deleteMany({
@@ -462,5 +378,73 @@ export class UserService {
         where: { id: user.id },
       }),
     ]);
+  }
+
+  // -------------------------------------------- HELPERS -----------------------------------------------------
+
+  private async findUserByPublicId(
+    publicId: string,
+    select?: Prisma.userSelect,
+  ): Promise<UserAdminDto> {
+    return validateExists(
+      await this.prisma.user.findFirst({
+        where: { publicId, isDeleted: 0 },
+        select: select ?? { id: true, email: true },
+      }),
+      USER_ERRORS.NOT_FOUND,
+    );
+  }
+
+  private async findUserByRequest(
+    request: UserRequest,
+    select?: Prisma.userSelect,
+  ): Promise<UserAdminDto> {
+    return validateExists(
+      await this.prisma.user.findFirst({
+        where: { id: request.user.userId, isDeleted: 0 },
+        select: select ?? { id: true, email: true },
+      }),
+      USER_ERRORS.NOT_FOUND,
+    );
+  }
+
+  private canModifyUser(
+    request: UserRequest,
+    targetId: number,
+    targetRole: user_role,
+  ): void {
+    const actorId = request.user.userId;
+    const actorRole = request.user.role;
+    const isSelf = actorId === targetId;
+
+    if (actorRole === user_role.BUYER || actorRole === user_role.SELLER) {
+      if (!isSelf) throw new ForbiddenException(USER_ERRORS.NOT_ALLOWED_UPDATE);
+      return;
+    }
+
+    if (actorRole === user_role.MANAGER) {
+      if (
+        !isSelf &&
+        (targetRole === user_role.ADMIN || targetRole === user_role.MANAGER)
+      ) {
+        throw new ForbiddenException(USER_ERRORS.NOT_ALLOWED_UPDATE);
+      }
+      return;
+    }
+
+    if (actorRole === user_role.ADMIN) {
+      if (isSelf) throw new ForbiddenException(USER_ERRORS.NOT_ALLOWED_UPDATE);
+      return;
+    }
+  }
+
+  private async findTargetUser(
+    request: UserRequest,
+    targetUserPublicId?: string,
+  ): Promise<{ id: number; role: user_role }> {
+    const select: Prisma.userSelect = { id: true, role: true };
+    if (!targetUserPublicId)
+      return await this.findUserByRequest(request, select);
+    return await this.findUserByPublicId(targetUserPublicId, select);
   }
 }

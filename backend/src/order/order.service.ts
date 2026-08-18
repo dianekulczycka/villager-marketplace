@@ -2,7 +2,6 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserRequest } from '../user/interfaces/user-request.interface';
@@ -20,9 +19,10 @@ import { SortDirectionEnum } from '../shared/pagination/pagination-request.dto';
 import { OrderModeEnum } from './enums/order-mode.enum';
 import { OrderEmailData } from '../mail/models/order-email-data';
 import { ORDER_ERRORS } from '../shared/errors/order.errors';
-import { order_status } from '@prisma/client';
+import { order, order_status } from '@prisma/client';
 import { generatePublicId } from '../shared/generators/private-id.generator';
 import { ORDER_PUBLIC_SELECT } from '../prisma/helpers/order.helpers';
+import { validateExists } from '../shared/helpers/validate-exists';
 
 @Injectable()
 export class OrderService {
@@ -37,22 +37,25 @@ export class OrderService {
     if (amount <= 0) throw new BadRequestException(ITEM_ERRORS.INVALID_AMOUNT);
 
     const { userId: buyerId } = request.user;
-    const item = await this.prisma.item.findFirst({
-      where: {
-        publicId: itemPublicId,
-        isDeleted: 0,
-        seller: {
-          isBanned: 0,
-        },
-      },
-      select: {
-        id: true,
-        count: true,
-        sellerId: true,
-      },
-    });
 
-    if (!item) throw new NotFoundException(ITEM_ERRORS.NOT_FOUND);
+    const item = validateExists(
+      await this.prisma.item.findFirst({
+        where: {
+          publicId: itemPublicId,
+          isDeleted: 0,
+          seller: {
+            isBanned: 0,
+          },
+        },
+        select: {
+          id: true,
+          count: true,
+          sellerId: true,
+        },
+      }),
+      ITEM_ERRORS.NOT_FOUND,
+    );
+
     if (item.sellerId === buyerId)
       throw new ForbiddenException(ORDER_ERRORS.NOT_ALLOWED);
 
@@ -98,39 +101,35 @@ export class OrderService {
     request: UserRequest,
     publicId: string,
   ): Promise<OrderEmailData> {
-    const order = await this.prisma.order.findFirst({
-      where: { publicId },
-      include: {
-        buyer: {
-          select: {
-            email: true,
+    const order = validateExists(
+      await this.prisma.order.findFirst({
+        where: { publicId },
+        include: {
+          buyer: {
+            select: {
+              email: true,
+            },
+          },
+          item: {
+            select: {
+              name: true,
+            },
           },
         },
-        item: {
-          select: {
-            name: true,
-          },
+      }),
+      ORDER_ERRORS.NOT_FOUND,
+    );
+
+    this.validateOrder(order, request.user.userId);
+
+    const item = validateExists(
+      await this.prisma.item.findFirst({
+        where: {
+          id: order.itemId,
         },
-      },
-    });
-
-    if (!order) throw new NotFoundException(ORDER_ERRORS.NOT_FOUND);
-
-    const { userId: sellerId } = request.user;
-
-    if (order.sellerId !== sellerId)
-      throw new ForbiddenException(ORDER_ERRORS.NOT_ALLOWED);
-
-    if (order.status !== 'PENDING')
-      throw new ForbiddenException(ORDER_ERRORS.NOT_ALLOWED);
-
-    const item = await this.prisma.item.findFirst({
-      where: {
-        id: order.itemId,
-      },
-    });
-
-    if (!item) throw new NotFoundException(ITEM_ERRORS.NOT_FOUND);
+      }),
+      ITEM_ERRORS.NOT_FOUND,
+    );
 
     if (item.count < order.amount)
       throw new BadRequestException(ITEM_ERRORS.INVALID_AMOUNT);
@@ -156,22 +155,25 @@ export class OrderService {
   }
 
   async rejectOrder(request: UserRequest, publicId: string): Promise<void> {
-    const order = await this.prisma.order.findFirst({
-      where: { publicId },
-    });
-    if (!order) throw new NotFoundException(ORDER_ERRORS.NOT_FOUND);
+    const order = validateExists(
+      await this.prisma.order.findFirst({
+        where: { publicId },
+      }),
+      ORDER_ERRORS.NOT_FOUND,
+    );
 
-    const { userId: sellerId } = request.user;
-
-    if (order.sellerId !== sellerId)
-      throw new ForbiddenException(ORDER_ERRORS.NOT_ALLOWED);
-
-    if (order.status !== 'PENDING')
-      throw new ForbiddenException(ORDER_ERRORS.NOT_ALLOWED);
+    this.validateOrder(order, request.user.userId);
 
     await this.prisma.order.update({
       where: { publicId },
       data: { status: order_status.REJECTED },
     });
+  }
+
+  private validateOrder(order: order, sellerId: number): void {
+    if (order.sellerId !== sellerId)
+      throw new ForbiddenException(ORDER_ERRORS.NOT_ALLOWED);
+    if (order.status !== order_status.PENDING)
+      throw new ForbiddenException(ORDER_ERRORS.NOT_ALLOWED);
   }
 }

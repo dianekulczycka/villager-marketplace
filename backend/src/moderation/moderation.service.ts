@@ -1,14 +1,11 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   AccountRecoveryRequestDto,
   AccountRecoveryRequestEnum,
 } from '../user/dto/account-recovery-request.dto';
 import { USER_ERRORS } from '../shared/errors/user.errors';
+import { validateExists } from '../shared/helpers/validate-exists';
 
 @Injectable()
 export class ModerationService {
@@ -17,12 +14,13 @@ export class ModerationService {
   async requestRecovery(
     accountRecoveryRequestDto: AccountRecoveryRequestDto,
   ): Promise<AccountRecoveryRequestDto> {
-    const user = await this.prisma.user.findUnique({
-      where: { email: accountRecoveryRequestDto.email },
-      select: { id: true, email: true, isBanned: true, isDeleted: true },
-    });
-
-    if (!user) throw new NotFoundException(USER_ERRORS.NOT_FOUND);
+    const user = validateExists(
+      await this.prisma.user.findUnique({
+        where: { email: accountRecoveryRequestDto.email },
+        select: { id: true, email: true, isBanned: true, isDeleted: true },
+      }),
+      USER_ERRORS.NOT_FOUND,
+    );
 
     switch (accountRecoveryRequestDto.actionType) {
       case AccountRecoveryRequestEnum.UNBAN:

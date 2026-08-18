@@ -8,6 +8,7 @@ import { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UserRequest } from '../../user/interfaces/user-request.interface';
 import { USER_ERRORS } from '../errors/user.errors';
+import { validateExists } from '../helpers/validate-exists';
 
 @Injectable()
 export class RestrictedUserGuard implements CanActivate {
@@ -17,18 +18,14 @@ export class RestrictedUserGuard implements CanActivate {
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req = ctx.switchToHttp().getRequest<Request & UserRequest>();
-    const userId = req.user?.userId;
 
-    if (!userId) return true;
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { isBanned: true, isDeleted: true },
-    });
-
-    if (!user) {
-      throw new ForbiddenException(USER_ERRORS.RESTRICTED);
-    }
+    const user = validateExists(
+      await this.prisma.user.findUnique({
+        where: { id: req.user?.userId },
+        select: { isBanned: true, isDeleted: true },
+      }),
+      USER_ERRORS.RESTRICTED,
+    );
 
     if (user.isBanned || user.isDeleted) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access

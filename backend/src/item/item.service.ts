@@ -1,8 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { ItemPublicDto } from './dto/item-public';
@@ -28,10 +24,10 @@ import {
 import { ITEM_ERRORS } from '../shared/errors/item.errors';
 import { allowedItemsPerSeller } from './enums/allowed-items-per-seller.record';
 import { USER_ERRORS } from '../shared/errors/user.errors';
-import { canModifyItem } from '../shared/helpers/permission.helpers';
 import { ITEM_ICON_MAP } from '../shared/helpers/icon-map.helper';
 import { ItemPublicDetailedDto } from './dto/item-public-detailed.dto';
 import { generatePublicId } from '../shared/generators/private-id.generator';
+import { validateExists } from '../shared/helpers/validate-exists';
 
 @Injectable()
 export class ItemService {
@@ -119,12 +115,13 @@ export class ItemService {
 
     const select = isAdmin ? ITEM_ADMIN_SELECT : ITEM_PUBLIC_DETAILED_SELECT;
 
-    const item = await this.prisma.item.findFirst({
-      where,
-      select,
-    });
-
-    if (!item) throw new NotFoundException(ITEM_ERRORS.NOT_FOUND);
+    const item = validateExists(
+      await this.prisma.item.findFirst({
+        where,
+        select,
+      }),
+      ITEM_ERRORS.NOT_FOUND,
+    );
 
     return {
       item,
@@ -206,7 +203,7 @@ export class ItemService {
     publicId: string,
     updateItemDto: UpdateItemDto,
   ): Promise<ItemPublicDto> {
-    await canModifyItem(this.prisma, request, publicId);
+    await this.canModifyItem(request, publicId);
     if (updateItemDto.name) {
       const user = await this.prisma.user.findUnique({
         where: { id: request.user.userId },
@@ -228,7 +225,7 @@ export class ItemService {
   }
 
   async softDelete(request: UserRequest, publicId: string): Promise<void> {
-    const item = await canModifyItem(this.prisma, request, publicId);
+    const item = await this.canModifyItem(request, publicId);
 
     await this.prisma.$transaction([
       this.prisma.item.update({
@@ -245,5 +242,30 @@ export class ItemService {
         },
       }),
     ]);
+  }
+
+  private async canModifyItem(request: UserRequest, publicId: string) {
+    const { userId, role } = request.user;
+
+    const item = validateExists(
+      await this.prisma.item.findFirst({
+        where: { publicId },
+        select: {
+          id: true,
+          sellerId: true,
+        },
+      }),
+      ITEM_ERRORS.NOT_FOUND,
+    );
+
+    if (
+      role !== user_role.ADMIN &&
+      role !== user_role.MANAGER &&
+      item.sellerId !== userId
+    ) {
+      throw new ForbiddenException(ITEM_ERRORS.NOT_ALLOWED);
+    }
+
+    return item;
   }
 }
