@@ -1,4 +1,4 @@
-export interface PaginationRes<T> {
+export interface PaginationView<T> {
     data: T[];
     page: number;
     perPage: number;

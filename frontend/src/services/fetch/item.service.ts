@@ -1,4 +1,4 @@
-import type {PaginationRes} from '../../models/pagiantion/PaginationRes.ts';
+import type {PaginationView} from '../../models/pagiantion/PaginationView.ts';
 import type {ItemView} from '../../models/item/ItemView.ts';
 import {api} from '../api.config.ts';
 import {endpoints} from '../api.endpoints.ts';
@@ -9,7 +9,7 @@ import type {ItemAdminView} from '../../models/item/ItemAdminView.ts';
 
 export const getAll = async (
     params?: ItemQueryParams,
-): Promise<PaginationRes<ItemAdminView>> => {
+): Promise<PaginationView<ItemAdminView>> => {
     const {data} = await api.get(endpoints.items.root, {params});
     return data;
 };
@@ -23,7 +23,7 @@ export const increaseViews = async (publicId: string): Promise<void> => {
     await api.post(endpoints.items.increaseViews(publicId));
 };
 
-export const getMy = async (params?: ItemQueryParams): Promise<PaginationRes<ItemAdminView>> => {
+export const getMy = async (params?: ItemQueryParams): Promise<PaginationView<ItemAdminView>> => {
     const {data} = await api.get(endpoints.items.my, {params});
     return data;
 };

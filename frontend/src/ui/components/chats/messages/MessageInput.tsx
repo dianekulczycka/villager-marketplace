@@ -64,7 +64,7 @@ const MessageInput: FC<Props> = ({onSend, disabled = false}) => {
                     height: 56,
                 }}
             >
-                <SendIcon />
+                <SendIcon/>
             </Button>
         </Box>
     );

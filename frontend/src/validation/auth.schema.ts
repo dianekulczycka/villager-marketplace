@@ -19,14 +19,14 @@ export const registerSchema = z
             .string()
             .regex(/^(?=.*[A-Za-z])(?=.*\d)[^\s]{6,20}$/, {
                 message:
-                    'Password must be 6-20 chars and include one number and one letter',
+                    'Password must be 6-20 characters and include at least one number and one letter',
             }),
 
         repeatPassword: z.string().min(1, 'Repeat password'),
 
         username: z
             .string()
-            .regex(/^[A-Za-z0-9\s]{2,}$/, 'Name must be gt 2 chars, only letters and numbers')
+            .regex(/^[A-Za-z0-9\s]{2,}$/, 'Name must be longer than 2 letters and contain only letters and numbers')
             .refine((v) => !hasSwearWords(v), {
                 message: 'Bad language used',
             }),

@@ -8,32 +8,24 @@ import DataStateComponent from "../../components/shared/DataStateComponent.tsx";
 import {PaginationComponent} from "../../components/shared/PaginationComponent.tsx";
 import {routes} from "../../../routes/routes.ts";
 import {useLocation, useNavigate, useParams} from "react-router";
-import {useQuery, useQueryClient} from "@tanstack/react-query";
+import {useQuery} from "@tanstack/react-query";
 import {getAll, getById} from "../../../services/fetch/chat.service.ts";
 import PreloaderComponent from "../../components/shared/PreloaderComponent.tsx";
 import SortSearchComponent from "../../components/shared/SortSearchComponent.tsx";
 import type {QueryParams} from "../../../models/pagiantion/QueryParams.ts";
 import {getById as getUserById} from "../../../services/fetch/user.service.ts";
-import {chatWsService} from "../../../services/websocket/chat.service.ts";
-import type {MessageView} from "../../../models/chats/MessageView.ts";
 import {ChatSortField} from "../../../models/enums/ChatSortField.ts";
-import {usePaginatedQuery} from "../../../hooks/usePaginatedQuery.ts";
-import type {PaginationRes} from "../../../models/pagiantion/PaginationRes.ts";
+import type {PaginationView} from "../../../models/pagiantion/PaginationView.ts";
 import type {ChatView} from "../../../models/chats/ChatView.ts";
+import {usePaginatedQuery} from "../../../hooks/shared/usePaginatedQuery.ts";
+import {useWsChat} from "../../../hooks/shared/useWsChat.ts";
 
 const ChatsPage: FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const queryClient = useQueryClient();
     const {userPublicId} = useParams();
     const messagesContainerRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        chatWsService.connect();
-        return () => {
-            chatWsService.disconnect();
-        };
-    }, []);
+    const {sendMessage} = useWsChat(userPublicId);
 
     const {
         query,
@@ -42,19 +34,22 @@ const ChatsPage: FC = () => {
         isLoading: chatsLoading,
         error: chatsError,
         handlePageChange,
-    } = usePaginatedQuery<PaginationRes<ChatView>>(
+    } = usePaginatedQuery<PaginationView<ChatView>>(
         'chats',
-        (query) =>
+        query =>
             getAll({
                 page: query.page,
                 perPage: query.perPage,
                 sortBy: query.sortBy as ChatSortField | undefined,
                 sortDirection:
-                    query.sortDirection as 'asc' | 'desc' | undefined,
+                    query.sortDirection as
+                        | 'asc'
+                        | 'desc'
+                        | undefined,
                 search: query.search ?? undefined,
             }),
         undefined,
-        7
+        7,
     );
 
     const {
@@ -78,22 +73,6 @@ const ChatsPage: FC = () => {
     });
 
     useEffect(() => {
-        const handleNewMessage = (message: MessageView) => {
-            queryClient.setQueryData<MessageView[]>(
-                ['messages', userPublicId],
-                (oldMessages = []) => [
-                    ...oldMessages,
-                    message,
-                ],
-            );
-        };
-        chatWsService.onNewMessage(handleNewMessage);
-        return () => {
-            chatWsService.offNewMessage(handleNewMessage);
-        };
-    }, [userPublicId, queryClient]);
-
-    useEffect(() => {
         if (!messagesContainerRef.current || !messages) return;
 
         messagesContainerRef.current.scrollTop =
@@ -105,11 +84,6 @@ const ChatsPage: FC = () => {
             pathname: routes.chats.buildById(publicId),
             search: location.search,
         });
-    };
-
-    const sendMessage = (body: string) => {
-        if (!userPublicId) return;
-        chatWsService.newMessage({recipientPublicId: userPublicId, body});
     };
 
     return (
@@ -183,7 +157,7 @@ const ChatsPage: FC = () => {
                                 }}
                             >
                                 <PaginationComponent
-                                    page={query.page}
+                                    page={chats.page}
                                     pageCount={chats.pageCount}
                                     onChange={handlePageChange}
                                 />
@@ -192,6 +166,7 @@ const ChatsPage: FC = () => {
                     )}
                 </DataStateComponent>
             </Box>
+
             <Box
                 sx={{
                     flex: 1,
@@ -226,7 +201,6 @@ const ChatsPage: FC = () => {
                             data={selectedUser}
                             error={selectedUserError}
                             loading={selectedUserLoading}
-                            isEmpty={!selectedUser}
                         >
                             {selectedUser && (
                                 <ChatHeader user={selectedUser}/>
@@ -237,7 +211,6 @@ const ChatsPage: FC = () => {
                             data={messages}
                             error={messagesError}
                             loading={messagesLoading}
-                            isEmpty={false}
                         >
                             <Box
                                 ref={messagesContainerRef}
@@ -253,9 +226,7 @@ const ChatsPage: FC = () => {
                             </Box>
                         </DataStateComponent>
 
-                        <MessageInput
-                            onSend={sendMessage}
-                        />
+                        <MessageInput onSend={sendMessage}/>
                     </>
                 )}
             </Box>

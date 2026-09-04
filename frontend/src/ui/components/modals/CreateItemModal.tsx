@@ -1,4 +1,4 @@
-import {type FC, useState} from 'react';
+import {type FC} from 'react';
 import type {CreateItemDto} from '../../../models/item/CreateItemDto.ts';
 import {type SubmitHandler, useForm} from 'react-hook-form';
 import {useAuth} from '../../../store/helpers/useAuth.ts';
@@ -7,6 +7,7 @@ import {createItemSchema} from '../../../validation/item.schema.ts';
 import {Backdrop, Box, Button, MenuItem, Modal, TextField, Typography} from '@mui/material';
 import {allowedItemsPerSeller} from '../../../models/enums/AllowedItemsPerSeller.ts';
 import ErrorComponent from '../error/ErrorComponent.tsx';
+import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
 
 interface Props {
     open: boolean;
@@ -16,15 +17,14 @@ interface Props {
 
 const CreateItemModal: FC<Props> = ({open, closeModal, onCreateItem}) => {
     const {user} = useAuth();
-    const [error, setError] = useState<string | null>(null);
+    const {error, submit} = useFormSubmit();
 
     const {
         register,
         handleSubmit,
         reset,
         formState: {errors},
-    }
-        = useForm<CreateItemDto>({
+    } = useForm<CreateItemDto>({
         resolver: zodResolver(createItemSchema),
         defaultValues: {
             name: undefined,
@@ -35,22 +35,15 @@ const CreateItemModal: FC<Props> = ({open, closeModal, onCreateItem}) => {
     });
 
     const onClose = () => {
-        setError(null);
         reset();
         closeModal();
     };
 
-    const onSubmit: SubmitHandler<CreateItemDto> = async (data) => {
-        try {
-            await onCreateItem(data);
-            reset();
-            onClose();
-        } catch (e) {
-            if (e instanceof Error) {
-                setError(e.message);
-            }
-        }
-    };
+    const onSubmit: SubmitHandler<CreateItemDto> = data =>
+        submit(
+            async () => onCreateItem(data),
+            onClose,
+        );
 
     if (!user) return null;
     if (!user?.sellerType) return null;

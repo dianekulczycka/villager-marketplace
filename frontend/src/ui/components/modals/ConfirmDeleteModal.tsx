@@ -1,6 +1,7 @@
-import React, {type FC, useState} from 'react';
+import React, {type FC} from 'react';
 import {Backdrop, Box, Button, Modal, Typography} from '@mui/material';
 import ErrorComponent from '../error/ErrorComponent.tsx';
+import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
 
 interface Props {
     open: boolean;
@@ -9,18 +10,15 @@ interface Props {
 }
 
 const ConfirmDeleteModal: FC<Props> = ({open, closeModal, deleteEntity}) => {
-    const [error, setError] = useState<string | null>(null);
+    const {error, submit} = useFormSubmit();
 
     const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
-        try {
-            await deleteEntity();
-            closeModal();
-        } catch (e) {
-            if (e instanceof Error) {
-                setError(e.message);
-            }
-        }
+
+        await submit(
+            () => deleteEntity(),
+            closeModal,
+        );
     };
 
     return (

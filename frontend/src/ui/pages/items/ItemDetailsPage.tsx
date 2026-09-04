@@ -7,74 +7,72 @@ import {useQuery} from '@tanstack/react-query';
 import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
 import OrderModal from "../../components/modals/OrderModal.tsx";
 import type {OrderRequestDto} from "../../../models/order/OrderRequestDto.ts";
-import {order as orderItem} from "../../../services/fetch/order.service.ts";
-import {useMutationHandler} from "../../../hooks/useMutationHandler.ts";
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
+import {useMutation} from "../../../hooks/shared/useMutation.ts";
+import {useItemActions} from "../../../hooks/actions/useItemActions.ts";
 
 const ItemDetailsPage: FC = () => {
     const {publicId} = useParams();
-    const [openModal, setOpenModal] = useState<boolean>(false);
+    const {orderItem} = useItemActions();
+    const [openModal, setOpenModal] = useState(false);
 
     const {
         data,
         isLoading,
         error,
-        refetch
+        refetch,
     } = useQuery<ItemAdminView>({
         queryKey: ['item', publicId],
         queryFn: () => getById(publicId!),
         enabled: !!publicId,
     });
 
-    const {
-        isMutating,
-        openSnackbar,
-        setOpenSnackbar,
-        snackbarText,
-        snackbarStatus,
-        handleMutation,
-    } = useMutationHandler(refetch);
+    const {fetch, isMutating, ...snackbar} = useMutation(refetch);
 
     useEffect(() => {
         if (!data?.publicId) return;
         increaseViews(data.publicId);
     }, [data?.publicId]);
 
-    const order = async (dto: OrderRequestDto): Promise<void> => {
-        await handleMutation(
-            async () => {
-                await orderItem(publicId!, dto);
-                setOpenModal(false);
-            }, 'Order created!');
-    };
+    const order = (dto: OrderRequestDto): Promise<void> =>
+        fetch(
+            () => orderItem(publicId!, dto),
+            'Order created!',
+            () => setOpenModal(false),
+        );
 
     return (
         <>
-            <DataStateComponent data={data} error={error} loading={isLoading || isMutating}>
-                {data &&
-                    (<>
-                        <ItemDetailsCard item={data} order={order} openModal={() => {
-                            setOpenModal(true)
-                        }}/>
+            <DataStateComponent
+                data={data}
+                error={error}
+                loading={isLoading || isMutating}
+            >
+                {data && (
+                    <>
+                        <ItemDetailsCard
+                            item={data}
+                            order={order}
+                            openModal={() => setOpenModal(true)}
+                        />
+
                         <OrderModal
                             open={openModal}
-                            closeModal={() => {
-                                setOpenModal(false)
-                            }}
+                            closeModal={() => setOpenModal(false)}
                             order={order}
                             itemCount={data.count}
                         />
-                    </>)
-                }
+                    </>
+                )}
             </DataStateComponent>
+
             <InfoSnackbar
-                open={openSnackbar}
-                setOpen={setOpenSnackbar}
-                text={snackbarText}
-                status={snackbarStatus}
+                open={snackbar.open}
+                setOpen={snackbar.close}
+                text={snackbar.text}
+                status={snackbar.status}
             />
         </>
-
     );
 };
 

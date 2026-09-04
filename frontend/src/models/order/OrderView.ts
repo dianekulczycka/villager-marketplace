@@ -1,6 +1,6 @@
 import type {OrderStatus} from "../enums/OrderStatus.ts";
 
-export interface OrderResponseDto {
+export interface OrderView {
     publicId: string;
     amount: number;
     status: OrderStatus;

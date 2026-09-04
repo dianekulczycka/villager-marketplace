@@ -1,4 +1,4 @@
-import type {PaginationRes} from '../../models/pagiantion/PaginationRes.ts';
+import type {PaginationView} from '../../models/pagiantion/PaginationView.ts';
 import {api} from '../api.config.ts';
 import {endpoints} from '../api.endpoints.ts';
 import type {ProfileStats} from '../../models/stats/ProfileStats.ts';
@@ -7,7 +7,7 @@ import type {BecomeSellerDto} from '../../models/user/BecomeSellerDto.ts';
 import type {UserQueryParams} from '../../models/user/UserQueryParams.ts';
 import type {UserAdminView} from '../../models/user/UserAdminView.ts';
 
-export const getAll = async (params?: UserQueryParams): Promise<PaginationRes<UserAdminView>> => {
+export const getAll = async (params?: UserQueryParams): Promise<PaginationView<UserAdminView>> => {
     const {data} = await api.get(endpoints.users.root, {params});
     return data;
 };

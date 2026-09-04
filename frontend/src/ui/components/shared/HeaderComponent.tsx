@@ -1,19 +1,14 @@
 import {type FC} from 'react';
 import {AppBar, Avatar, Button, Link, Toolbar} from '@mui/material';
 import {useAuth} from '../../../store/helpers/useAuth.ts';
-import {Link as RouterLink, useNavigate} from 'react-router';
+import {Link as RouterLink} from 'react-router';
 import ErrorComponent from '../error/ErrorComponent.tsx';
 import {routes} from '../../../routes/routes.ts';
+import {useAuthActions} from "../../../hooks/actions/useAuthActions.ts";
 
 export const HeaderComponent: FC = () => {
-    const {user, logoutUser} = useAuth();
-    const navigate = useNavigate();
-
-
-    const handleLogout = async () => {
-        logoutUser();
-        navigate(routes.auth.login);
-    };
+    const {user} = useAuth();
+    const {logout} = useAuthActions();
 
     if (!user) return <ErrorComponent error="no user"/>;
     const isAuthority = user.role === 'ADMIN' || user.role === 'MANAGER';
@@ -93,7 +88,7 @@ export const HeaderComponent: FC = () => {
                     <Button
                         variant="outlined"
                         size="small"
-                        onClick={handleLogout}
+                        onClick={logout}
                         sx={{
                             textTransform: 'none',
                             fontWeight: 500,

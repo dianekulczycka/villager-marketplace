@@ -1,10 +1,11 @@
 import {type SubmitHandler, useForm} from 'react-hook-form';
-import {type FC, useState} from 'react';
+import {type FC} from 'react';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Backdrop, Box, Button, MenuItem, Modal, TextField, Typography} from '@mui/material';
 import ErrorComponent from '../error/ErrorComponent.tsx';
 import type {RecoverReq} from '../../../models/auth/RecoverReq.ts';
 import {recoverySchema} from '../../../validation/auth.schema.ts';
+import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
 
 interface Props {
     open: boolean;
@@ -13,32 +14,27 @@ interface Props {
 }
 
 const RecoverModal: FC<Props> = ({open, closeModal, recover}) => {
-    const [error, setError] = useState<string | null>(null);
+    const {error, submit} = useFormSubmit();
 
     const {
         register,
         handleSubmit,
         reset,
         formState: {errors},
-    }
-        = useForm<RecoverReq>({resolver: zodResolver(recoverySchema)});
+    } = useForm<RecoverReq>({
+        resolver: zodResolver(recoverySchema),
+    });
 
     const onClose = () => {
-        setError(null);
         reset();
         closeModal();
     };
 
-    const onSubmit: SubmitHandler<RecoverReq> = async (data) => {
-        try {
-            await recover(data);
-            onClose();
-        } catch (e) {
-            if (e instanceof Error) {
-                setError(e.message);
-            }
-        }
-    };
+    const onSubmit: SubmitHandler<RecoverReq> = data =>
+        submit(
+            async () => recover(data),
+            onClose,
+        );
 
     return (
         <Modal disableScrollLock

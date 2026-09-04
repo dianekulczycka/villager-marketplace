@@ -1,4 +1,4 @@
-import {type FC, useState} from 'react';
+import {type FC} from 'react';
 import {type SubmitHandler, useForm} from 'react-hook-form';
 import {Link} from 'react-router';
 import {zodResolver} from '@hookform/resolvers/zod';
@@ -6,13 +6,14 @@ import {alpha, Box, Button, TextField, Typography} from '@mui/material';
 import type {RegisterReq} from '../../../models/auth/RegisterReq.ts';
 import {registerSchema} from '../../../validation/auth.schema.ts';
 import ErrorComponent from '../error/ErrorComponent.tsx';
+import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
 
 interface Props {
     onRegister: (data: RegisterReq) => Promise<void>;
 }
 
 const RegisterForm: FC<Props> = ({onRegister}) => {
-    const [error, setError] = useState<string | null>(null);
+    const {error, submit} = useFormSubmit();
 
     const {
         register,
@@ -22,16 +23,11 @@ const RegisterForm: FC<Props> = ({onRegister}) => {
         resolver: zodResolver(registerSchema),
     });
 
-    const onSubmit: SubmitHandler<RegisterReq> = async (data) => {
-        try {
+    const onSubmit: SubmitHandler<RegisterReq> = data =>
+        submit(() => {
             const {email, username, password} = data;
-            await onRegister({email, username, password});
-        } catch (e) {
-            if (e instanceof Error) {
-                setError(e.message);
-            }
-        }
-    };
+            return onRegister({email, username, password});
+        });
 
     return (
         <Box sx={(theme) => ({

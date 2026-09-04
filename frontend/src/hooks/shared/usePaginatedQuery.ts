@@ -1,14 +1,6 @@
 import {useQuery, type UseQueryOptions} from '@tanstack/react-query';
 import {NumberParam, StringParam, useQueryParams, withDefault} from 'use-query-params';
-
-export type PaginationQuery = {
-    page: number;
-    perPage: number;
-    sortBy?: string | null;
-    sortDirection?: string | null;
-    search?: string | null;
-    sellerId?: string | null;
-};
+import type {PaginationQuery} from "../../models/pagiantion/PaginationQuery.ts";
 
 export function usePaginatedQuery<T>(
     queryKey: string,

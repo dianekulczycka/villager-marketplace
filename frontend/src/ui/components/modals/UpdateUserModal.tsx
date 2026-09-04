@@ -1,4 +1,4 @@
-import {type FC, useEffect, useState} from 'react';
+import {type FC, useEffect} from 'react';
 import type {UpdateUserDto} from '../../../models/user/UpdateUserDto.ts';
 import type {UserSelfView} from '../../../models/user/UserSelfView.ts';
 import type {UserAdminView} from '../../../models/user/UserAdminView.ts';
@@ -7,6 +7,7 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {updateUserSchema} from '../../../validation/user.schema.ts';
 import {Backdrop, Box, Button, Modal, TextField, Typography} from '@mui/material';
 import ErrorComponent from '../error/ErrorComponent.tsx';
+import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
 
 
 interface Props {
@@ -17,7 +18,7 @@ interface Props {
 }
 
 const UpdateUserModal: FC<Props> = ({open, closeModal, onUpdateUser, selectedUser}) => {
-    const [error, setError] = useState<string | null>(null);
+    const {error, submit} = useFormSubmit();
 
     const {
         register,
@@ -38,18 +39,14 @@ const UpdateUserModal: FC<Props> = ({open, closeModal, onUpdateUser, selectedUse
 
     if (!selectedUser) return null;
 
-    const onSubmit: SubmitHandler<UpdateUserDto> = async (data) => {
-        try {
-            await onUpdateUser(data);
-            reset();
-            closeModal();
-        } catch (e) {
-            if (e instanceof Error) {
-                setError(e.message);
-            }
-        }
-    };
-
+    const onSubmit: SubmitHandler<UpdateUserDto> = data =>
+        submit(
+            () => onUpdateUser(data),
+            () => {
+                reset();
+                closeModal();
+            },
+        );
 
     return (
         <Modal disableScrollLock

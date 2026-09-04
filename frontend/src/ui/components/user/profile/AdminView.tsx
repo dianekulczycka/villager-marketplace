@@ -1,5 +1,5 @@
 import type {UserQueryParams} from '../../../../models/user/UserQueryParams.ts';
-import type {PaginationRes} from '../../../../models/pagiantion/PaginationRes.ts';
+import type {PaginationView} from '../../../../models/pagiantion/PaginationView.ts';
 import type {FC} from 'react';
 import SortSearchComponent from '../../shared/SortSearchComponent.tsx';
 import DataStateComponent from '../../shared/DataStateComponent.tsx';
@@ -11,7 +11,7 @@ import {UserSortField} from '../../../../models/enums/UserSortField.ts';
 interface Props {
     query: UserQueryParams;
     setQuery: (q: Partial<UserQueryParams>) => void;
-    users: PaginationRes<UserAdminView> | null;
+    users: PaginationView<UserAdminView> | null;
     loading: boolean;
     error: Error | null;
     openDeleteModal: (user: UserAdminView) => void;

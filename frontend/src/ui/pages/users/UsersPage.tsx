@@ -11,13 +11,12 @@ import type {UpdateUserDto} from '../../../models/user/UpdateUserDto.ts';
 import UpdateUserModal from '../../components/modals/UpdateUserModal.tsx';
 import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal.tsx';
 import type {QueryParams} from "../../../models/pagiantion/QueryParams.ts";
-import {useMutationHandler} from "../../../hooks/useMutationHandler.ts";
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
-import PreloaderComponent from "../../components/shared/PreloaderComponent.tsx";
-import {useAdminUserActions} from "../../../hooks/useAdminUserActions.ts";
-import {useModalState} from "../../../hooks/useModalState.ts";
-import {usePaginatedQuery} from "../../../hooks/usePaginatedQuery.ts";
-import type {PaginationRes} from "../../../models/pagiantion/PaginationRes.ts";
+import {useUserActions} from "../../../hooks/actions/useUserActions.ts";
+import {useModal} from "../../../hooks/shared/useModal.ts";
+import {usePaginatedQuery} from "../../../hooks/shared/usePaginatedQuery.ts";
+import type {PaginationView} from "../../../models/pagiantion/PaginationView.ts";
+import {useMutation} from "../../../hooks/shared/useMutation.ts";
 
 const UsersPage: FC = () => {
     const {
@@ -25,7 +24,7 @@ const UsersPage: FC = () => {
         selected: selectedUser,
         closeModal,
         createOpenFn,
-    } = useModalState<UserAdminView>();
+    } = useModal<UserAdminView>();
 
     const openUpdateModal = createOpenFn('updateUser');
     const openDeleteModal = createOpenFn('deleteUser');
@@ -39,26 +38,31 @@ const UsersPage: FC = () => {
         error,
         refetch,
         handlePageChange,
-    } = usePaginatedQuery<PaginationRes<UserAdminView>>(
+    } = usePaginatedQuery<PaginationView<UserAdminView>>(
         'users',
-        (query) =>
+        query =>
             getAll({
                 page: query.page,
                 perPage: query.perPage,
-                sortBy: query.sortBy as UserSortField | undefined,
-                sortDirection: query.sortDirection as 'asc' | 'desc' | undefined,
+                sortBy:
+                    query.sortBy as UserSortField | undefined,
+                sortDirection:
+                    query.sortDirection as
+                        | 'asc'
+                        | 'desc'
+                        | undefined,
                 search: query.search ?? undefined,
             }),
     );
 
     const {
+        fetch,
         isMutating,
-        openSnackbar,
-        setOpenSnackbar,
-        snackbarText,
-        snackbarStatus,
-        handleMutation,
-    } = useMutationHandler(refetch);
+        open,
+        close,
+        text,
+        status,
+    } = useMutation(refetch);
 
     const {
         updateUser,
@@ -68,32 +72,91 @@ const UsersPage: FC = () => {
         togglePromote,
         unflagUser,
         restoreUser,
-    } = useAdminUserActions(handleMutation);
+    } = useUserActions();
 
-    const handleUpdateUser = async (dto: UpdateUserDto) => {
+    const handleUpdateUser = async (
+        dto: UpdateUserDto,
+    ): Promise<void> => {
         if (!selectedUser) return;
-        await updateUser(selectedUser.publicId, dto);
+
+        await fetch(
+            () => updateUser(selectedUser.publicId, dto),
+            'User updated!',
+        );
     };
 
-    const handleDeleteUser = async () => {
+    const handleDeleteUser = async (): Promise<void> => {
         if (!selectedUser) return;
-        await deleteUser(selectedUser.publicId);
+
+        await fetch(
+            () => deleteUser(selectedUser.publicId),
+            'User deleted!',
+        );
+
+        closeModal();
     };
 
-    const handleHardDeleteUser = async () => {
+    const handleHardDeleteUser = async (): Promise<void> => {
         if (!selectedUser) return;
-        await hardDeleteUser(selectedUser.publicId);
+
+        await fetch(
+            () => hardDeleteUser(selectedUser.publicId),
+            'User permanently deleted!',
+        );
+
+        closeModal();
+    };
+
+    const handleToggleBan = async (
+        user: UserAdminView,
+    ): Promise<void> => {
+        await fetch(
+            () => toggleBan(user),
+            user.isBanned ? 'User unbanned!' : 'User banned!',
+        );
+    };
+
+    const handleTogglePromote = async (
+        user: UserAdminView,
+    ): Promise<void> => {
+        await fetch(
+            () => togglePromote(user),
+            user.role === 'MANAGER'
+                ? 'Manager demoted!'
+                : 'User promoted!',
+        );
+    };
+
+    const handleUnflagUser = async (
+        user: UserAdminView,
+    ): Promise<void> => {
+        if (!user.isFlagged) return;
+
+        await fetch(
+            () => unflagUser(user),
+            'User unflagged!',
+        );
+    };
+
+    const handleRestoreUser = async (
+        user: UserAdminView,
+    ): Promise<void> => {
+        if (!user.isDeleted) return;
+
+        await fetch(
+            () => restoreUser(user),
+            'User restored!',
+        );
     };
 
     return (
-        <Box sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-        }}>
-
-            {isLoading && <PreloaderComponent/>}
-
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+            }}
+        >
             <SortSearchComponent
                 query={query as QueryParams<UserSortField>}
                 setQuery={setQuery}
@@ -104,27 +167,28 @@ const UsersPage: FC = () => {
                 data={data}
                 error={error}
                 loading={isLoading || isMutating}
-                isEmpty={data?.data.length === 0}>
-                {data &&
+                isEmpty={data?.data.length === 0}
+            >
+                {data && (
                     <>
                         <UsersComponent
                             users={data.data}
                             openDeleteModal={openDeleteModal}
                             openHardDeleteModal={openHardDeleteModal}
                             openUpdateModal={openUpdateModal}
-                            toggleBan={toggleBan}
-                            togglePromote={togglePromote}
-                            unflagUser={unflagUser}
-                            restoreUser={restoreUser}
+                            toggleBan={handleToggleBan}
+                            togglePromote={handleTogglePromote}
+                            unflagUser={handleUnflagUser}
+                            restoreUser={handleRestoreUser}
                         />
+
                         <PaginationComponent
                             page={data.page}
                             pageCount={data.pageCount}
                             onChange={handlePageChange}
-
                         />
                     </>
-                }
+                )}
             </DataStateComponent>
 
             <UpdateUserModal
@@ -135,7 +199,10 @@ const UsersPage: FC = () => {
             />
 
             <ConfirmDeleteModal
-                open={activeModal === 'deleteUser' || activeModal === 'hardDeleteUser'}
+                open={
+                    activeModal === 'deleteUser' ||
+                    activeModal === 'hardDeleteUser'
+                }
                 closeModal={closeModal}
                 deleteEntity={
                     activeModal === 'deleteUser'
@@ -145,12 +212,11 @@ const UsersPage: FC = () => {
             />
 
             <InfoSnackbar
-                open={openSnackbar}
-                setOpen={setOpenSnackbar}
-                text={snackbarText}
-                status={snackbarStatus}
+                open={open}
+                setOpen={close}
+                text={text}
+                status={status}
             />
-
         </Box>
     );
 };

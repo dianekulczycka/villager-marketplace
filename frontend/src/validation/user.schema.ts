@@ -12,7 +12,7 @@ export const updateUserSchema = z.object(
             .string()
             .regex(
                 /^[A-Za-z0-9\s]{2,}$/,
-                'Name must be gt 2 chars and contain Latin letters only',
+                'Name must be longer than 2 letters and contain Latin letters only',
             )
             .refine((v) => !hasSwearWords(v), {
                 message: 'Bad language used',

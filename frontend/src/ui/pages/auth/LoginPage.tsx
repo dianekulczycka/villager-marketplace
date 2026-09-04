@@ -1,47 +1,44 @@
 import {type FC, useState} from 'react';
 import LoginForm from '../../components/froms/LoginForm.tsx';
-import type {LoginReq} from '../../../models/auth/LoginReq.ts';
-import {login, recover} from '../../../services/fetch/auth.service.ts';
-import {routes} from '../../../routes/routes.ts';
-import {useNavigate} from 'react-router';
-import {useAuth} from '../../../store/helpers/useAuth.ts';
 import type {ActiveModal} from '../../../models/item/ActiveModal.ts';
 import type {RecoverReq} from '../../../models/auth/RecoverReq.ts';
 import RecoverModal from '../../components/modals/RecoverModal.tsx';
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
+import {useAuthActions} from "../../../hooks/actions/useAuthActions.ts";
 
 const LoginPage: FC = () => {
-    const navigate = useNavigate();
-    const {loadUser} = useAuth();
-
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+
+    const {
+        loginUser,
+        recoverUser,
+    } = useAuthActions();
 
     const openModal = () => setActiveModal('restore');
     const closeModal = () => setActiveModal(null);
 
-    const onLogin = async (dto: LoginReq) => {
-        await login(dto);
-        loadUser();
-        navigate(routes.items.root);
-    };
-
     const onRecover = async (dto: RecoverReq) => {
-        await recover(dto);
+        await recoverUser(dto);
         setOpenSnackbar(true);
     };
 
     return (
         <>
-            <LoginForm login={onLogin} openModal={openModal}/>
-            <RecoverModal open={activeModal === 'restore'} closeModal={closeModal} recover={onRecover}/>
+            <LoginForm login={loginUser} openModal={openModal}/>
+            <RecoverModal
+                open={activeModal === 'restore'}
+                closeModal={closeModal}
+                recover={onRecover}
+            />
             <InfoSnackbar
                 open={openSnackbar}
                 setOpen={setOpenSnackbar}
-                text="Request successful. Please wait to be restored"
+                text="Request successful, please wait to be restored"
                 status="success"
             />
-        </>);
+        </>
+    );
 };
 
 export default LoginPage;

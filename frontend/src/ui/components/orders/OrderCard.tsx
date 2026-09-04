@@ -1,11 +1,11 @@
 import {type FC} from 'react';
 import {Box, Card, CardContent, Chip, Stack, Typography} from "@mui/material";
-import type {OrderResponseDto} from "../../../models/order/OrderResponseDto.ts";
+import type {OrderView} from "../../../models/order/OrderView.ts";
 import {useAuth} from "../../../store/helpers/useAuth.ts";
 import OrderControllers from "../buttons/OrderControllers.tsx";
 
 interface Props {
-    order: OrderResponseDto;
+    order: OrderView;
     confirmOrder: (publicId: string) => Promise<void>;
     rejectOrder: (publicId: string) => Promise<void>;
 }

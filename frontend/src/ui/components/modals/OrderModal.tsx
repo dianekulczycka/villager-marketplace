@@ -1,10 +1,11 @@
-import {type FC, useState} from "react";
+import {type FC} from "react";
 import {Backdrop, Box, Button, Modal, TextField} from "@mui/material";
 import ErrorComponent from "../error/ErrorComponent.tsx";
 import {type SubmitHandler, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import type {OrderRequestDto} from "../../../models/order/OrderRequestDto.ts";
 import {orderSchema} from "../../../validation/order.schema.ts";
+import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
 
 interface Props {
     open: boolean;
@@ -14,42 +15,34 @@ interface Props {
 }
 
 const OrderModal: FC<Props> = ({open, closeModal, order, itemCount}) => {
-    const [error, setError] = useState<string | null>(null);
+    const {error, submit, setError} = useFormSubmit();
 
     const {
         register,
         handleSubmit,
         reset,
         formState: {errors},
-    }
-        = useForm<OrderRequestDto>({
+    } = useForm<OrderRequestDto>({
         resolver: zodResolver(orderSchema),
         defaultValues: {
-            amount: 1
+            amount: 1,
         },
     });
 
     const onClose = () => {
-        setError(null);
         reset();
         closeModal();
     };
 
-    const onSubmit: SubmitHandler<OrderRequestDto> = async (data) => {
+    const onSubmit: SubmitHandler<OrderRequestDto> = data => {
         if (data.amount > itemCount) {
             setError(`Only ${itemCount} available`);
             return;
         }
-
-        try {
-            await order(data);
-            reset();
-            onClose();
-        } catch (e) {
-            if (e instanceof Error) {
-                setError(e.message);
-            }
-        }
+        return submit(
+            () => order(data),
+            onClose,
+        );
     };
 
     return (

@@ -1,5 +1,5 @@
 import {useAuth} from '../../../store/helpers/useAuth.ts';
-import {type FC, useEffect, useState} from 'react';
+import {type FC, useEffect} from 'react';
 import type {UpdateItemDto} from '../../../models/item/UpdateItemDto.ts';
 import {type SubmitHandler, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
@@ -7,6 +7,7 @@ import {updateItemSchema} from '../../../validation/item.schema.ts';
 import {Backdrop, Box, Button, Modal, TextField, Typography} from '@mui/material';
 import ErrorComponent from '../error/ErrorComponent.tsx';
 import type {ItemView} from '../../../models/item/ItemView.ts';
+import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
 
 interface Props {
     open: boolean;
@@ -17,7 +18,7 @@ interface Props {
 
 const UpdateItemModal: FC<Props> = ({open, closeModal, updateItem, selectedItem}) => {
     const {user} = useAuth();
-    const [error, setError] = useState<string | null>(null);
+    const {error, submit} = useFormSubmit();
 
     const {
         register,
@@ -40,21 +41,18 @@ const UpdateItemModal: FC<Props> = ({open, closeModal, updateItem, selectedItem}
 
     if (!user || !selectedItem) return null;
 
-    const onSubmit: SubmitHandler<UpdateItemDto> = async (data) => {
-        try {
-            const dto = {
-                ...data,
-                description: data.description?.trim() || undefined,
-            };
-            await updateItem(dto);
-            reset();
-            closeModal();
-        } catch (e) {
-            if (e instanceof Error) {
-                setError(e.message);
-            }
-        }
-    };
+    const onSubmit: SubmitHandler<UpdateItemDto> = data =>
+        submit(
+            () =>
+                updateItem({
+                    ...data,
+                    description: data.description?.trim() || undefined,
+                }),
+            () => {
+                reset();
+                closeModal();
+            },
+        );
 
     return (
         <Modal disableScrollLock

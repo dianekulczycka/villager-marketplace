@@ -1,4 +1,4 @@
-import {type FC, useState} from 'react';
+import {type FC} from 'react';
 import {type SubmitHandler, useForm} from 'react-hook-form';
 import {Link} from 'react-router';
 import {zodResolver} from '@hookform/resolvers/zod';
@@ -6,6 +6,7 @@ import {alpha, Box, Button, TextField, Typography} from '@mui/material';
 import type {LoginReq} from '../../../models/auth/LoginReq.ts';
 import {loginSchema} from '../../../validation/auth.schema.ts';
 import ErrorComponent from '../error/ErrorComponent.tsx';
+import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
 
 interface Props {
     login: (data: LoginReq) => Promise<void>;
@@ -13,7 +14,11 @@ interface Props {
 }
 
 const LoginForm: FC<Props> = ({login, openModal}) => {
-    const [error, setError] = useState<string | null>(null);
+    const {
+        error,
+        submit,
+    } = useFormSubmit();
+
     const {
         register,
         handleSubmit,
@@ -22,15 +27,8 @@ const LoginForm: FC<Props> = ({login, openModal}) => {
         resolver: zodResolver(loginSchema),
     });
 
-    const onSubmit: SubmitHandler<LoginReq> = async (data) => {
-        try {
-            await login(data);
-        } catch (e) {
-            if (e instanceof Error) {
-                setError(e.message);
-            }
-        }
-    };
+    const onSubmit: SubmitHandler<LoginReq> = data =>
+        submit(() => login(data));
 
     return (
         <Box sx={(theme) => ({
@@ -45,13 +43,15 @@ const LoginForm: FC<Props> = ({login, openModal}) => {
             gap: 2,
         })}>
             <Typography variant="h5"> Log in </Typography>
+
             <form
                 onSubmit={handleSubmit(onSubmit)}
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '16px',
-                }}>
+                }}
+            >
                 <TextField
                     label="Email"
                     fullWidth
@@ -59,6 +59,7 @@ const LoginForm: FC<Props> = ({login, openModal}) => {
                     error={!!errors.email}
                     helperText={errors.email?.message}
                 />
+
                 <TextField
                     label="Password"
                     type="password"
@@ -67,22 +68,35 @@ const LoginForm: FC<Props> = ({login, openModal}) => {
                     error={!!errors.password}
                     helperText={errors.password?.message}
                 />
-                <Button variant="contained"
-                        color="secondary" type="submit">Log in</Button>
+
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    type="submit"
+                >
+                    Log in
+                </Button>
             </form>
 
-            <Typography variant="caption"> Don't have an account? <Link
-                to="/auth/register"> Register </Link></Typography>
+            <Typography variant="caption">
+                Don't have an account?{' '}
+                <Link to="/auth/register">Register</Link>
+            </Typography>
 
-            <Button variant="outlined" sx={{
-                textTransform: 'none',
-                fontWeight: 500,
-                borderRadius: 2,
-                px: 3,
-            }} onClick={openModal}>Restore account</Button>
+            <Button
+                variant="outlined"
+                sx={{
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    borderRadius: 2,
+                    px: 3,
+                }}
+                onClick={openModal}
+            >
+                Restore account
+            </Button>
 
             {error && <ErrorComponent error={error}/>}
-
         </Box>
     );
 };

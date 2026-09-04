@@ -4,7 +4,7 @@ import SortSearchComponent from '../../shared/SortSearchComponent.tsx';
 import DataStateComponent from '../../shared/DataStateComponent.tsx';
 import ItemsComponent from '../../item/ItemsComponent.tsx';
 import {PaginationComponent} from '../../shared/PaginationComponent.tsx';
-import type {PaginationRes} from '../../../../models/pagiantion/PaginationRes.ts';
+import type {PaginationView} from '../../../../models/pagiantion/PaginationView.ts';
 import type {QueryParams} from "../../../../models/pagiantion/QueryParams.ts";
 import {ItemSortField} from "../../../../models/enums/ItemSortField.ts";
 import type {ItemQueryParams} from "../../../../models/item/ItemQueryParams.ts";
@@ -12,7 +12,7 @@ import type {ItemQueryParams} from "../../../../models/item/ItemQueryParams.ts";
 interface Props {
     query: ItemQueryParams;
     setQuery: (q: Partial<ItemQueryParams>) => void;
-    items: PaginationRes<ItemAdminView> | null;
+    items: PaginationView<ItemAdminView> | null;
     loading: boolean;
     error: Error | null;
     openUpdateModal: (item: ItemAdminView) => void;

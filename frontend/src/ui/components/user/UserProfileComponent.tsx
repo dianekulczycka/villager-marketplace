@@ -3,10 +3,10 @@ import UserProfileCard from './cards/UserProfileCard.tsx';
 import {Box, Card, CardContent} from '@mui/material';
 import ActionButton from '../buttons/ActionButton.tsx';
 import type {UserAdminView} from '../../../models/user/UserAdminView.ts';
-import type {PageView} from '../../pages/users/UserProfilePage.tsx';
 import type {ProfileStats} from '../../../models/stats/ProfileStats.ts';
 import StatsComponent from './StatsComponen.tsx';
 import DataStateComponent from '../shared/DataStateComponent.tsx';
+import {ProfilePageView} from "../../../models/enums/ProfilePageView.ts";
 
 interface Props {
     user: UserAdminView;
@@ -14,7 +14,7 @@ interface Props {
     openCreateModal: () => void;
     openDeleteMyProfileModal: (user: UserAdminView) => void;
     openUpdateUserModal: (user: UserAdminView) => void;
-    changeView: (pageView: PageView) => void;
+    changeView: (pageView: ProfilePageView) => void;
     stats: ProfileStats | undefined;
     error: Error | null;
     loading: boolean;
@@ -106,14 +106,18 @@ const UserProfileComponent: FC<Props> = ({
 
                         {isAuthority && (
                             <>
-                                <ActionButton action="Show all" actionHandler={() => changeView('USERS')}/>
-                                <ActionButton action="Show flagged" actionHandler={() => changeView('FLAGGED_USERS')}/>
-                                <ActionButton action="Show banned" actionHandler={() => changeView('BANNED_USERS')}/>
+                                <ActionButton action="Show all"
+                                              actionHandler={() => changeView(ProfilePageView.USERS)}/>
+                                <ActionButton action="Show flagged"
+                                              actionHandler={() => changeView(ProfilePageView.FLAGGED)}/>
+                                <ActionButton action="Show banned"
+                                              actionHandler={() => changeView(ProfilePageView.BANNED)}/>
                             </>
                         )}
 
                         {isAdmin && (
-                            <ActionButton action="Show managers" actionHandler={() => changeView('MANAGERS')}/>
+                            <ActionButton action="Show managers"
+                                          actionHandler={() => changeView(ProfilePageView.MANAGERS)}/>
                         )}
                     </Box>
                 </CardContent>

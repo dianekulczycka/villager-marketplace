@@ -1,4 +1,4 @@
-import {type FC, useState} from 'react';
+import {type FC} from 'react';
 import {Backdrop, Box, Button, MenuItem, Modal, TextField, Typography} from '@mui/material';
 import {SellerTypes} from '../../../models/enums/SellerType.ts';
 import ErrorComponent from '../error/ErrorComponent.tsx';
@@ -6,6 +6,7 @@ import {type SubmitHandler, useForm} from 'react-hook-form';
 import type {BecomeSellerDto} from '../../../models/user/BecomeSellerDto.ts';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {becomeSellerSchema} from '../../../validation/user.schema.ts';
+import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
 
 interface Props {
     open: boolean;
@@ -14,15 +15,16 @@ interface Props {
 }
 
 const BecomeSellerModal: FC<Props> = ({open, closeModal, onBecomeSeller}) => {
-    const [error, setError] = useState<string | null>(null);
+    const {error, submit, setError} = useFormSubmit();
 
     const {
         register,
         handleSubmit,
         reset,
         formState: {errors},
-    }
-        = useForm<BecomeSellerDto>({resolver: zodResolver(becomeSellerSchema)});
+    } = useForm<BecomeSellerDto>({
+        resolver: zodResolver(becomeSellerSchema),
+    });
 
     const onClose = () => {
         setError(null);
@@ -30,16 +32,11 @@ const BecomeSellerModal: FC<Props> = ({open, closeModal, onBecomeSeller}) => {
         closeModal();
     };
 
-    const onSubmit: SubmitHandler<BecomeSellerDto> = async (data) => {
-        try {
-            await onBecomeSeller(data);
-            onClose();
-        } catch (e) {
-            if (e instanceof Error) {
-                setError(e.message);
-            }
-        }
-    };
+    const onSubmit: SubmitHandler<BecomeSellerDto> = data =>
+        submit(
+            async () => onBecomeSeller(data),
+            onClose,
+        );
 
     return (
         <Modal disableScrollLock
