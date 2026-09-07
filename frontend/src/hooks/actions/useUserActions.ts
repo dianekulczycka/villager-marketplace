@@ -4,15 +4,16 @@ import {
     hardDelete,
     promote,
     restore,
-    softDelete as softDeleteUser,
+    softDelete as adminSoftDelete,
+    update as adminUpdate,
     unban,
-    unflag,
-    update
+    unflag
 } from '../../services/fetch/admin.service.ts';
 import {
     becomeSeller,
     softDelete,
     uploadAvatar,
+    update
 } from "../../services/fetch/user.service.ts";
 import type {UserAdminView} from '../../models/user/UserAdminView.ts';
 import type {UpdateUserDto} from "../../models/user/UpdateUserDto.ts";
@@ -20,13 +21,14 @@ import type {BecomeSellerDto} from "../../models/user/BecomeSellerDto.ts";
 
 export const useUserActions = () => {
     // user
-    const updateUser = (publicId: string, dto: UpdateUserDto) => update(publicId, dto);
+    const updateProfile = (dto: UpdateUserDto) => update(dto);
     const changeAvatar = (file: File) => uploadAvatar(file);
     const onBecomeSeller = (dto: BecomeSellerDto) => becomeSeller(dto);
-    const deleteMyProfile = () => softDelete();
+    const deleteProfile = () => softDelete();
 
     // admin
-    const deleteUser = (publicId: string) => softDeleteUser(publicId);
+    const updateUser = (publicId: string, dto: UpdateUserDto) => adminUpdate(publicId, dto);
+    const deleteUser = (publicId: string) => adminSoftDelete(publicId);
     const hardDeleteUser = (publicId: string) => hardDelete(publicId);
     const toggleBan = (user: UserAdminView) =>
         user.isBanned
@@ -49,10 +51,11 @@ export const useUserActions = () => {
             : Promise.resolve();
 
     return {
+        updateProfile,
         updateUser,
         changeAvatar,
         onBecomeSeller,
-        deleteMyProfile,
+        deleteProfile,
         deleteUser,
         hardDeleteUser,
         toggleBan,

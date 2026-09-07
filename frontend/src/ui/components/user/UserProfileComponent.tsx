@@ -81,6 +81,7 @@ const UserProfileComponent: FC<Props> = ({
 
                     <DataStateComponent
                         loading={loading}
+                        emptyMessage={"No stats found"}
                         error={error}
                         data={stats}
                     >

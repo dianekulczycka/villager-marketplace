@@ -303,7 +303,11 @@ export class UserService {
   }
 
   async promoteManager(publicId: string): Promise<void> {
-    const user = await this.findUserByPublicId(publicId);
+    const user = await this.findUserByPublicId(publicId, {
+      id: true,
+      email: true,
+      role: true,
+    });
 
     if (!(user.role === user_role.BUYER || user.role === user_role.SELLER))
       throw new BadRequestException(USER_ERRORS.NOT_ALLOWED_UPDATE);
@@ -326,7 +330,11 @@ export class UserService {
   }
 
   async demoteManager(publicId: string): Promise<void> {
-    const user = await this.findUserByPublicId(publicId);
+    const user = await this.findUserByPublicId(publicId, {
+      id: true,
+      email: true,
+      role: true,
+    });
 
     if (user.role !== user_role.MANAGER)
       throw new BadRequestException(USER_ERRORS.NOT_ALLOWED_UPDATE);
@@ -342,7 +350,18 @@ export class UserService {
   }
 
   async restoreUser(publicId: string): Promise<string> {
-    const user = await this.findUserByPublicId(publicId);
+    const user = validateExists(
+      await this.prisma.user.findFirst({
+        where: { publicId },
+        select: {
+          id: true,
+          email: true,
+          isDeleted: true,
+        },
+      }),
+      USER_ERRORS.NOT_FOUND,
+    );
+
     if (!user.isDeleted) throw new BadRequestException(USER_ERRORS.NOT_DELETED);
 
     await this.prisma.user.update({

@@ -38,6 +38,7 @@ const SellerView: FC<Props> = ({
                 fields={Object.values(ItemSortField)}
             />
             <DataStateComponent
+                emptyMessage={"No items found"}
                 loading={loading}
                 error={error}
                 data={items}

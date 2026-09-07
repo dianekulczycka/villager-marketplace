@@ -166,6 +166,7 @@ const UsersPage: FC = () => {
             <DataStateComponent
                 data={data}
                 error={error}
+                emptyMessage={"No users found"}
                 loading={isLoading || isMutating}
                 isEmpty={data?.data.length === 0}
             >

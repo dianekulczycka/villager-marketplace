@@ -62,6 +62,7 @@ const ChatComponent: FC<Props> = ({chat, handleChatLoad}) => {
                         user={chat}
                         small
                         detailed={false}
+                        showActions={false}
                     />
                 </Box>
 

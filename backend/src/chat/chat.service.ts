@@ -28,7 +28,7 @@ import {
 } from './dto/chat-query.dto';
 import { validateExists } from '../shared/helpers/validate-exists';
 import { MESSAGE_ERRORS } from '../shared/errors/message.errors';
-import { MessageReadResponseDto } from './dto/message-read-response.dto';
+import { ChatOpenedResponseDto } from './dto/chat-opened-response.dto';
 
 @Injectable()
 export class ChatService {
@@ -87,11 +87,14 @@ export class ChatService {
       ...buildUserPublicSearchWhere(query.search),
     };
 
-    const result = await paginatePrisma<ChatPublicDto>(
+    const result = await paginatePrisma<ChatPublicDto & { id: number }>(
       this.prisma.user,
       {
         where,
-        select: USER_PUBLIC_SELECT,
+        select: {
+          ...USER_PUBLIC_SELECT,
+          id: true,
+        },
         orderBy: {
           [orderField]: query.sortDirection ?? SortDirectionEnum.ASC,
         },
@@ -135,7 +138,7 @@ export class ChatService {
   async markChatAsRead(
     otherUserPublicId: string,
     currentUserId: number,
-  ): Promise<MessageReadResponseDto> {
+  ): Promise<ChatOpenedResponseDto> {
     const otherUser = validateExists(
       await this.prisma.user.findUnique({
         where: { publicId: otherUserPublicId },

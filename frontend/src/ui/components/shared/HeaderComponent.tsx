@@ -7,11 +7,10 @@ import {routes} from '../../../routes/routes.ts';
 import {useAuthActions} from "../../../hooks/actions/useAuthActions.ts";
 
 export const HeaderComponent: FC = () => {
-    const {user} = useAuth();
+    const {user, isAuthority} = useAuth();
     const {logout} = useAuthActions();
 
     if (!user) return <ErrorComponent error="no user"/>;
-    const isAuthority = user.role === 'ADMIN' || user.role === 'MANAGER';
 
     return (
         <AppBar

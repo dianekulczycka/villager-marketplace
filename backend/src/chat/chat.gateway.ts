@@ -13,8 +13,9 @@ import { Logger, UseGuards } from '@nestjs/common';
 import { WsJwtGuard } from '../auth/guards/ws-jwt.guard';
 import { JwtPayload } from '../shared/interfaces/jwt-payload.interface';
 import { Server, Socket } from 'socket.io';
-import { OpenChatDto } from './dto/chat-opened.dto';
-import { MessageReadResponseDto } from './dto/message-read-response.dto';
+import { OpenChatDto } from './dto/chat-opened-request.dto';
+import { ChatOpenedResponseDto } from './dto/chat-opened-response.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @UseGuards(WsJwtGuard)
 @WebSocketGateway(3004, {
@@ -29,29 +30,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(ChatGateway.name);
   constructor(private readonly chatService: ChatService) {}
 
+  private readonly connectedUsers = new Map<number, string>();
+
   handleConnection(client: Socket) {
-    try {
-      const user = client.data as JwtPayload;
-      this.logger.log(
-        `user id:${user.userId} connected (client id:${client.id})`,
-      );
-    } catch (error: any) {
-      this.logger.error(`connect error: ${error}`);
-      client.disconnect();
-    }
+    const user = client.data as JwtPayload;
+    this.connectedUsers.set(user.userId, client.id);
+    this.logger.log(
+      `user id:${user.userId} connected with socket ${client.id}`,
+    );
   }
 
   handleDisconnect(client: Socket) {
-    try {
-      const user = client.data as JwtPayload;
-      this.logger.log(
-        `user id:${user.userId} disconnected (client id: ${client.id})`,
-      );
-    } catch (error: any) {
-      this.logger.error(`disconnect error: ${error}`);
-    }
+    const user = client.data as JwtPayload;
+    this.connectedUsers.delete(user.userId);
+    this.logger.log(`user id:${user.userId} disconnected`);
   }
 
+  @Throttle({ default: { limit: 1, ttl: 1000 } })
   @SubscribeMessage('newMessage')
   async handleNewMessage(
     @MessageBody() createMessageDto: CreateMessageDto,
@@ -60,6 +55,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const user = client.data as JwtPayload;
     const message = await this.chatService.saveMessage(user, createMessageDto);
     client.emit('newMessage', message);
+    const recipientSocketId = this.connectedUsers.get(message.recipientId);
+    if (recipientSocketId)
+      this.server.to(recipientSocketId).emit('newMessage', message);
   }
 
   @SubscribeMessage('openChat')
@@ -68,14 +66,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     const user = client.data as JwtPayload;
-    const result: MessageReadResponseDto =
-      await this.chatService.markChatAsRead(
-        openChatDto.otherUserPublicId,
-        user.userId,
-      );
+    const result: ChatOpenedResponseDto = await this.chatService.markChatAsRead(
+      openChatDto.otherUserPublicId,
+      user.userId,
+    );
     client.emit('chatOpened', {
       otherUserPublicId: openChatDto.otherUserPublicId,
-      markedAsReadCount: result.count,
+      count: result.count,
     });
   }
 }

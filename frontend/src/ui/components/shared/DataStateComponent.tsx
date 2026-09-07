@@ -10,9 +10,17 @@ interface Props {
     isEmpty?: boolean;
     data: unknown;
     children: ReactNode;
+    emptyMessage?: string;
 }
 
-const DataStateComponent: FC<Props> = ({loading, error, data, isEmpty, children}) => {
+const DataStateComponent: FC<Props> = ({
+                                           loading,
+                                           error,
+                                           data,
+                                           isEmpty,
+                                           emptyMessage = 'Nothing here yet.',
+                                           children,
+                                       }) => {
     const msgWrap = (node: ReactNode) => (
         <Box
             sx={{
@@ -25,11 +33,10 @@ const DataStateComponent: FC<Props> = ({loading, error, data, isEmpty, children}
             {node}
         </Box>
     );
-
     if (loading) return msgWrap(<PreloaderComponent/>);
     if (error) return msgWrap(<ErrorComponent error={error.message}/>);
     if (!loading && !data) return msgWrap(<ErrorComponent error="no data fetched"/>);
-    if (isEmpty) return msgWrap(<Alert severity="info">no data yet!</Alert>);
+    if (isEmpty) return msgWrap(<Alert severity="info">{emptyMessage}</Alert>);
 
     return <>{children}</>;
 };

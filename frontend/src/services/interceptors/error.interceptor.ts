@@ -1,14 +1,17 @@
 import {api} from '../api.config.ts';
 import axios from 'axios';
 import type {ApiError} from '../../models/error/ApiError.ts';
+import {routes} from "../../routes/routes.ts";
 
 api.interceptors.response.use(
-    (res) => res,
-    (err) => {
+    res => res,
+    err => {
         if (!axios.isAxiosError(err)) {
             console.warn(err);
             return Promise.reject(
-                err instanceof Error ? err : new Error("unexpected error")
+                err instanceof Error
+                    ? err
+                    : new Error('unexpected error'),
             );
         }
 
@@ -17,25 +20,34 @@ api.interceptors.response.use(
         const msg =
             apiError?.errors ||
             err.message ||
-            "unexpected error";
+            'unexpected error';
 
-        const statusCode = apiError?.statusCode ?? err.response?.status;
+        const statusCode =
+            apiError?.statusCode ?? err.response?.status;
+
         const path = apiError?.path;
         const timestamp = apiError?.timestamp;
 
         if (statusCode) {
             console.warn(
-                `${statusCode} ${msg}${path ? `: ${path}` : ""}${
-                    timestamp ? ` at ${timestamp}` : ""
-                }`
+                `${statusCode} ${msg}${path ? `: ${path}` : ''}${
+                    timestamp ? ` at ${timestamp}` : ''
+                }`,
             );
         } else {
             console.warn(msg);
+        }
+
+        if (statusCode === 401) {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+
+            window.location.href = routes.auth.login;
         }
 
         const error = new Error(msg) as Error & { api?: ApiError };
         error.api = apiError;
 
         return Promise.reject(error);
-    }
+    },
 );

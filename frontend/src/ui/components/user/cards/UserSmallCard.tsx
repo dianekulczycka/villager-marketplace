@@ -2,7 +2,6 @@ import type {FC} from "react";
 import {Box, Card} from "@mui/material";
 import type {UserAdminView} from "../../../../models/user/UserAdminView.ts";
 import UserInfo from "./UserInfo.tsx";
-import {Link} from 'react-router-dom';
 
 interface Props {
     user: UserAdminView;
@@ -10,13 +9,9 @@ interface Props {
     to?: string;
 }
 
-const UserSmallCard: FC<Props> = ({user, disabled = false, to}) => {
-    const isClickable = !!to && !disabled;
-
+const UserSmallCard: FC<Props> = ({user, disabled = false}) => {
     return (
         <Card
-            component={isClickable ? Link : 'div'}
-            to={isClickable ? to : undefined}
             elevation={0}
             sx={{
                 position: 'relative',
@@ -27,12 +22,8 @@ const UserSmallCard: FC<Props> = ({user, disabled = false, to}) => {
                 alignItems: 'center',
                 gap: 2,
                 p: 2,
-                textDecoration: 'none',
-                color: 'inherit',
-                pointerEvents: isClickable ? 'auto' : 'none',
                 opacity: disabled ? 0.5 : user.isDeleted ? 0.7 : 1,
                 filter: disabled ? 'grayscale(0.5)' : 'none',
-                cursor: disabled ? 'default' : 'pointer',
             }}
         >
             <Box
@@ -48,7 +39,12 @@ const UserSmallCard: FC<Props> = ({user, disabled = false, to}) => {
                     flexShrink: 0,
                 }}
             />
-            <UserInfo user={user} small/>
+
+            <UserInfo
+                user={user}
+                small
+                showActions={!disabled}
+            />
         </Card>
     );
 };

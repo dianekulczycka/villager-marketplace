@@ -98,6 +98,7 @@ const ItemsPage: FC = () => {
             <DataStateComponent
                 data={data}
                 error={error}
+                emptyMessage={"No items found"}
                 loading={isLoading || isMutating}
                 isEmpty={data?.data.length === 0}
             >

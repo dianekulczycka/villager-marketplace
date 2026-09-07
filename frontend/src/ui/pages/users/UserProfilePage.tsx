@@ -33,13 +33,11 @@ import {useModal} from "../../../hooks/shared/useModal.ts";
 import {usePaginatedQuery} from "../../../hooks/shared/usePaginatedQuery.ts";
 import type {PaginationView} from "../../../models/pagiantion/PaginationView.ts";
 import {useMutation} from "../../../hooks/shared/useMutation.ts";
+import type {CreateItemDto} from "../../../models/item/CreateItemDto.ts";
 
 const UserProfilePage: FC = () => {
-    const {user, loadUser, logoutUser} = useAuth();
-
+    const {user, loadUser, logoutUser, isAuthority} = useAuth();
     const userRole = user?.role;
-    const isAuthority =
-        userRole === 'ADMIN' || userRole === 'MANAGER';
 
     const [pageView, setPageView] = useState<ProfilePageView>(
         isAuthority
@@ -49,39 +47,34 @@ const UserProfilePage: FC = () => {
 
     const {
         activeModal,
-        selected: selectedItem,
-        openModal: openItemModal,
+        selected,
+        openModal,
         closeModal,
-    } = useModal<ItemAdminView>();
-
-    const {
-        selected: selectedUser,
-        openModal: openUserModal,
-    } = useModal<UserAdminView>();
+    } = useModal<ItemAdminView | UserAdminView>();
 
     const openBecomeModal = () =>
-        openItemModal('become');
+        openModal('become');
 
     const openCreateModal = () =>
-        openItemModal('create');
+        openModal('create');
 
     const openUpdateItemModal = (item: ItemAdminView) =>
-        openItemModal('updateItem', item);
+        openModal('updateItem', item);
 
     const openDeleteItemModal = (item: ItemAdminView) =>
-        openItemModal('deleteItem', item);
+        openModal('deleteItem', item);
 
     const openUpdateUserModal = (user: UserAdminView) =>
-        openUserModal('updateUser', user);
+        openModal('updateUser', user);
 
     const openDeleteUserModal = (user: UserAdminView) =>
-        openUserModal('deleteUser', user);
+        openModal('deleteUser', user);
 
     const openDeleteMyProfileModal = (user: UserAdminView) =>
-        openUserModal('deleteMyProfile', user);
+        openModal('deleteMyProfile', user);
 
     const openHardDeleteModal = (user: UserAdminView) =>
-        openUserModal('hardDeleteUser', user);
+        openModal('hardDeleteUser', user);
 
     const {
         query,
@@ -171,10 +164,10 @@ const UserProfilePage: FC = () => {
     const {fetch, isMutating, ...snackbar} = useMutation(refetch);
 
     const {
-        updateUser,
+        updateProfile,
         changeAvatar,
         onBecomeSeller,
-        deleteMyProfile,
+        deleteProfile,
         deleteUser,
         hardDeleteUser,
         toggleBan,
@@ -189,37 +182,33 @@ const UserProfilePage: FC = () => {
         deleteItem,
     } = useItemActions();
 
-    const handleUpdateUser = (
+    const handleUpdateProfile = (
         dto: UpdateUserDto,
     ): Promise<void> => {
-        if (!selectedUser) return Promise.resolve();
+        if (activeModal !== 'updateUser' || !selected) return Promise.resolve();
 
         return fetch(
-            () =>
-                updateUser(
-                    selectedUser.publicId,
-                    dto,
-                ),
-            'User updated!',
-            closeModal,
+            () => updateProfile(dto),
+            'Profile updated!',
+            loadUser,
         );
     };
 
     const handleDeleteUser = (): Promise<void> => {
-        if (!selectedUser) return Promise.resolve();
+        if (activeModal !== 'deleteUser' || !selected) return Promise.resolve();
 
         return fetch(
-            () => deleteUser(selectedUser.publicId),
+            () => deleteUser(selected.publicId),
             'User deleted!',
             closeModal,
         );
     };
 
     const handleHardDeleteUser = (): Promise<void> => {
-        if (!selectedUser) return Promise.resolve();
+        if (activeModal !== 'hardDeleteUser' || !selected) return Promise.resolve();
 
         return fetch(
-            () => hardDeleteUser(selectedUser.publicId),
+            () => hardDeleteUser(selected.publicId),
             'User permanently deleted!',
             closeModal,
         );
@@ -228,24 +217,20 @@ const UserProfilePage: FC = () => {
     const handleUpdateItem = (
         dto: UpdateItemDto,
     ): Promise<void> => {
-        if (!selectedItem) return Promise.resolve();
+        if (activeModal !== 'updateItem' || !selected) return Promise.resolve();
 
         return fetch(
-            () =>
-                updateItem(
-                    selectedItem.publicId,
-                    dto,
-                ),
+            () => updateItem(selected.publicId, dto),
             'Item updated!',
             closeModal,
         );
     };
 
     const handleDeleteItem = (): Promise<void> => {
-        if (!selectedItem) return Promise.resolve();
+        if (activeModal !== 'deleteItem' || !selected) return Promise.resolve();
 
         return fetch(
-            () => deleteItem(selectedItem.publicId),
+            () => deleteItem(selected.publicId),
             'Item deleted!',
             closeModal,
         );
@@ -253,18 +238,67 @@ const UserProfilePage: FC = () => {
 
     const handleBecomeSeller = (
         dto: BecomeSellerDto,
-    ): Promise<void> =>
-        fetch(
+    ): Promise<void> => {
+        if (activeModal !== 'become') return Promise.resolve();
+
+        return fetch(
             () => onBecomeSeller(dto),
             'Switched to seller',
             loadUser,
         );
+    };
 
-    const handleDeleteMyProfile = (): Promise<void> =>
-        fetch(
-            deleteMyProfile,
+    const handleDeleteProfile = (): Promise<void> => {
+        if (activeModal !== 'deleteMyProfile') return Promise.resolve();
+
+        return fetch(
+            deleteProfile,
             'Profile deleted',
             logoutUser,
+        );
+    };
+
+    const handleCreateItem = (
+        dto: CreateItemDto,
+    ): Promise<void> =>
+        fetch(
+            () => createItem(dto),
+            'Item created!',
+            closeModal,
+        );
+
+    const handleToggleBan = (
+        user: UserAdminView,
+    ): Promise<void> =>
+        fetch(
+            () => toggleBan(user),
+            user.isBanned ? 'User unbanned!' : 'User banned!',
+        );
+
+    const handleTogglePromote = (
+        user: UserAdminView,
+    ): Promise<void> =>
+        fetch(
+            () => togglePromote(user),
+            user.role === 'MANAGER'
+                ? 'Manager demoted!'
+                : 'User promoted!',
+        );
+
+    const handleUnflagUser = (
+        user: UserAdminView,
+    ): Promise<void> =>
+        fetch(
+            () => unflagUser(user),
+            'User unflagged!',
+        );
+
+    const handleRestoreUser = (
+        user: UserAdminView,
+    ): Promise<void> =>
+        fetch(
+            () => restoreUser(user),
+            'User restored!',
         );
 
     const changeView = (view: ProfilePageView) => {
@@ -365,10 +399,10 @@ const UserProfilePage: FC = () => {
                         openHardDeleteModal={
                             openHardDeleteModal
                         }
-                        toggleBan={toggleBan}
-                        togglePromote={togglePromote}
-                        unflagUser={unflagUser}
-                        restoreUser={restoreUser}
+                        toggleBan={handleToggleBan}
+                        togglePromote={handleTogglePromote}
+                        unflagUser={handleUnflagUser}
+                        restoreUser={handleRestoreUser}
                         handlePageChange={
                             handlePageChange
                         }
@@ -378,8 +412,8 @@ const UserProfilePage: FC = () => {
             <UpdateUserModal
                 open={activeModal === 'updateUser'}
                 closeModal={closeModal}
-                onUpdateUser={handleUpdateUser}
-                selectedUser={selectedUser}
+                onUpdateUser={handleUpdateProfile}
+                selectedUser={selected as UserAdminView}
             />
 
             <ConfirmDeleteModal
@@ -392,7 +426,7 @@ const UserProfilePage: FC = () => {
                 closeModal={closeModal}
                 deleteEntity={
                     activeModal === 'deleteMyProfile'
-                        ? handleDeleteMyProfile
+                        ? handleDeleteProfile
                         : activeModal === 'hardDeleteUser'
                             ? handleHardDeleteUser
                             : activeModal === 'deleteItem'
@@ -404,14 +438,14 @@ const UserProfilePage: FC = () => {
             <CreateItemModal
                 open={activeModal === 'create'}
                 closeModal={closeModal}
-                onCreateItem={createItem}
+                onCreateItem={handleCreateItem}
             />
 
             <UpdateItemModal
                 open={activeModal === 'updateItem'}
                 closeModal={closeModal}
                 updateItem={handleUpdateItem}
-                selectedItem={selectedItem}
+                selectedItem={selected as ItemAdminView}
             />
 
             <BecomeSellerModal

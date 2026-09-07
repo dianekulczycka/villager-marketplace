@@ -14,8 +14,7 @@ interface Props {
 }
 
 const ItemDetailsCard: FC<Props> = ({item, order, openModal}) => {
-    const {user: loggedUser} = useAuth();
-    const isAuthority = loggedUser?.role === 'ADMIN' || loggedUser?.role === 'MANAGER';
+    const {user: loggedUser, isAuthority} = useAuth();
 
     return (
         <Card

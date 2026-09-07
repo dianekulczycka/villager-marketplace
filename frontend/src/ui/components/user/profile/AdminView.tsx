@@ -52,6 +52,7 @@ const AdminView: FC<Props> = ({
                 loading={loading}
                 error={error}
                 data={users}
+                emptyMessage={"No users found"}
                 isEmpty={users?.data.length === 0}
             >
                 {users && (

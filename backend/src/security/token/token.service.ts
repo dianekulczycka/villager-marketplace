@@ -190,18 +190,19 @@ export class TokenService {
   }
 
   async validateTokenJti(jti: string): Promise<void> {
-    validateExists(
-      await this.prisma.token.findUnique({
-        where: {
-          jti,
-          isBlocked: 0,
-        },
-        select: {
-          id: true,
-        },
-      }),
-      AUTH_ERRORS.INVALID_TOKEN,
-    );
+    const token = await this.prisma.token.findUnique({
+      where: {
+        jti,
+        isBlocked: 0,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!token) {
+      throw new UnauthorizedException(AUTH_ERRORS.INVALID_TOKEN);
+    }
   }
 
   async validateAccessToken(accessToken: string): Promise<JwtPayload> {

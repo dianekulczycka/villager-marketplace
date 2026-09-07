@@ -7,6 +7,7 @@ export interface AuthContext {
     loadUser: () => void;
     logoutUser: () => void;
     isLoaded: boolean;
+    isAuthority: boolean;
 }
 
 export const AuthContext = createContext<AuthContext>({
@@ -18,4 +19,5 @@ export const AuthContext = createContext<AuthContext>({
     logoutUser: () => {
     },
     isLoaded: false,
+    isAuthority: false
 });

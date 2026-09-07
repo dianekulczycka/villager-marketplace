@@ -11,6 +11,9 @@ export const AuthProvider: FC = () => {
     const [isLoaded, setIsLoaded] = useState(false);
     const location = useLocation();
 
+    const isAuthority =
+        user?.role === 'ADMIN' || user?.role === 'MANAGER';
+
     const loadUser = async () => {
         try {
             const user = await getMe();
@@ -43,7 +46,7 @@ export const AuthProvider: FC = () => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{user, setUser, loadUser, logoutUser, isLoaded}}>
+        <AuthContext.Provider value={{user, setUser, loadUser, logoutUser, isLoaded, isAuthority}}>
             <Outlet/>
         </AuthContext.Provider>
     );

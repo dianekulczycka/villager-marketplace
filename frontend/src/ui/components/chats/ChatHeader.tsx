@@ -50,6 +50,7 @@ const ChatHeader: FC<Props> = ({user}) => {
                     user={user}
                     small
                     detailed={false}
+                    showActions={false}
                 />
             </Box>
         </Box>

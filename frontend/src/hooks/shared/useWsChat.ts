@@ -8,6 +8,7 @@ export const useWsChat = (userPublicId?: string) => {
 
     useEffect(() => {
         chatWsService.connect();
+
         return () => {
             chatWsService.disconnect();
         };
@@ -17,8 +18,18 @@ export const useWsChat = (userPublicId?: string) => {
         const handleNewMessage = (message: MessageView) => {
             queryClient.setQueryData<MessageView[]>(
                 ['messages', userPublicId],
-                (oldMessages = []) => [...oldMessages, message],
+                (oldMessages = []) => {
+                    if (oldMessages.some(old => old.uuid === message.uuid)) {
+                        return oldMessages;
+                    }
+
+                    return [...oldMessages, message];
+                },
             );
+
+            queryClient.invalidateQueries({
+                queryKey: ['chats'],
+            });
         };
 
         chatWsService.onNewMessage(handleNewMessage);
@@ -27,6 +38,26 @@ export const useWsChat = (userPublicId?: string) => {
             chatWsService.offNewMessage(handleNewMessage);
         };
     }, [userPublicId, queryClient]);
+
+    useEffect(() => {
+        if (!userPublicId) return;
+
+        chatWsService.openChat(userPublicId);
+    }, [userPublicId]);
+
+    useEffect(() => {
+        const handleChatOpened = () => {
+            queryClient.invalidateQueries({
+                queryKey: ['chats'],
+            });
+        };
+
+        chatWsService.onChatOpened(handleChatOpened);
+
+        return () => {
+            chatWsService.offChatOpened(handleChatOpened);
+        };
+    }, [queryClient]);
 
     const sendMessage = (body: string) => {
         if (!userPublicId) return;

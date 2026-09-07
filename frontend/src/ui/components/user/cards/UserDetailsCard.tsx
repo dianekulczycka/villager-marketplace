@@ -4,8 +4,6 @@ import {Box, Card, Typography} from "@mui/material";
 import UserInfo from "./UserInfo.tsx";
 import UserAdminControllers from "../../buttons/UserAdminControllers.tsx";
 import EditDeleteControllers from "../../buttons/EditDeleteControllers.tsx";
-import {Link} from 'react-router-dom';
-import {routes} from "../../../../routes/routes.ts";
 import {useAuth} from "../../../../store/helpers/useAuth.ts";
 
 interface Props {
@@ -29,15 +27,10 @@ const UserDetailsCard: FC<Props> = ({
                                         unflagUser,
                                         restoreUser,
                                     }) => {
-    const {user: loggedUser} = useAuth();
-    const isAuthority = loggedUser!.role === 'ADMIN' || loggedUser!.role === 'MANAGER';
-    const isUserSeller = user.role === 'SELLER';
-    const canNavigate = !isAuthority && isUserSeller;
+    const {isAuthority} = useAuth();
 
     return (
         <Card
-            component={canNavigate ? Link : 'div'}
-            to={canNavigate ? routes.items.bySellerId(user.publicId) : undefined}
             sx={{
                 position: 'relative',
                 borderRadius: 3,
@@ -46,7 +39,6 @@ const UserDetailsCard: FC<Props> = ({
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100%',
-                textDecoration: 'none',
                 color: 'inherit',
                 opacity: user.isDeleted ? 0.7 : 1,
             }}
@@ -64,7 +56,10 @@ const UserDetailsCard: FC<Props> = ({
                 }}
             />
 
-            <UserInfo user={user}/>
+            <UserInfo
+                user={user}
+                showActions
+            />
 
             {!!user.isBanned && (
                 <Box sx={{px: 2}}>
@@ -72,7 +67,11 @@ const UserDetailsCard: FC<Props> = ({
                         Banned at: {new Date(user.bannedAt!).toLocaleDateString()}
                     </Typography>
 
-                    <Typography variant="caption" color="text.secondary" display="block">
+                    <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        display="block"
+                    >
                         Banned by: {user.bannedBy}
                     </Typography>
                 </Box>
@@ -84,13 +83,17 @@ const UserDetailsCard: FC<Props> = ({
                         Deleted at: {new Date(user.deletedAt!).toLocaleDateString()}
                     </Typography>
 
-                    <Typography variant="caption" color="text.secondary" display="block">
+                    <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        display="block"
+                    >
                         Deleted by: {user.deletedBy}
                     </Typography>
                 </Box>
             )}
 
-            <Box sx={{mt: 'auto', pb: 2, pointerEvents: 'auto'}}>
+            <Box sx={{mt: 'auto', pb: 2}}>
                 <UserAdminControllers
                     toggleBan={toggleBan}
                     togglePromote={togglePromote}
@@ -102,7 +105,7 @@ const UserDetailsCard: FC<Props> = ({
             </Box>
 
             {isAuthority && !user.isDeleted && (
-                <Box sx={{pointerEvents: 'auto'}}>
+                <Box>
                     <EditDeleteControllers
                         openDeleteModal={openDeleteModal}
                         openUpdateModal={openUpdateModal}

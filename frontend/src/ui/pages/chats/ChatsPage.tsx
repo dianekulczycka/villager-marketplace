@@ -131,6 +131,7 @@ const ChatsPage: FC = () => {
                     data={chats}
                     error={chatsError}
                     loading={chatsLoading}
+                    emptyMessage={"No chats yet. Start a conversation to see it here"}
                     isEmpty={chats?.data.length === 0}
                 >
                     {chats && (
@@ -211,6 +212,7 @@ const ChatsPage: FC = () => {
                             data={messages}
                             error={messagesError}
                             loading={messagesLoading}
+                            emptyMessage={"No messages yet"}
                         >
                             <Box
                                 ref={messagesContainerRef}

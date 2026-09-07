@@ -7,7 +7,7 @@ import type {RecoverReq} from "../../models/auth/RecoverReq.ts";
 import type {RegisterReq} from "../../models/auth/RegisterReq.ts";
 
 export const useAuthActions = () => {
-    const {loadUser, logoutUser} = useAuth();
+    const {loadUser, logoutUser, setUser} = useAuth();
     const navigate = useNavigate();
 
     const registerUser = async (dto: RegisterReq) => {
@@ -22,9 +22,15 @@ export const useAuthActions = () => {
         navigate(routes.items.root);
     };
 
-    const logout = () => {
-        logoutUser();
-        navigate(routes.auth.login);
+    const logout = async () => {
+        try {
+            logoutUser();
+        } catch (e: unknown) {
+            console.log(e);
+        } finally {
+            setUser(null);
+            navigate(routes.auth.login);
+        }
     };
 
     const recoverUser = async (dto: RecoverReq) => {

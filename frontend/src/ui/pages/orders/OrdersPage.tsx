@@ -130,6 +130,7 @@ const OrdersPage: FC = () => {
             <DataStateComponent
                 data={data}
                 error={error}
+                emptyMessage={"No orders found"}
                 loading={isLoading || isMutating}
                 isEmpty={data?.data.length === 0}
             >
