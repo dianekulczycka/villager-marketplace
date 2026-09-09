@@ -24,7 +24,6 @@ import {
   ADMIN_ALL_USERS_WHERE,
   ADMIN_USER_SELECT,
   buildUserPublicSearchWhere,
-  USER_ADMIN_SELECT,
   USER_BAN_DATA,
   USER_PUBLIC_SELECT,
   USER_PUBLIC_WHERE_BASE,
@@ -79,7 +78,7 @@ export class UserService {
 
     const select =
       role === user_role.ADMIN || role === user_role.MANAGER
-        ? USER_ADMIN_SELECT
+        ? ADMIN_USER_SELECT
         : USER_PUBLIC_SELECT;
 
     return paginatePrisma<UserPublicDto>(

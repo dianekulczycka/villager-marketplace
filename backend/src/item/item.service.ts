@@ -25,7 +25,6 @@ import { ITEM_ERRORS } from '../shared/errors/item.errors';
 import { allowedItemsPerSeller } from './enums/allowed-items-per-seller.record';
 import { USER_ERRORS } from '../shared/errors/user.errors';
 import { ITEM_ICON_MAP } from '../shared/helpers/icon-map.helper';
-import { ItemPublicDetailedDto } from './dto/item-public-detailed.dto';
 import { generatePublicId } from '../shared/generators/private-id.generator';
 import { validateExists } from '../shared/helpers/validate-exists';
 
@@ -90,7 +89,7 @@ export class ItemService {
   async findById(
     publicId: string,
     request: UserRequest,
-  ): Promise<ItemPublicDetailedDto> {
+  ): Promise<ItemPublicDto> {
     const { item } = await this.getItemForUser(publicId, request);
     return item;
   }

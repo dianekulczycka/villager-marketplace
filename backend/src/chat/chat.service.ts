@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateMessageDto } from './dto/create-message.dto';
+import { SendMessageDto } from './dto/send-message.dto';
 import { JwtPayload } from '../shared/interfaces/jwt-payload.interface';
 import { USER_ERRORS } from '../shared/errors/user.errors';
 import { PrismaService } from '../prisma/prisma.service';
@@ -35,7 +35,7 @@ export class ChatService {
   constructor(private readonly prisma: PrismaService) {}
   async saveMessage(
     user: JwtPayload,
-    createMessageDto: CreateMessageDto,
+    createMessageDto: SendMessageDto,
   ): Promise<MessageSentResponseDto> {
     if (!createMessageDto.body?.trim())
       throw new BadRequestException(MESSAGE_ERRORS.EMPTY_MESSAGE);
@@ -149,7 +149,7 @@ export class ChatService {
 
     this.canMessage(otherUser.id, currentUserId);
 
-    const count = await this.getUnreadCountFromUser(
+    const unreadMessages = await this.getUnreadCountFromUser(
       otherUser.id,
       currentUserId,
     );
@@ -167,7 +167,7 @@ export class ChatService {
 
     return {
       otherUserPublicId: otherUser.publicId,
-      count,
+      unreadMessages,
     };
   }
 

@@ -15,7 +15,7 @@ import { UserSignInRequestDto } from './dto/user-sign-in-request.dto';
 import { UserLoginRequestDto } from './dto/user-login-request.dto';
 import { UserPublicDto } from '../user/dto/user-public.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { AccountRecoveryRequestDto } from '../user/dto/account-recovery-request.dto';
+import { AccountRecoveryRequestDto } from './dto/account-recovery-request.dto';
 import { ModerationService } from '../moderation/moderation.service';
 import { MailService } from '../mail/mail.service';
 import { ModerationInterceptor } from '../moderation/moderation.interceptor.service';

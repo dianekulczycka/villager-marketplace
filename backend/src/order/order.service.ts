@@ -17,7 +17,7 @@ import {
 import { paginatePrisma } from '../shared/pagination/prisma-paginator';
 import { SortDirectionEnum } from '../shared/pagination/pagination-request.dto';
 import { OrderModeEnum } from './enums/order-mode.enum';
-import { OrderEmailData } from '../mail/models/order-email-data';
+import { OrderEmailDataDto } from '../mail/dto/order-email-data.dto';
 import { ORDER_ERRORS } from '../shared/errors/order.errors';
 import { order, order_status } from '@prisma/client';
 import { generatePublicId } from '../shared/generators/private-id.generator';
@@ -100,7 +100,7 @@ export class OrderService {
   async confirmOrder(
     request: UserRequest,
     publicId: string,
-  ): Promise<OrderEmailData> {
+  ): Promise<OrderEmailDataDto> {
     const order = validateExists(
       await this.prisma.order.findFirst({
         where: { publicId },

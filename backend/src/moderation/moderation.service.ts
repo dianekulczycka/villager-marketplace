@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import {
   AccountRecoveryRequestDto,
   AccountRecoveryRequestEnum,
-} from '../user/dto/account-recovery-request.dto';
+} from '../auth/dto/account-recovery-request.dto';
 import { USER_ERRORS } from '../shared/errors/user.errors';
 import { validateExists } from '../shared/helpers/validate-exists';
 

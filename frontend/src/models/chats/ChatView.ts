@@ -1,5 +1,8 @@
-import type {UserAdminView} from "../user/UserAdminView.ts";
+import type {UserPublicView} from "../user/UserPublicView.ts";
 
-export type ChatView = UserAdminView & {
+export type ChatView = Pick<
+    UserPublicView,
+    'publicId' | 'username' | 'iconUrl'
+> & {
     unreadMessages: number;
 };

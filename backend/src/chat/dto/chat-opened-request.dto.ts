@@ -1,3 +1,6 @@
+import { ApiProperty } from '@nestjs/swagger';
+
 export class OpenChatDto {
-  otherUserPublicId: string;
+  @ApiProperty({ example: '0f05aca3' })
+  userPublicId: string;
 }

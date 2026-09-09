@@ -5,10 +5,12 @@ import type {RecoverReq} from '../../../models/auth/RecoverReq.ts';
 import RecoverModal from '../../components/modals/RecoverModal.tsx';
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
 import {useAuthActions} from "../../../hooks/actions/useAuthActions.ts";
+import {useLoggedUserRedirect} from "../../../hooks/shared/useLoggedUserRedirect.ts";
 
 const LoginPage: FC = () => {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+    useLoggedUserRedirect();
 
     const {
         loginUser,

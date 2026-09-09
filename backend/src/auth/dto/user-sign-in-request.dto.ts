@@ -7,7 +7,7 @@ export class UserSignInRequestDto {
   email: string;
 
   @ApiProperty({ example: 'password1' })
-  @Matches(/^(?=.*[A-Za-z])(?=.*\d)[^\s]{6,20}$/, {
+  @Matches(/^(?=.*[A-Za-z])(?=.*\d)\S{6,20}$/, {
     message:
       'Password must be 6-20 chars and include one number and one letter',
   })

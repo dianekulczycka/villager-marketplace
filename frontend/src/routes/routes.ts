@@ -43,9 +43,3 @@ export const routes = {
             `/admin/users/id/${publicId}`,
     },
 } as const;
-
-export const publicRoutes: string[] = [
-    routes.auth.register,
-    routes.auth.login,
-    routes.auth.recovery,
-];

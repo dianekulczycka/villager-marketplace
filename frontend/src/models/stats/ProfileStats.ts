@@ -1,21 +1,21 @@
-export interface IBuyerStats {
+export interface BuyerStats {
     role: 'BUYER';
     totalItems: number;
 }
 
-export interface ISellerStats {
+export interface SellerStats {
     role: 'SELLER';
     totalItems: number;
     activeItems: number;
     totalViews: number;
     mostViewedItem: {
-        publicId: number;
+        publicId: string;
         name: string;
         views: number;
     } | null;
 }
 
-export interface IAdminStats {
+export interface AdminStats {
     role: 'ADMIN' | 'MANAGER';
     totalUsers: number;
     totalSellers: number;
@@ -24,4 +24,4 @@ export interface IAdminStats {
     totalItems: number;
 }
 
-export type ProfileStats = IBuyerStats | ISellerStats | IAdminStats;
+export type ProfileStats = BuyerStats | SellerStats | AdminStats;

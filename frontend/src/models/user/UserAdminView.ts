@@ -1,7 +1,8 @@
 import type {UserSelfView} from './UserSelfView.ts';
+import type {UserRole} from "../enums/UserRole.ts";
 
 export type UserAdminView = UserSelfView & {
-    role: string,
+    role: UserRole,
     bannedBy: string | null,
     isFlagged: 1 | 0,
     isDeleted: 1 | 0,

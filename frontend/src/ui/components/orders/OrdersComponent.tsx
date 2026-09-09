@@ -16,7 +16,7 @@ const OrdersComponent: FC<Props> = ({orders, rejectOrder, confirmOrder}) => {
                 width: '66%',
                 margin: '0 auto',
                 display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
+                gridTemplateColumns: 'repeat(3, 1fr)',
                 gap: 3,
             }}>
             {

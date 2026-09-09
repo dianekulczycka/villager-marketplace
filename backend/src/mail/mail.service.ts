@@ -7,7 +7,7 @@ import * as handlebars from 'handlebars';
 import { emailConstants, IEmailData } from './const/email.constants';
 import { PrismaService } from '../prisma/prisma.service';
 import { user_role } from '@prisma/client';
-import { AccountRecoveryRequestDto } from '../user/dto/account-recovery-request.dto';
+import { AccountRecoveryRequestDto } from '../auth/dto/account-recovery-request.dto';
 import { ConfigService } from '@nestjs/config';
 import { USER_ERRORS } from '../shared/errors/user.errors';
 

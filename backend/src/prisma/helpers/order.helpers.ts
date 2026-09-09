@@ -9,18 +9,21 @@ export const ORDER_PUBLIC_SELECT: Prisma.orderSelect = {
   buyer: {
     select: {
       publicId: true,
+      username: true,
     },
   },
 
   seller: {
     select: {
       publicId: true,
+      username: true,
     },
   },
 
   item: {
     select: {
       publicId: true,
+      name: true,
     },
   },
 };

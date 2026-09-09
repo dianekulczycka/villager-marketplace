@@ -1,15 +1,13 @@
 import {type FC, useEffect, useState} from 'react';
 import {AuthContext} from '../context/auth.context.ts';
-import {Outlet, useLocation} from 'react-router';
+import {Outlet} from 'react-router';
 import {getMe} from '../../services/fetch/user.service.ts';
-import {publicRoutes} from '../../routes/routes.ts';
 import {logout} from '../../services/fetch/auth.service.ts';
 import type {UserAdminView} from '../../models/user/UserAdminView.ts';
 
 export const AuthProvider: FC = () => {
     const [user, setUser] = useState<UserAdminView | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
-    const location = useLocation();
 
     const isAuthority =
         user?.role === 'ADMIN' || user?.role === 'MANAGER';
@@ -38,10 +36,6 @@ export const AuthProvider: FC = () => {
     };
 
     useEffect(() => {
-        if (publicRoutes.includes(location.pathname)) {
-            setIsLoaded(true);
-            return;
-        }
         loadUser();
     }, []);
 

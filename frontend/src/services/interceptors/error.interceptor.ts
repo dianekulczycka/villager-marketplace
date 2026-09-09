@@ -1,13 +1,13 @@
 import {api} from '../api.config.ts';
 import axios from 'axios';
 import type {ApiError} from '../../models/error/ApiError.ts';
-import {routes} from "../../routes/routes.ts";
 
 api.interceptors.response.use(
     res => res,
     err => {
         if (!axios.isAxiosError(err)) {
             console.warn(err);
+
             return Promise.reject(
                 err instanceof Error
                     ? err
@@ -36,13 +36,6 @@ api.interceptors.response.use(
             );
         } else {
             console.warn(msg);
-        }
-
-        if (statusCode === 401) {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-
-            window.location.href = routes.auth.login;
         }
 
         const error = new Error(msg) as Error & { api?: ApiError };

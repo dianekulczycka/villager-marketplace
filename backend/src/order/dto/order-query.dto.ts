@@ -1,6 +1,6 @@
 import { SortQueryDto } from '../../shared/pagination/sort-query.dto';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { Type } from 'class-transformer';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum OrderSortFieldEnum {
   AMOUNT = 'amount',
@@ -21,20 +21,26 @@ export const ORDER_SORT_MAP: Record<OrderSortFieldEnum, string> = {
 };
 
 export class OrderQueryDto extends SortQueryDto<OrderSortFieldEnum> {
+  @ApiPropertyOptional({
+    enum: OrderSortFieldEnum,
+    example: OrderSortFieldEnum.CREATED_AT,
+  })
   @IsOptional()
   @IsEnum(OrderSortFieldEnum)
   declare sortBy?: OrderSortFieldEnum;
 
+  @ApiPropertyOptional({ example: 'a1b2c3d4' })
   @IsOptional()
   @IsString()
   buyerId?: string;
 
+  @ApiPropertyOptional({ example: 'b2c3d4e5' })
   @IsOptional()
   @IsString()
   sellerId?: string;
 
+  @ApiPropertyOptional({ example: 'c3d4e5f6' })
   @IsOptional()
-  @Type(() => Number)
   @IsString()
   itemId?: string;
 }

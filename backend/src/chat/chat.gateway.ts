@@ -8,7 +8,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { CreateMessageDto } from './dto/create-message.dto';
+import { SendMessageDto } from './dto/send-message.dto';
 import { Logger, UseGuards } from '@nestjs/common';
 import { WsJwtGuard } from '../auth/guards/ws-jwt.guard';
 import { JwtPayload } from '../shared/interfaces/jwt-payload.interface';
@@ -49,7 +49,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @Throttle({ default: { limit: 1, ttl: 1000 } })
   @SubscribeMessage('newMessage')
   async handleNewMessage(
-    @MessageBody() createMessageDto: CreateMessageDto,
+    @MessageBody() createMessageDto: SendMessageDto,
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     const user = client.data as JwtPayload;
@@ -67,12 +67,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ): Promise<void> {
     const user = client.data as JwtPayload;
     const result: ChatOpenedResponseDto = await this.chatService.markChatAsRead(
-      openChatDto.otherUserPublicId,
+      openChatDto.userPublicId,
       user.userId,
     );
     client.emit('chatOpened', {
-      otherUserPublicId: openChatDto.otherUserPublicId,
-      count: result.count,
+      otherUserPublicId: openChatDto.userPublicId,
+      unreadMessages: result.unreadMessages,
     });
   }
 }

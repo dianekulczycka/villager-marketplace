@@ -22,6 +22,9 @@ const UserInfo: FC<Props> = ({
                              }) => {
     const {user: loggedUser, isAuthority} = useAuth();
 
+
+    console.log(user.username, user._count)
+
     return (
         <Box
             sx={{
@@ -44,7 +47,7 @@ const UserInfo: FC<Props> = ({
 
                 {showActions && (
                     <Box sx={{display: 'flex', gap: 0.5}}>
-                        {user.role === 'SELLER' && (
+                        {user.role === 'SELLER' && user._count.item > 0 && (
                             <IconButton
                                 component={Link}
                                 to={routes.items.bySellerId(user.publicId)}
