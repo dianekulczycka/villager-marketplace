@@ -72,19 +72,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
       message = 'Email service auth failed';
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
-      switch (exception.code) {
-        case 'P2002':
-          httpStatus = HttpStatus.CONFLICT;
-          message = 'Already exists';
-          break;
-        case 'P2025':
-          httpStatus = HttpStatus.NOT_FOUND;
-          message = 'Not found';
-          break;
-        default:
-          httpStatus = HttpStatus.BAD_REQUEST;
-          message = 'Db error';
-      }
+      console.error(exception);
+
+      httpStatus = HttpStatus.CONFLICT;
+      message = 'Database error';
     }
 
     if (httpStatus === (HttpStatus.INTERNAL_SERVER_ERROR as number)) {
