@@ -8,6 +8,6 @@ export interface OrderView {
     status: OrderStatus;
     seller: Pick<UserPublicView, "publicId" | "username">
     buyer: Pick<UserPublicView, "publicId" | "username">
-    item: Pick<ItemView, "publicId" | "name">
+    item: Pick<ItemView, "publicId" | "name" | "isDeleted">
     createdAt: string;
 }

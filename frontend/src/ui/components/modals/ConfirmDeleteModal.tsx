@@ -1,41 +1,53 @@
-import React, {type FC} from 'react';
-import {Backdrop, Box, Button, Modal, Typography} from '@mui/material';
-import ErrorComponent from '../error/ErrorComponent.tsx';
+import {type FC} from 'react';
+import {Backdrop, Box, Button, Modal, TextField, Typography} from '@mui/material';
 import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
+import {type SubmitHandler, useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {passwordSchema} from "../../../validation/auth.schema.ts";
 
 interface Props {
     open: boolean;
     closeModal: () => void;
-    deleteEntity: () => Promise<void>;
+    deleteEntity: (password: string) => Promise<void>;
 }
 
-const ConfirmDeleteModal: FC<Props> = ({open, closeModal, deleteEntity}) => {
-    const {error, submit} = useFormSubmit();
+const ConfirmDeleteModal: FC<Props> = ({
+                                           open,
+                                           closeModal,
+                                           deleteEntity,
+                                       }) => {
+    const {submit} = useFormSubmit();
 
-    const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: {errors},
+    } = useForm<{ password: string }>({
+        resolver: zodResolver(passwordSchema),
+    });
 
-        await submit(
-            () => deleteEntity(),
-            closeModal,
-        );
+    const onSubmit: SubmitHandler<{ password: string }> = (data) => {
+        reset();
+        closeModal();
+        void submit(() => deleteEntity(data.password));
     };
 
     return (
-        <Modal disableScrollLock
-               slots={{backdrop: Backdrop}}
-               slotProps={{
-                   backdrop: {
-                       sx: {
-                           bgcolor: 'rgba(0,0,0,0.1)',
-                       },
-                   },
-               }}
-               open={open}
-               onClose={closeModal}>
+        <Modal
+            disableScrollLock
+            slots={{backdrop: Backdrop}}
+            slotProps={{
+                backdrop: {
+                    sx: {
+                        bgcolor: 'rgba(0,0,0,0.1)',
+                    },
+                },
+            }}
+            open={open}
+            onClose={closeModal}
+        >
             <Box
-                component="form"
-                onSubmit={handleSubmit}
                 sx={{
                     position: 'absolute',
                     top: '50%',
@@ -52,20 +64,46 @@ const ConfirmDeleteModal: FC<Props> = ({open, closeModal, deleteEntity}) => {
                 }}
             >
                 <Typography variant="h6" fontWeight={600}>
-                    delete?
+                    enter your password to continue
                 </Typography>
-                <Button
-                    type="submit"
-                    variant="contained"
-                    color="secondary"
-                    sx={{textTransform: 'none', fontWeight: 500}}
+
+                <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '16px',
+                    }}
                 >
-                    send
-                </Button>
-                <Button onClick={closeModal} sx={{textTransform: 'none'}}>
-                    cancel
-                </Button>
-                {error && <ErrorComponent error={error}/>}
+                    <TextField
+                        label="password"
+                        type="password"
+                        fullWidth
+                        {...register('password')}
+                        error={!!errors.password}
+                        helperText={errors.password?.message}
+                    />
+
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="secondary"
+                        sx={{
+                            textTransform: 'none',
+                            fontWeight: 500,
+                        }}
+                    >
+                        delete
+                    </Button>
+
+                    <Button
+                        type="button"
+                        onClick={closeModal}
+                        sx={{textTransform: 'none'}}
+                    >
+                        cancel
+                    </Button>
+                </form>
             </Box>
         </Modal>
     );

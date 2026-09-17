@@ -42,12 +42,15 @@ import {
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { UserAdminListEnum, whereMap } from './enums/user-admin-list.enum';
 import { validateExists } from '../shared/helpers/validate-exists';
+import { ConfirmPasswordDto } from '../shared/dto/confirm-password.dto';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly authService: AuthService,
   ) {}
 
   // ----------------------------------------------------------------------------------------------------------
@@ -155,10 +158,16 @@ export class UserService {
 
   async softDelete(
     request: UserRequest,
+    confirmPasswordDto: ConfirmPasswordDto,
     targetUserPublicId?: string,
   ): Promise<number> {
     const target = await this.findTargetUser(request, targetUserPublicId);
     this.canModifyUser(request, target.id, target.role);
+
+    await this.authService.validateUser(
+      request.user.email,
+      confirmPasswordDto.password,
+    );
 
     await this.prisma.$transaction([
       this.prisma.user.update({
@@ -377,23 +386,47 @@ export class UserService {
 
   // -------------------------------------------- DELETE -----------------------------------------------------
 
-  async hardDeleteUser(publicId: string): Promise<void> {
+  async hardDeleteUser(
+    request: UserRequest,
+    publicId: string,
+    confirmPasswordDto: ConfirmPasswordDto,
+  ): Promise<void> {
     const user = await this.findUserByPublicId(publicId);
 
+    await this.authService.validateUser(
+      request.user.email,
+      confirmPasswordDto.password,
+    );
+
     await this.prisma.$transaction([
+      this.prisma.message.deleteMany({
+        where: {
+          OR: [{ senderId: user.id }, { recipientId: user.id }],
+        },
+      }),
+
       this.prisma.order.deleteMany({
         where: {
           OR: [{ buyerId: user.id }, { sellerId: user.id }],
         },
       }),
+
       this.prisma.item.deleteMany({
-        where: { sellerId: user.id },
+        where: {
+          sellerId: user.id,
+        },
       }),
+
       this.prisma.token.deleteMany({
-        where: { userId: user.id },
+        where: {
+          userId: user.id,
+        },
       }),
+
       this.prisma.user.delete({
-        where: { id: user.id },
+        where: {
+          id: user.id,
+        },
       }),
     ]);
   }

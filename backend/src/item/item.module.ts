@@ -5,9 +5,16 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { ModerationModule } from '../moderation/moderation.module';
 import { SecurityModule } from '../security/security.module';
 import { MailModule } from '../mail/mail.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [PrismaModule, ModerationModule, SecurityModule, MailModule],
+  imports: [
+    PrismaModule,
+    ModerationModule,
+    SecurityModule,
+    MailModule,
+    AuthModule,
+  ],
   controllers: [ItemController],
   providers: [ItemService],
 })

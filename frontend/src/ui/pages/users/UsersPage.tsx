@@ -85,22 +85,22 @@ const UsersPage: FC = () => {
         );
     };
 
-    const handleDeleteUser = async (): Promise<void> => {
+    const handleDeleteUser = async (password: string): Promise<void> => {
         if (!selectedUser) return;
 
         await fetch(
-            () => deleteUser(selectedUser.publicId),
+            () => deleteUser(selectedUser.publicId, password),
             'User deleted!',
         );
 
         closeModal();
     };
 
-    const handleHardDeleteUser = async (): Promise<void> => {
+    const handleHardDeleteUser = async (password: string): Promise<void> => {
         if (!selectedUser) return;
 
         await fetch(
-            () => hardDeleteUser(selectedUser.publicId),
+            () => hardDeleteUser(selectedUser.publicId, password),
             'User permanently deleted!',
         );
 

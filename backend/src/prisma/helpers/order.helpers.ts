@@ -24,6 +24,7 @@ export const ORDER_PUBLIC_SELECT: Prisma.orderSelect = {
     select: {
       publicId: true,
       name: true,
+      isDeleted: true,
     },
   },
 };

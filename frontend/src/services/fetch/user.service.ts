@@ -45,8 +45,12 @@ export const uploadAvatar = async (
     );
 };
 
-export const softDelete = async (): Promise<void> => {
-    await api.delete(endpoints.users.delete);
+export const softDelete = async (
+    password: string,
+): Promise<void> => {
+    await api.delete(endpoints.users.delete, {
+        data: {password},
+    });
 };
 
 export const becomeSeller = async (dto: BecomeSellerDto): Promise<void> => {

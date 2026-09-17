@@ -21,6 +21,8 @@ const OrderCard: FC<Props> = ({
     const {user: loggedUser} = useAuth();
     const isOwner = loggedUser?.publicId === order.seller.publicId;
 
+    console.log(order);
+
     return (
         <Card
             sx={{
@@ -78,15 +80,24 @@ const OrderCard: FC<Props> = ({
                                 Item
                             </Typography>
 
-                            <Link
-                                component={RouterLink}
-                                to={routes.items.buildById(order.item.publicId)}
-                                underline="hover"
-                                color="secondary"
-                                fontWeight={600}
-                            >
-                                {order.item.name}
-                            </Link>
+                            {order.item.isDeleted ? (
+                                <Typography
+                                    color="text.secondary"
+                                    fontWeight={600}
+                                >
+                                    {order.item.name} (REMOVED)
+                                </Typography>
+                            ) : (
+                                <Link
+                                    component={RouterLink}
+                                    to={routes.items.buildById(order.item.publicId)}
+                                    underline="hover"
+                                    color="secondary"
+                                    fontWeight={600}
+                                >
+                                    {order.item.name}
+                                </Link>
+                            )}
                         </Box>
 
                         <Box

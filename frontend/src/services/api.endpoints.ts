@@ -59,7 +59,6 @@ export const endpoints = {
         root: roots.chats,
         byId: (userPublicId: string) =>
             `${roots.chats}/user-id/${userPublicId}`,
-        markAsRead: (uuid: string) => `${roots.chats}/message-id/${uuid}/read`,
     },
 
     admin: {

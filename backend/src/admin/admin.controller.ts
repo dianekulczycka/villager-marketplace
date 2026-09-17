@@ -25,6 +25,7 @@ import { Roles } from '../auth/guards/allowed-roles.decorator';
 import { TokenService } from '../security/token/token.service';
 import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';
 import { UserSelfDto } from '../user/dto/user-self.dto';
+import { ConfirmPasswordDto } from '../shared/dto/confirm-password.dto';
 
 @ApiErrorResponses()
 @UseGuards(AuthGuard('jwt'))
@@ -77,8 +78,9 @@ export class AdminController {
   async softDeleteUserByAdmin(
     @Param('publicId') publicId: string,
     @Request() request: userRequestInterface.UserRequest,
+    @Body() confirmPasswordDto: ConfirmPasswordDto,
   ): Promise<void> {
-    await this.userService.softDelete(request, publicId);
+    await this.userService.softDelete(request, confirmPasswordDto, publicId);
   }
 
   @UseGuards(AllowedRolesGuard)
@@ -138,9 +140,16 @@ export class AdminController {
   @Roles(user_role.ADMIN)
   @HttpCode(204)
   @Delete('id/:publicId')
-  async hardDeleteUser(@Param('publicId') publicId: string) {
-    await this.adminService.hardDeleteUser(publicId);
-    await this.tokenService.blockTokensForUser(publicId);
+  async hardDeleteUser(
+    @Request() request: userRequestInterface.UserRequest,
+    @Param('publicId') publicId: string,
+    @Body() confirmPasswordDto: ConfirmPasswordDto,
+  ) {
+    await this.adminService.hardDeleteUser(
+      request,
+      publicId,
+      confirmPasswordDto,
+    );
   }
 
   @UseGuards(AllowedRolesGuard)

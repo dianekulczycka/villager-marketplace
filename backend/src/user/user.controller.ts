@@ -34,6 +34,7 @@ import * as userRequestInterface from './interfaces/user-request.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImageUploadPipe } from '../shared/pipes/image-upload.pipe';
 import { Throttle } from '@nestjs/throttler';
+import { ConfirmPasswordDto } from '../shared/dto/confirm-password.dto';
 
 @ApiErrorResponses()
 @UseGuards(AuthGuard('jwt'))
@@ -112,8 +113,9 @@ export class UserController {
   @Delete('profile/soft-delete')
   async softDelete(
     @Request() request: userRequestInterface.UserRequest,
+    @Body() confirmPasswordDto: ConfirmPasswordDto,
   ): Promise<void> {
-    await this.userService.softDelete(request);
+    await this.userService.softDelete(request, confirmPasswordDto);
     await this.tokenService.blockTokensForUser(request.user.userId);
   }
 }

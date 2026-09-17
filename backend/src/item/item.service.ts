@@ -27,10 +27,15 @@ import { USER_ERRORS } from '../shared/errors/user.errors';
 import { ITEM_ICON_MAP } from '../shared/helpers/icon-map.helper';
 import { generatePublicId } from '../shared/generators/private-id.generator';
 import { validateExists } from '../shared/helpers/validate-exists';
+import { ConfirmPasswordDto } from '../shared/dto/confirm-password.dto';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class ItemService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly authService: AuthService,
+  ) {}
 
   async findAllPublic(
     query: ItemQueryDto,
@@ -223,8 +228,17 @@ export class ItemService {
     });
   }
 
-  async softDelete(request: UserRequest, publicId: string): Promise<void> {
+  async softDelete(
+    request: UserRequest,
+    publicId: string,
+    confirmPasswordDto: ConfirmPasswordDto,
+  ): Promise<void> {
     const item = await this.canModifyItem(request, publicId);
+
+    await this.authService.validateUser(
+      request.user.email,
+      confirmPasswordDto.password,
+    );
 
     await this.prisma.$transaction([
       this.prisma.item.update({

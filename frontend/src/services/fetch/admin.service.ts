@@ -26,16 +26,26 @@ export const update = async (publicId: string, dto: UpdateUserDto): Promise<User
     return data;
 };
 
-export const softDelete = async (publicId: string): Promise<void> => {
-    await api.delete(endpoints.admin.delete(publicId));
+export const softDelete = async (
+    publicId: string,
+    password: string,
+): Promise<void> => {
+    await api.delete(endpoints.admin.delete(publicId), {
+        data: {password},
+    });
 };
 
 export const restore = async (publicId: string): Promise<void> => {
     await api.patch(endpoints.admin.restore(publicId));
 };
 
-export const hardDelete = async (publicId: string): Promise<void> => {
-    await api.delete(endpoints.admin.byId(publicId));
+export const hardDelete = async (
+    publicId: string,
+    password: string,
+): Promise<void> => {
+    await api.delete(endpoints.admin.byId(publicId), {
+        data: {password},
+    });
 };
 
 export const ban = async (publicId: string): Promise<void> => {

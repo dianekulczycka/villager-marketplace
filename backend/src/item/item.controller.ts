@@ -27,6 +27,7 @@ import { ModerationPipe } from '../moderation/moderation.pipe.service';
 import { ModerationInterceptor } from '../moderation/moderation.interceptor.service';
 import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';
 import { user_role } from '@prisma/client';
+import { ConfirmPasswordDto } from '../shared/dto/confirm-password.dto';
 
 @ApiErrorResponses()
 @UseGuards(AuthGuard('jwt'))
@@ -100,7 +101,8 @@ export class ItemController {
   async softDelete(
     @Param('publicId') publicId: string,
     @Request() request: userRequestInterface.UserRequest,
+    @Body() confirmPasswordDto: ConfirmPasswordDto,
   ): Promise<void> {
-    return this.itemService.softDelete(request, publicId);
+    return this.itemService.softDelete(request, publicId, confirmPasswordDto);
   }
 }

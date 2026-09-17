@@ -12,8 +12,8 @@ interface Props {
     user: UserAdminView;
     openBecomeModal: () => void;
     openCreateModal: () => void;
-    openDeleteMyProfileModal: (user: UserAdminView) => void;
-    openUpdateUserModal: (user: UserAdminView) => void;
+    openDeleteModal: (user: UserAdminView) => void;
+    openUpdateModal: (user: UserAdminView) => void;
     changeView: (pageView: ProfilePageView) => void;
     stats: ProfileStats | undefined;
     error: Error | null;
@@ -27,8 +27,8 @@ const UserProfileComponent: FC<Props> = ({
                                              user,
                                              openBecomeModal,
                                              openCreateModal,
-                                             openUpdateUserModal,
-                                             openDeleteMyProfileModal,
+                                             openUpdateModal,
+                                             openDeleteModal,
                                              changeView,
                                              stats,
                                              error,
@@ -90,11 +90,11 @@ const UserProfileComponent: FC<Props> = ({
 
                     <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1}}>
                         {canEditProfile && (
-                            <ActionButton action="Edit profile" actionHandler={() => openUpdateUserModal(user)}/>
+                            <ActionButton action="Edit profile" actionHandler={() => openUpdateModal(user)}/>
                         )}
 
                         {canDeleteProfile && (
-                            <ActionButton action="Delete profile" actionHandler={() => openDeleteMyProfileModal(user)}/>
+                            <ActionButton action="Delete profile" actionHandler={() => openDeleteModal(user)}/>
                         )}
 
                         {isBuyer && (

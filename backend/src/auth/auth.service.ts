@@ -72,7 +72,7 @@ export class AuthService {
     await this.tokenService.blockTokenByRefreshToken(refreshToken);
   }
 
-  private async validateUser(email: string, password: string): Promise<user> {
+  async validateUser(email: string, password: string): Promise<user> {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });

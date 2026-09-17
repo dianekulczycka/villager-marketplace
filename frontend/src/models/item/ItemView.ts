@@ -5,5 +5,6 @@ export interface ItemView {
     count: number,
     iconUrl: string,
     views: number,
-    sellerPublicId: string
+    sellerPublicId: string,
+    isDeleted: 1 | 0 ;
 }

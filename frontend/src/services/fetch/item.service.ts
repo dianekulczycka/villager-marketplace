@@ -38,7 +38,11 @@ export const update = async (publicId: string, dto: UpdateItemDto): Promise<Item
     return data;
 };
 
-export const softDelete = async (publicId: string): Promise<void> => {
-    await api.delete(endpoints.items.delete(publicId));
+export const softDelete = async (
+    publicId: string,
+    password: string,
+): Promise<void> => {
+    await api.delete(endpoints.items.delete(publicId), {
+        data: {password},
+    });
 };
-

@@ -5,6 +5,7 @@ import { UserAdminDto } from '../user/dto/user-admin.dto';
 import { UserService } from '../user/user.service';
 import { PaginationResponse } from '../shared/pagination/pagination-response.interface';
 import { UserAdminListEnum } from '../user/enums/user-admin-list.enum';
+import { ConfirmPasswordDto } from '../shared/dto/confirm-password.dto';
 
 @Injectable()
 export class AdminService {
@@ -45,8 +46,16 @@ export class AdminService {
     return await this.userService.unbanUser(publicId);
   }
 
-  async hardDeleteUser(publicId: string): Promise<void> {
-    return await this.userService.hardDeleteUser(publicId);
+  async hardDeleteUser(
+    request: UserRequest,
+    publicId: string,
+    confirmPasswordDto: ConfirmPasswordDto,
+  ): Promise<void> {
+    return await this.userService.hardDeleteUser(
+      request,
+      publicId,
+      confirmPasswordDto,
+    );
   }
 
   async promoteManager(publicId: string): Promise<void> {

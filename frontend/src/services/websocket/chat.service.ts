@@ -42,7 +42,7 @@ class ChatWsService {
         if (!this.socket) throw new Error('ws not connected');
 
         this.socket.emit('openChat', {
-            otherUserPublicId,
+            userPublicId: otherUserPublicId,
         });
     }
 

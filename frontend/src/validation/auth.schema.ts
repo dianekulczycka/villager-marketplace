@@ -10,6 +10,12 @@ export const loginSchema = z.object({
         .min(6, "Invalid password format")
 });
 
+export const passwordSchema = z.object({
+    password: z
+        .string()
+        .min(6, "Invalid password format")
+});
+
 
 export const registerSchema = z
     .object({

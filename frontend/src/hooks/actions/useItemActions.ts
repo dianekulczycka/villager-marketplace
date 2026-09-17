@@ -10,7 +10,7 @@ export const useItemActions = () => {
         description: data.description?.trim() || undefined,
     });
     const updateItem = async (publicId: string, dto: UpdateItemDto) => await update(publicId, dto);
-    const deleteItem = async (publicId: string) => await softDelete(publicId);
+    const deleteItem = async (publicId: string, password: string) => await softDelete(publicId, password);
     const orderItem = (publicId: string, dto: OrderRequestDto) => order(publicId, dto);
 
     return {createItem, updateItem, deleteItem, orderItem};

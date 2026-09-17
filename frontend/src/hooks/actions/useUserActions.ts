@@ -5,16 +5,11 @@ import {
     promote,
     restore,
     softDelete as adminSoftDelete,
-    update as adminUpdate,
     unban,
-    unflag
+    unflag,
+    update as adminUpdate
 } from '../../services/fetch/admin.service.ts';
-import {
-    becomeSeller,
-    softDelete,
-    uploadAvatar,
-    update
-} from "../../services/fetch/user.service.ts";
+import {becomeSeller, softDelete, update, uploadAvatar} from "../../services/fetch/user.service.ts";
 import type {UserAdminView} from '../../models/user/UserAdminView.ts';
 import type {UpdateUserDto} from "../../models/user/UpdateUserDto.ts";
 import type {BecomeSellerDto} from "../../models/user/BecomeSellerDto.ts";
@@ -24,12 +19,12 @@ export const useUserActions = () => {
     const updateProfile = (dto: UpdateUserDto) => update(dto);
     const changeAvatar = (file: File) => uploadAvatar(file);
     const onBecomeSeller = (dto: BecomeSellerDto) => becomeSeller(dto);
-    const deleteProfile = () => softDelete();
+    const deleteProfile = (password: string) => softDelete(password);
 
     // admin
     const updateUser = (publicId: string, dto: UpdateUserDto) => adminUpdate(publicId, dto);
-    const deleteUser = (publicId: string) => adminSoftDelete(publicId);
-    const hardDeleteUser = (publicId: string) => hardDelete(publicId);
+    const deleteUser = (publicId: string, password: string) => adminSoftDelete(publicId, password);
+    const hardDeleteUser = (publicId: string, password: string) => hardDelete(publicId, password);
     const toggleBan = (user: UserAdminView) =>
         user.isBanned
             ? unban(user.publicId)

@@ -71,11 +71,11 @@ const ItemsPage: FC = () => {
         );
     };
 
-    const handleDeleteItem = (): Promise<void> => {
+    const handleDeleteItem = (password: string): Promise<void> => {
         if (!selectedItem) return Promise.resolve();
 
         return fetch(
-            () => deleteItem(selectedItem.publicId),
+            () => deleteItem(selectedItem.publicId, password),
             'Item deleted!',
             closeModal,
         );

@@ -22,9 +22,6 @@ const UserInfo: FC<Props> = ({
                              }) => {
     const {user: loggedUser, isAuthority} = useAuth();
 
-
-    console.log(user.username, user._count)
-
     return (
         <Box
             sx={{

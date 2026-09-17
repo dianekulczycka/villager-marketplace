@@ -7,6 +7,7 @@ import { SecurityModule } from '../security/security.module';
 import { MailModule } from '../mail/mail.module';
 import { TokenService } from '../security/token/token.service';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
     SecurityModule,
     MailModule,
     CloudinaryModule,
+    AuthModule,
   ],
   controllers: [UserController],
   providers: [UserService, TokenService],
