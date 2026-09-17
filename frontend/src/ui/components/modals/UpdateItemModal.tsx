@@ -16,7 +16,18 @@ interface Props {
     selectedItem: ItemView | null;
 }
 
-const UpdateItemModal: FC<Props> = ({open, closeModal, updateItem, selectedItem}) => {
+interface UpdateItemForm {
+    price: number;
+    count: number;
+    description?: string;
+}
+
+const UpdateItemModal: FC<Props> = ({
+                                        open,
+                                        closeModal,
+                                        updateItem,
+                                        selectedItem,
+                                    }) => {
     const {user} = useAuth();
     const {error, submit} = useFormSubmit();
 
@@ -25,7 +36,7 @@ const UpdateItemModal: FC<Props> = ({open, closeModal, updateItem, selectedItem}
         handleSubmit,
         reset,
         formState: {errors},
-    } = useForm<UpdateItemDto>({
+    } = useForm<UpdateItemForm>({
         resolver: zodResolver(updateItemSchema),
     });
 
@@ -41,7 +52,7 @@ const UpdateItemModal: FC<Props> = ({open, closeModal, updateItem, selectedItem}
 
     if (!user || !selectedItem) return null;
 
-    const onSubmit: SubmitHandler<UpdateItemDto> = data =>
+    const onSubmit: SubmitHandler<UpdateItemForm> = data =>
         submit(
             () =>
                 updateItem({
@@ -55,17 +66,19 @@ const UpdateItemModal: FC<Props> = ({open, closeModal, updateItem, selectedItem}
         );
 
     return (
-        <Modal disableScrollLock
-               slots={{backdrop: Backdrop}}
-               slotProps={{
-                   backdrop: {
-                       sx: {
-                           bgcolor: 'rgba(0,0,0,0.1)',
-                       },
-                   },
-               }}
-               open={open}
-               onClose={closeModal}>
+        <Modal
+            disableScrollLock
+            slots={{backdrop: Backdrop}}
+            slotProps={{
+                backdrop: {
+                    sx: {
+                        bgcolor: 'rgba(0,0,0,0.1)',
+                    },
+                },
+            }}
+            open={open}
+            onClose={closeModal}
+        >
             <Box
                 component="form"
                 onSubmit={handleSubmit(onSubmit)}
@@ -93,8 +106,9 @@ const UpdateItemModal: FC<Props> = ({open, closeModal, updateItem, selectedItem}
                     type="number"
                     error={!!errors.price}
                     helperText={errors.price?.message}
-                    {...register("price", {
-                        setValueAs: (v) => v === "" ? undefined : Number(v)
+                    {...register('price', {
+                        setValueAs: (v) =>
+                            v === '' ? undefined : Number(v),
                     })}
                 />
 
@@ -103,8 +117,9 @@ const UpdateItemModal: FC<Props> = ({open, closeModal, updateItem, selectedItem}
                     type="number"
                     error={!!errors.count}
                     helperText={errors.count?.message}
-                    {...register("count", {
-                        setValueAs: (v) => v === "" ? undefined : Number(v)
+                    {...register('count', {
+                        setValueAs: (v) =>
+                            v === '' ? undefined : Number(v),
                     })}
                 />
 
@@ -120,12 +135,18 @@ const UpdateItemModal: FC<Props> = ({open, closeModal, updateItem, selectedItem}
                     type="submit"
                     variant="contained"
                     color="secondary"
-                    sx={{textTransform: 'none', fontWeight: 500}}
+                    sx={{
+                        textTransform: 'none',
+                        fontWeight: 500,
+                    }}
                 >
                     send
                 </Button>
 
-                <Button onClick={closeModal} sx={{textTransform: 'none'}}>
+                <Button
+                    onClick={closeModal}
+                    sx={{textTransform: 'none'}}
+                >
                     cancel
                 </Button>
 

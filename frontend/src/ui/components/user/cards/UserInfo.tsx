@@ -1,14 +1,15 @@
 import type {FC} from "react";
-import type {UserAdminView} from "../../../../models/user/UserAdminView.ts";
 import {Box, IconButton, Typography} from "@mui/material";
 import {Link} from "react-router-dom";
 import {routes} from "../../../../routes/routes.ts";
 import SendIcon from "@mui/icons-material/Send";
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import {useAuth} from "../../../../store/helpers/useAuth.ts";
+import type {UserAdminView} from "../../../../models/user/UserAdminView.ts";
+import type {ChatView} from "../../../../models/chats/ChatView.ts";
 
 interface Props {
-    user: UserAdminView;
+    user: UserAdminView | ChatView;
     small?: boolean;
     detailed?: boolean;
     showActions: boolean;
@@ -42,7 +43,7 @@ const UserInfo: FC<Props> = ({
                     {user.username}
                 </Typography>
 
-                {showActions && (
+                {showActions && 'role' in user && (
                     <Box sx={{display: 'flex', gap: 0.5}}>
                         {user.role === 'SELLER' && user._count.item > 0 && (
                             <IconButton
@@ -55,28 +56,32 @@ const UserInfo: FC<Props> = ({
                             </IconButton>
                         )}
 
-                        {!isAuthority && !(loggedUser?.publicId === user.publicId) && (
-                            <IconButton
-                                component={Link}
-                                to={routes.chats.buildById(user.publicId)}
-                                size="small"
-                                color="secondary"
-                            >
-                                <SendIcon fontSize="small"/>
-                            </IconButton>
-                        )}
+                        {!isAuthority &&
+                            !(loggedUser?.publicId === user.publicId) && (
+                                <IconButton
+                                    component={Link}
+                                    to={routes.chats.buildById(user.publicId)}
+                                    size="small"
+                                    color="secondary"
+                                >
+                                    <SendIcon fontSize="small"/>
+                                </IconButton>
+                            )}
                     </Box>
                 )}
             </Box>
 
-            {detailed && (
+            {detailed && 'role' in user && (
                 <>
                     <Typography variant="caption" color="text.secondary">
-                        {user.role === 'SELLER' ? user.sellerType : user.role}
+                        {user.role === 'SELLER'
+                            ? user.sellerType
+                            : user.role}
                     </Typography>
 
                     <Typography variant="caption" color="text.secondary">
-                        Registered: {new Date(user.createdAt).toLocaleDateString()}
+                        Registered:{' '}
+                        {new Date(user.createdAt).toLocaleDateString()}
                     </Typography>
                 </>
             )}
