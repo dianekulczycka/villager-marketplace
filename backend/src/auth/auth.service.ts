@@ -38,6 +38,10 @@ export class AuthService {
       throw new ConflictException(USER_ERRORS.EXISTING_USER);
     }
 
+    if (existingUser) {
+      throw new ConflictException(USER_ERRORS.EMAIL_ALREADY_EXISTS);
+    }
+
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
     return this.prisma.user.create({

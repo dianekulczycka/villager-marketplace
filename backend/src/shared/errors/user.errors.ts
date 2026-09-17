@@ -11,4 +11,5 @@ export const USER_ERRORS = {
   NOT_SELLER: 'User not a seller',
   EXISTING_USER:
     'Account with this email was deleted. Please restore it, instead of creating new one',
+  EMAIL_ALREADY_EXISTS: 'Account with this email already exists',
 };
