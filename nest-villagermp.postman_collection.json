@@ -1130,6 +1130,91 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "chat",
+      "item": [
+        {
+          "name": "http://localhost:3003/chats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3003/chats",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "chats"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "http://localhost:3003/chats/user-id/35d385d9",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3003/chats/user-id/35d385d9",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3003",
+              "path": [
+                "chats",
+                "user-id",
+                "35d385d9"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "websocket",
+      "item": [
+        {
+          "name": "ws://localhost:3004",
+          "request": {
+            "url": "ws://localhost:3004",
+            "protocol": "ws",
+            "action": "open"
+          },
+          "response": []
+        },
+        {
+          "name": "newMessage",
+          "request": {
+            "url": "ws://localhost:3004",
+            "protocol": "ws",
+            "action": "send",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"event\":\"newMessage\",\"data\":{\"recipientPublicId\":\"35d385d9\",\"body\":\"Hello!\"}}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "openChat",
+          "request": {
+            "url": "ws://localhost:3004",
+            "protocol": "ws",
+            "action": "send",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"event\":\"openChat\",\"data\":{\"userPublicId\":\"35d385d9\"}}"
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
