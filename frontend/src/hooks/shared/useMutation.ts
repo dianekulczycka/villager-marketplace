@@ -7,15 +7,23 @@ export const useMutation = (refetch?: () => Promise<unknown>) => {
 
     const fetch = async <T>(
         action: () => Promise<T>,
-        successMessage?: string,
+        successMessage?: string | ((data: T) => string),
         onSuccess?: (data: T) => void | Promise<void>,
     ): Promise<void> => {
         setIsMutating(true);
 
         try {
             const data = await action();
-            if (successMessage) snackbar.showSuccess(successMessage);
+
+            const message =
+                typeof successMessage === 'function'
+                    ? successMessage(data)
+                    : successMessage;
+
+            if (message) snackbar.showSuccess(message);
+
             await onSuccess?.(data);
+
             if (refetch) await refetch();
         } catch (error) {
             snackbar.showError(error);

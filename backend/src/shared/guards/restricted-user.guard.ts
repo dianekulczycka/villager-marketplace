@@ -7,8 +7,8 @@ import {
 import { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UserRequest } from '../../user/interfaces/user-request.interface';
-import { USER_ERRORS } from '../errors/user.errors';
 import { validateExists } from '../helpers/validate-exists';
+import { AUTH_ERRORS } from '../errors/auth.errors';
 
 @Injectable()
 export class RestrictedUserGuard implements CanActivate {
@@ -26,7 +26,7 @@ export class RestrictedUserGuard implements CanActivate {
         where: { id: userId },
         select: { isBanned: true, isDeleted: true },
       }),
-      USER_ERRORS.RESTRICTED,
+      AUTH_ERRORS.ACCOUNT_UNAVAILABLE,
     );
 
     if (user.isBanned || user.isDeleted) {
@@ -35,7 +35,7 @@ export class RestrictedUserGuard implements CanActivate {
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
       if (!path.startsWith(this.allowedPath)) {
-        throw new ForbiddenException(USER_ERRORS.RESTRICTED);
+        throw new ForbiddenException(AUTH_ERRORS.ACCOUNT_UNAVAILABLE);
       }
     }
 

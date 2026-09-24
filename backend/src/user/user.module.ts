@@ -8,6 +8,7 @@ import { MailModule } from '../mail/mail.module';
 import { TokenService } from '../security/token/token.service';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { AuthModule } from '../auth/auth.module';
+import { ChatModule } from '../chat/chat.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AuthModule } from '../auth/auth.module';
     MailModule,
     CloudinaryModule,
     AuthModule,
+    ChatModule,
   ],
   controllers: [UserController],
   providers: [UserService, TokenService],

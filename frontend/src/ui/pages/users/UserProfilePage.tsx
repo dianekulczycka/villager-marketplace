@@ -4,14 +4,14 @@ import {useAuth} from '../../../store/helpers/useAuth.ts';
 import {getMy,} from '../../../services/fetch/item.service.ts';
 import {getAll, stats as loadStats,} from '../../../services/fetch/user.service.ts';
 import {ItemSortField} from '../../../models/enums/ItemSortField.ts';
-import type {BecomeSellerDto} from '../../../models/user/BecomeSellerDto.ts';
+import type {BecomeSellerReq} from '../../../models/user/BecomeSellerReq.ts';
 import {Box} from '@mui/material';
 import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal.tsx';
 import UpdateItemModal from '../../components/modals/UpdateItemModal.tsx';
 import CreateItemModal from '../../components/modals/CreateItemModal.tsx';
 import BecomeSellerModal from '../../components/modals/BecomeSellerModal.tsx';
 import UpdateUserModal from '../../components/modals/UpdateUserModal.tsx';
-import type {UpdateUserDto} from '../../../models/user/UpdateUserDto.ts';
+import type {UpdateUserReq} from '../../../models/user/UpdateUserReq.ts';
 import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
 import type {UserAdminView} from '../../../models/user/UserAdminView.ts';
 import SellerView from '../../components/user/profile/SellerView.tsx';
@@ -28,12 +28,12 @@ import {ALLOWED_AVATAR_TYPES, MAX_AVATAR_SIZE} from "../../../validation/avatar-
 import {useUserActions} from "../../../hooks/actions/useUserActions.ts";
 import {useItemActions} from "../../../hooks/actions/useItemActions.ts";
 import {ProfilePageView} from "../../../models/enums/ProfilePageView.ts";
-import type {UpdateItemDto} from "../../../models/item/UpdateItemDto.ts";
+import type {UpdateItem} from "../../../models/item/UpdateItem.ts";
 import {useModal} from "../../../hooks/shared/useModal.ts";
 import {usePaginatedQuery} from "../../../hooks/shared/usePaginatedQuery.ts";
 import type {PaginationView} from "../../../models/pagiantion/PaginationView.ts";
 import {useMutation} from "../../../hooks/shared/useMutation.ts";
-import type {CreateItemDto} from "../../../models/item/CreateItemDto.ts";
+import type {CreateItem} from "../../../models/item/CreateItem.ts";
 
 const UserProfilePage: FC = () => {
     const {user, loadUser, logoutUser, isAuthority} = useAuth();
@@ -188,7 +188,7 @@ const UserProfilePage: FC = () => {
     } = useItemActions();
 
     const handleUpdateProfile = (
-        dto: UpdateUserDto,
+        dto: UpdateUserReq,
     ): Promise<void> => {
         if (activeModal !== 'updateMyProfile' || !selected) return Promise.resolve();
 
@@ -200,7 +200,7 @@ const UserProfilePage: FC = () => {
     };
 
     const handleAdminUpdateUser = (
-        dto: UpdateUserDto,
+        dto: UpdateUserReq,
     ): Promise<void> => {
         if (activeModal !== 'updateUser' || !selected) return Promise.resolve();
 
@@ -241,7 +241,7 @@ const UserProfilePage: FC = () => {
     };
 
     const handleUpdateItem = (
-        dto: UpdateItemDto,
+        dto: UpdateItem,
     ): Promise<void> => {
         if (activeModal !== 'updateItem' || !selected) return Promise.resolve();
 
@@ -266,7 +266,7 @@ const UserProfilePage: FC = () => {
     };
 
     const handleBecomeSeller = (
-        dto: BecomeSellerDto,
+        dto: BecomeSellerReq,
     ): Promise<void> => {
         if (activeModal !== 'become') return Promise.resolve();
 
@@ -278,7 +278,6 @@ const UserProfilePage: FC = () => {
                 loadUser();
                 await refetchStats();
             },
-
         );
     };
 
@@ -293,7 +292,7 @@ const UserProfilePage: FC = () => {
     };
 
     const handleCreateItem = (
-        dto: CreateItemDto,
+        dto: CreateItem,
     ): Promise<void> =>
         fetch(
             () => createItem(dto),
@@ -373,6 +372,7 @@ const UserProfilePage: FC = () => {
     };
 
     if (!user) return null;
+    if (isMutating) return <PreloaderComponent/>;
 
     return (
         <Box
@@ -382,7 +382,6 @@ const UserProfilePage: FC = () => {
                 alignItems: 'center',
             }}
         >
-            {isMutating && <PreloaderComponent/>}
 
             <UserProfileComponent
                 user={user}
@@ -452,57 +451,79 @@ const UserProfilePage: FC = () => {
                     />
                 )}
 
-            <UpdateUserModal
-                open={
-                    activeModal === 'updateMyProfile' ||
-                    activeModal === 'updateUser'
-                }
-                closeModal={closeModal}
-                onUpdateUser={
-                    activeModal === 'updateMyProfile'
-                        ? handleUpdateProfile
-                        : handleAdminUpdateUser
-                }
-                selectedUser={selected as UserAdminView}
-            />
+            {userRole === 'BUYER' && (
+                <>
+                    <UpdateUserModal
+                        open={activeModal === 'updateMyProfile'}
+                        closeModal={closeModal}
+                        onUpdateUser={handleUpdateProfile}
+                        selectedUser={selected as UserAdminView}
+                    />
 
-            <ConfirmDeleteModal
-                open={
-                    activeModal === 'deleteMyProfile' ||
-                    activeModal === 'deleteUser' ||
-                    activeModal === 'hardDeleteUser' ||
-                    activeModal === 'deleteItem'
-                }
-                closeModal={closeModal}
-                deleteEntity={
-                    activeModal === 'deleteMyProfile'
-                        ? handleDeleteProfile
-                        : activeModal === 'hardDeleteUser'
-                            ? handleHardDeleteUser
-                            : activeModal === 'deleteItem'
-                                ? handleDeleteItem
-                                : handleDeleteUser
-                }
-            />
+                    <ConfirmDeleteModal
+                        open={activeModal === 'deleteMyProfile'}
+                        closeModal={closeModal}
+                        deleteEntity={handleDeleteProfile}
+                    />
 
-            <CreateItemModal
-                open={activeModal === 'create'}
-                closeModal={closeModal}
-                onCreateItem={handleCreateItem}
-            />
+                    <BecomeSellerModal
+                        open={activeModal === 'become'}
+                        closeModal={closeModal}
+                        onBecomeSeller={handleBecomeSeller}
+                    />
+                </>
+            )}
 
-            <UpdateItemModal
-                open={activeModal === 'updateItem'}
-                closeModal={closeModal}
-                updateItem={handleUpdateItem}
-                selectedItem={selected as ItemAdminView}
-            />
+            {(userRole !== 'BUYER') && (
+                <>
+                    <UpdateUserModal
+                        open={
+                            userRole === 'SELLER'
+                                ? activeModal === 'updateMyProfile'
+                                : activeModal === 'updateUser'
+                        }
+                        closeModal={closeModal}
+                        onUpdateUser={
+                            userRole === 'SELLER'
+                                ? handleUpdateProfile
+                                : handleAdminUpdateUser
+                        }
+                        selectedUser={selected as UserAdminView}
+                    />
 
-            <BecomeSellerModal
-                open={activeModal === 'become'}
-                closeModal={closeModal}
-                onBecomeSeller={handleBecomeSeller}
-            />
+                    <ConfirmDeleteModal
+                        open={
+                            activeModal === 'deleteMyProfile' ||
+                            activeModal === 'deleteUser' ||
+                            activeModal === 'hardDeleteUser' ||
+                            activeModal === 'deleteItem'
+                        }
+                        closeModal={closeModal}
+                        deleteEntity={
+                            activeModal === 'deleteMyProfile'
+                                ? handleDeleteProfile
+                                : activeModal === 'hardDeleteUser'
+                                    ? handleHardDeleteUser
+                                    : activeModal === 'deleteItem'
+                                        ? handleDeleteItem
+                                        : handleDeleteUser
+                        }
+                    />
+
+                    <CreateItemModal
+                        open={activeModal === 'create'}
+                        closeModal={closeModal}
+                        onCreateItem={handleCreateItem}
+                    />
+
+                    <UpdateItemModal
+                        open={activeModal === 'updateItem'}
+                        closeModal={closeModal}
+                        updateItem={handleUpdateItem}
+                        selectedItem={selected as ItemAdminView}
+                    />
+                </>
+            )}
 
             <InfoSnackbar
                 open={snackbar.open}

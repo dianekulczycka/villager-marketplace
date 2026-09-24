@@ -86,6 +86,8 @@ const ChatsPage: FC = () => {
         });
     };
 
+    if (chatsLoading || selectedUserLoading || (!!userPublicId && messagesLoading)) return <PreloaderComponent/>;
+
     return (
         <Box
             sx={{
@@ -98,7 +100,6 @@ const ChatsPage: FC = () => {
                 minHeight: 0,
             }}
         >
-            {(chatsLoading || selectedUserLoading || (!!userPublicId && messagesLoading)) && <PreloaderComponent/>}
 
             <Box
                 sx={{

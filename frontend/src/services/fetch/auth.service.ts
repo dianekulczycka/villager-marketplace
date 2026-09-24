@@ -5,6 +5,7 @@ import {api} from '../api.config.ts';
 import {endpoints} from '../api.endpoints.ts';
 import type {LoginReq} from '../../models/auth/LoginReq.ts';
 import type {RecoverReq} from '../../models/auth/RecoverReq.ts';
+import type {RecoverResp} from "../../models/auth/RecoverResp.ts";
 
 export const signIn = async (data: RegisterReq): Promise<UserPublicView> => {
     const response: AxiosResponse<UserPublicView> = await api.post(endpoints.auth.register, data);
@@ -19,6 +20,7 @@ export const logout = async (): Promise<void> => {
     await api.post(endpoints.auth.logout);
 };
 
-export const recover = async (data: RecoverReq): Promise<void> => {
-    await api.post(endpoints.auth.recovery, data);
+export const requestRecovery = async (data: RecoverReq): Promise<RecoverResp> => {
+    const response = await api.post(endpoints.auth.recovery, data);
+    return response.data;
 };

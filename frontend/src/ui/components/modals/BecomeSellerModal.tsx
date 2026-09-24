@@ -1,42 +1,47 @@
-import {type FC} from 'react';
+import React, {type FC} from 'react';
 import {Backdrop, Box, Button, MenuItem, Modal, TextField, Typography} from '@mui/material';
 import {SellerTypes} from '../../../models/enums/SellerType.ts';
-import ErrorComponent from '../error/ErrorComponent.tsx';
 import {type SubmitHandler, useForm} from 'react-hook-form';
-import type {BecomeSellerDto} from '../../../models/user/BecomeSellerDto.ts';
+import type {BecomeSellerReq} from '../../../models/user/BecomeSellerReq.ts';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {becomeSellerSchema} from '../../../validation/user.schema.ts';
-import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
+import {useMutation} from "../../../hooks/shared/useMutation.ts";
+import PreloaderComponent from "../shared/PreloaderComponent.tsx";
 
 interface Props {
     open: boolean;
     closeModal: () => void;
-    onBecomeSeller: SubmitHandler<BecomeSellerDto>;
+    onBecomeSeller: SubmitHandler<BecomeSellerReq>;
 }
 
 const BecomeSellerModal: FC<Props> = ({open, closeModal, onBecomeSeller}) => {
-    const {error, submit, setError} = useFormSubmit();
+    const {fetch, isMutating} = useMutation();
 
     const {
         register,
         handleSubmit,
         reset,
         formState: {errors},
-    } = useForm<BecomeSellerDto>({
+    } = useForm<BecomeSellerReq>({
         resolver: zodResolver(becomeSellerSchema),
     });
 
     const onClose = () => {
-        setError(null);
         reset();
         closeModal();
     };
 
-    const onSubmit: SubmitHandler<BecomeSellerDto> = data =>
-        submit(
-            async () => onBecomeSeller(data),
+    const handleBecomeSeller = (
+        data: BecomeSellerReq,
+    ): Promise<void> => {
+        return fetch(
+            () => onBecomeSeller(data),
+            "You are now a seller",
             onClose,
         );
+    };
+
+    if (isMutating) return <PreloaderComponent/>
 
     return (
         <Modal disableScrollLock
@@ -52,7 +57,7 @@ const BecomeSellerModal: FC<Props> = ({open, closeModal, onBecomeSeller}) => {
                onClose={onClose}>
             <Box
                 component="form"
-                onSubmit={handleSubmit(onSubmit)}
+                onSubmit={handleSubmit(handleBecomeSeller)}
                 sx={{
                     position: 'absolute',
                     top: '50%',
@@ -99,9 +104,6 @@ const BecomeSellerModal: FC<Props> = ({open, closeModal, onBecomeSeller}) => {
                 <Button onClick={closeModal} sx={{textTransform: 'none'}}>
                     cancel
                 </Button>
-
-                {error && <ErrorComponent error={error}/>}
-
             </Box>
         </Modal>
     );

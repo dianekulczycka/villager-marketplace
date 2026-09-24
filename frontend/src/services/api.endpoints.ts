@@ -26,6 +26,7 @@ export const endpoints = {
         byId: (publicId: string) =>
             `${roots.users}/id/${publicId}`,
         me: `${roots.users}/profile`,
+        unreadMessages: `${roots.users}/profile/unread`,
         stats: `${roots.users}/profile/stats`,
         delete: `${roots.users}/profile/soft-delete`,
         becomeSeller: `${roots.users}/profile/become-seller`,
@@ -57,8 +58,7 @@ export const endpoints = {
 
     chats: {
         root: roots.chats,
-        byId: (userPublicId: string) =>
-            `${roots.chats}/user-id/${userPublicId}`,
+        byId: (userPublicId: string) => `${roots.chats}/user-id/${userPublicId}`,
     },
 
     admin: {

@@ -1,12 +1,13 @@
-import {type FC} from 'react';
-import {type SubmitHandler, useForm} from 'react-hook-form';
+import React, {type FC} from 'react';
+import {useForm} from 'react-hook-form';
 import {Link} from 'react-router';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {alpha, Box, Button, TextField, Typography} from '@mui/material';
 import type {LoginReq} from '../../../models/auth/LoginReq.ts';
 import {loginSchema} from '../../../validation/auth.schema.ts';
-import ErrorComponent from '../error/ErrorComponent.tsx';
-import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
+import InfoSnackbar from "../shared/InfoSnackbar.tsx";
+import {useMutation} from "../../../hooks/shared/useMutation.ts";
+import PreloaderComponent from "../shared/PreloaderComponent.tsx";
 
 interface Props {
     login: (data: LoginReq) => Promise<void>;
@@ -14,11 +15,7 @@ interface Props {
 }
 
 const LoginForm: FC<Props> = ({login, openModal}) => {
-    const {
-        error,
-        submit,
-    } = useFormSubmit();
-
+    const {fetch, isMutating, ...snackbar} = useMutation();
     const {
         register,
         handleSubmit,
@@ -27,8 +24,15 @@ const LoginForm: FC<Props> = ({login, openModal}) => {
         resolver: zodResolver(loginSchema),
     });
 
-    const onSubmit: SubmitHandler<LoginReq> = data =>
-        submit(() => login(data));
+    const handleLogin = (
+        data: LoginReq,
+    ): Promise<void> => {
+        return fetch(
+            () => login(data)
+        );
+    };
+
+    if (isMutating) return <PreloaderComponent/>
 
     return (
         <Box sx={(theme) => ({
@@ -45,7 +49,7 @@ const LoginForm: FC<Props> = ({login, openModal}) => {
             <Typography variant="h5"> Log in </Typography>
 
             <form
-                onSubmit={handleSubmit(onSubmit)}
+                onSubmit={handleSubmit(handleLogin)}
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -96,7 +100,12 @@ const LoginForm: FC<Props> = ({login, openModal}) => {
                 Restore account
             </Button>
 
-            {error && <ErrorComponent error={error}/>}
+            <InfoSnackbar
+                open={snackbar.open}
+                setOpen={snackbar.close}
+                text={snackbar.text}
+                status={snackbar.status}
+            />
         </Box>
     );
 };

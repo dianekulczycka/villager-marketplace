@@ -1,20 +1,20 @@
 import {type SubmitHandler, useForm} from 'react-hook-form';
-import {type FC} from 'react';
+import React, {type FC} from 'react';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Backdrop, Box, Button, MenuItem, Modal, TextField, Typography} from '@mui/material';
-import ErrorComponent from '../error/ErrorComponent.tsx';
 import type {RecoverReq} from '../../../models/auth/RecoverReq.ts';
 import {recoverySchema} from '../../../validation/auth.schema.ts';
-import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
+import {useMutation} from "../../../hooks/shared/useMutation.ts";
+import PreloaderComponent from "../shared/PreloaderComponent.tsx";
 
 interface Props {
     open: boolean;
     closeModal: () => void;
-    recover: SubmitHandler<RecoverReq>;
+    requestRecovery: SubmitHandler<RecoverReq>;
 }
 
-const RecoverModal: FC<Props> = ({open, closeModal, recover}) => {
-    const {error, submit} = useFormSubmit();
+const RequestRecoveryModal: FC<Props> = ({open, closeModal, requestRecovery}) => {
+    const {fetch, isMutating} = useMutation();
 
     const {
         register,
@@ -30,11 +30,15 @@ const RecoverModal: FC<Props> = ({open, closeModal, recover}) => {
         closeModal();
     };
 
-    const onSubmit: SubmitHandler<RecoverReq> = data =>
-        submit(
-            async () => recover(data),
+    const handleRequestRecovery: SubmitHandler<RecoverReq> = data => {
+        return fetch(
+            () => requestRecovery(data),
+            response => response.message,
             onClose,
         );
+    };
+
+    if (isMutating) return <PreloaderComponent/>
 
     return (
         <Modal disableScrollLock
@@ -50,7 +54,7 @@ const RecoverModal: FC<Props> = ({open, closeModal, recover}) => {
                onClose={onClose}>
             <Box
                 component="form"
-                onSubmit={handleSubmit(onSubmit)}
+                onSubmit={handleSubmit(handleRequestRecovery)}
                 sx={{
                     position: 'absolute',
                     top: '50%',
@@ -108,11 +112,9 @@ const RecoverModal: FC<Props> = ({open, closeModal, recover}) => {
                     cancel
                 </Button>
 
-                {error && <ErrorComponent error={error}/>}
-
             </Box>
         </Modal>
     );
 };
 
-export default RecoverModal;
+export default RequestRecoveryModal;

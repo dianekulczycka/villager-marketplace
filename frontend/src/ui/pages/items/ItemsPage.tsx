@@ -12,13 +12,16 @@ import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
 import type {QueryParams} from "../../../models/pagiantion/QueryParams.ts";
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
 import {useItemActions} from "../../../hooks/actions/useItemActions.ts";
-import type {UpdateItemDto} from "../../../models/item/UpdateItemDto.ts";
+import type {UpdateItem} from "../../../models/item/UpdateItem.ts";
 import {useModal} from "../../../hooks/shared/useModal.ts";
 import {usePaginatedQuery} from "../../../hooks/shared/usePaginatedQuery.ts";
 import type {PaginationView} from "../../../models/pagiantion/PaginationView.ts";
 import {useMutation} from "../../../hooks/shared/useMutation.ts";
+import {useAuth} from "../../../store/helpers/useAuth.ts";
 
 const ItemsPage: FC = () => {
+    const {user: loggedUser} = useAuth();
+
     const {
         activeModal,
         selected: selectedItem,
@@ -61,7 +64,7 @@ const ItemsPage: FC = () => {
     const openDeleteItemModal = (item: ItemAdminView) =>
         openModal('deleteItem', item);
 
-    const handleUpdateItem = (dto: UpdateItemDto): Promise<void> => {
+    const handleUpdateItem = (dto: UpdateItem): Promise<void> => {
         if (!selectedItem) return Promise.resolve();
 
         return fetch(
@@ -119,18 +122,22 @@ const ItemsPage: FC = () => {
                 )}
             </DataStateComponent>
 
-            <UpdateItemModal
-                open={activeModal === 'updateItem'}
-                closeModal={closeModal}
-                updateItem={handleUpdateItem}
-                selectedItem={selectedItem}
-            />
+            {loggedUser && loggedUser.role !== "BUYER" &&
+                <>
+                    <UpdateItemModal
+                        open={activeModal === 'updateItem'}
+                        closeModal={closeModal}
+                        updateItem={handleUpdateItem}
+                        selectedItem={selectedItem}
+                    />
 
-            <ConfirmDeleteModal
-                open={activeModal === 'deleteItem'}
-                closeModal={closeModal}
-                deleteEntity={handleDeleteItem}
-            />
+                    <ConfirmDeleteModal
+                        open={activeModal === 'deleteItem'}
+                        closeModal={closeModal}
+                        deleteEntity={handleDeleteItem}
+                    />
+                </>
+            }
 
             <InfoSnackbar
                 open={snackbar.open}

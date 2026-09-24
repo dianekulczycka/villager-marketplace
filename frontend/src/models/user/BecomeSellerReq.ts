@@ -1,5 +1,5 @@
 import type {SellerType} from '../enums/SellerType.ts';
 
-export interface BecomeSellerDto {
+export interface BecomeSellerReq {
     sellerType: SellerType;
 }

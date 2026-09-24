@@ -1,14 +1,17 @@
 import {type FC} from 'react';
-import {AppBar, Avatar, Button, Link, Toolbar} from '@mui/material';
+import {AppBar, Avatar, Button, Link, Toolbar, Box} from '@mui/material';
 import {useAuth} from '../../../store/helpers/useAuth.ts';
 import {Link as RouterLink} from 'react-router';
 import ErrorComponent from '../error/ErrorComponent.tsx';
 import {routes} from '../../../routes/routes.ts';
 import {useAuthActions} from "../../../hooks/actions/useAuthActions.ts";
+import {useChat} from "../../../store/helpers/useChat.ts";
+import UnreadMessagesChip from "../chips/UnreadMessagesChip.tsx";
 
 export const HeaderComponent: FC = () => {
     const {user, isAuthority} = useAuth();
     const {logout} = useAuthActions();
+    const {totalUnread} = useChat();
 
     if (!user) return <ErrorComponent error="no user"/>;
 
@@ -54,13 +57,25 @@ export const HeaderComponent: FC = () => {
                         >
                             Orders
                         </Link>
-                        <Link
-                            component={RouterLink}
-                            to={routes.chats.root}
-                            underline="hover"
+                        <Box
+                            sx={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 0.75,
+                            }}
                         >
-                            Chats
-                        </Link>
+                            <Link
+                                component={RouterLink}
+                                to={routes.chats.root}
+                                underline="hover"
+                            >
+                                Chats
+                            </Link>
+
+                            {totalUnread > 0 && (
+                                <UnreadMessagesChip unreadMessages={totalUnread} />
+                            )}
+                        </Box>
                     </>
                 }
             </Toolbar>

@@ -1,4 +1,4 @@
-export interface ChatOpenedResponse {
+export interface ChatOpenedResp {
     otherUserPublicId: string;
     markedAsReadCount: number;
 }

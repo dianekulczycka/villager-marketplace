@@ -2,7 +2,7 @@ import type {PaginationView} from '../../models/pagiantion/PaginationView.ts';
 import type {UserAdminView} from '../../models/user/UserAdminView.ts';
 import {endpoints} from '../api.endpoints.ts';
 import {api} from '../api.config.ts';
-import type {UpdateUserDto} from '../../models/user/UpdateUserDto.ts';
+import type {UpdateUserReq} from '../../models/user/UpdateUserReq.ts';
 import type {UserSelfView} from '../../models/user/UserSelfView.ts';
 import type {UserQueryParams} from '../../models/user/UserQueryParams.ts';
 
@@ -21,7 +21,7 @@ export const getManagers = async (params?: UserQueryParams): Promise<PaginationV
     return data;
 };
 
-export const update = async (publicId: string, dto: UpdateUserDto): Promise<UserSelfView> => {
+export const update = async (publicId: string, dto: UpdateUserReq): Promise<UserSelfView> => {
     const {data} = await api.patch(endpoints.admin.byId(publicId), dto);
     return data;
 };

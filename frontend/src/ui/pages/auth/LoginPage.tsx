@@ -2,7 +2,7 @@ import {type FC, useState} from 'react';
 import LoginForm from '../../components/froms/LoginForm.tsx';
 import type {ActiveModal} from '../../../models/item/ActiveModal.ts';
 import type {RecoverReq} from '../../../models/auth/RecoverReq.ts';
-import RecoverModal from '../../components/modals/RecoverModal.tsx';
+import RequestRecoveryModal from '../../components/modals/RequestRecoveryModal.tsx';
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
 import {useAuthActions} from "../../../hooks/actions/useAuthActions.ts";
 import {useLoggedUserRedirect} from "../../../hooks/shared/useLoggedUserRedirect.ts";
@@ -14,24 +14,24 @@ const LoginPage: FC = () => {
 
     const {
         loginUser,
-        recoverUser,
+        handleRequestRecovery,
     } = useAuthActions();
 
     const openModal = () => setActiveModal('restore');
     const closeModal = () => setActiveModal(null);
 
-    const onRecover = async (dto: RecoverReq) => {
-        await recoverUser(dto);
+    const onRequestRecovery = async (dto: RecoverReq) => {
+        await handleRequestRecovery(dto);
         setOpenSnackbar(true);
     };
 
     return (
         <>
             <LoginForm login={loginUser} openModal={openModal}/>
-            <RecoverModal
+            <RequestRecoveryModal
                 open={activeModal === 'restore'}
                 closeModal={closeModal}
-                recover={onRecover}
+                requestRecovery={onRequestRecovery}
             />
             <InfoSnackbar
                 open={openSnackbar}

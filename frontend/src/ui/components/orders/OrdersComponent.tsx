@@ -13,10 +13,10 @@ const OrdersComponent: FC<Props> = ({orders, rejectOrder, confirmOrder}) => {
     return (
         <Box
             sx={{
-                width: '66%',
+                width: '60%',
                 margin: '0 auto',
                 display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
+                gridTemplateColumns: 'repeat(2, 1fr)',
                 gap: 3,
             }}>
             {

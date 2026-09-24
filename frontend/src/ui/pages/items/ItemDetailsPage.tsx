@@ -6,7 +6,7 @@ import DataStateComponent from '../../components/shared/DataStateComponent.tsx';
 import {useQuery} from '@tanstack/react-query';
 import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
 import OrderModal from "../../components/modals/OrderModal.tsx";
-import type {OrderRequestDto} from "../../../models/order/OrderRequestDto.ts";
+import type {OrderReq} from "../../../models/order/OrderReq.ts";
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
 import {useMutation} from "../../../hooks/shared/useMutation.ts";
 import {useItemActions} from "../../../hooks/actions/useItemActions.ts";
@@ -34,7 +34,7 @@ const ItemDetailsPage: FC = () => {
         increaseViews(data.publicId);
     }, [data?.publicId]);
 
-    const order = (dto: OrderRequestDto): Promise<void> =>
+    const order = (dto: OrderReq): Promise<void> =>
         fetch(
             () => orderItem(publicId!, dto),
             'Order created!',

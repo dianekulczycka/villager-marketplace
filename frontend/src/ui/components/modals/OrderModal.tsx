@@ -1,28 +1,28 @@
-import {type FC} from "react";
+import React, {type FC} from "react";
 import {Backdrop, Box, Button, Modal, TextField} from "@mui/material";
-import ErrorComponent from "../error/ErrorComponent.tsx";
 import {type SubmitHandler, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
-import type {OrderRequestDto} from "../../../models/order/OrderRequestDto.ts";
+import type {OrderReq} from "../../../models/order/OrderReq.ts";
 import {orderSchema} from "../../../validation/order.schema.ts";
-import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
+import {useMutation} from "../../../hooks/shared/useMutation.ts";
+import PreloaderComponent from "../shared/PreloaderComponent.tsx";
 
 interface Props {
     open: boolean;
     closeModal: () => void;
-    order: (data: OrderRequestDto) => Promise<void>;
+    order: (data: OrderReq) => Promise<void>;
     itemCount: number;
 }
 
 const OrderModal: FC<Props> = ({open, closeModal, order, itemCount}) => {
-    const {error, submit, setError} = useFormSubmit();
+    const {fetch, isMutating} = useMutation();
 
     const {
         register,
         handleSubmit,
         reset,
         formState: {errors},
-    } = useForm<OrderRequestDto>({
+    } = useForm<OrderReq>({
         resolver: zodResolver(orderSchema),
         defaultValues: {
             amount: 1,
@@ -34,16 +34,21 @@ const OrderModal: FC<Props> = ({open, closeModal, order, itemCount}) => {
         closeModal();
     };
 
-    const onSubmit: SubmitHandler<OrderRequestDto> = data => {
+    const handleOrder: SubmitHandler<OrderReq> = data => {
         if (data.amount > itemCount) {
-            setError(`Only ${itemCount} available`);
+            showError(new Error(`Only ${itemCount} available`));
             return;
         }
-        return submit(
+
+        return fetch(
             () => order(data),
+            "Order created",
             onClose,
         );
     };
+
+
+    if (isMutating) return <PreloaderComponent/>
 
     return (
         <Modal disableScrollLock
@@ -59,7 +64,7 @@ const OrderModal: FC<Props> = ({open, closeModal, order, itemCount}) => {
                onClose={onClose}>
             <Box
                 component="form"
-                onSubmit={handleSubmit(onSubmit)}
+                onSubmit={handleSubmit(handleOrder)}
                 sx={{
                     position: 'absolute',
                     top: '50%',
@@ -93,7 +98,6 @@ const OrderModal: FC<Props> = ({open, closeModal, order, itemCount}) => {
                 <Button onClick={closeModal} sx={{textTransform: 'none'}}>
                     cancel
                 </Button>
-                {error && <ErrorComponent error={error}/>}
             </Box>
         </Modal>
     );

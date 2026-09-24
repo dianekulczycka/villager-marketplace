@@ -15,7 +15,6 @@ import { TokenPair } from '../shared/interfaces/token-pair.interface';
 import { AUTH_ERRORS } from '../shared/errors/auth.errors';
 import { BUYER_ICON } from '../shared/helpers/icon-map.helper';
 import { generatePublicId } from '../shared/generators/private-id.generator';
-import { USER_ERRORS } from '../shared/errors/user.errors';
 
 @Injectable()
 export class AuthService {
@@ -35,11 +34,11 @@ export class AuthService {
     });
 
     if (existingUser?.isDeleted) {
-      throw new ConflictException(USER_ERRORS.EXISTING_USER);
+      throw new ConflictException(AUTH_ERRORS.EMAIL_UNAVAILABLE);
     }
 
     if (existingUser) {
-      throw new ConflictException(USER_ERRORS.EMAIL_ALREADY_EXISTS);
+      throw new ConflictException(AUTH_ERRORS.EMAIL_UNAVAILABLE);
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
@@ -79,7 +78,7 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException(AUTH_ERRORS.INVALID_CREDENTIALS);
     if (user.isDeleted || user.isBanned)
-      throw new UnauthorizedException(AUTH_ERRORS.ACCOUNT_DELETED);
+      throw new UnauthorizedException(AUTH_ERRORS.ACCOUNT_UNAVAILABLE);
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid)

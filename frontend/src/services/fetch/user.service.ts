@@ -2,8 +2,8 @@ import type {PaginationView} from '../../models/pagiantion/PaginationView.ts';
 import {api} from '../api.config.ts';
 import {endpoints} from '../api.endpoints.ts';
 import type {ProfileStats} from '../../models/stats/ProfileStats.ts';
-import type {UpdateUserDto} from '../../models/user/UpdateUserDto.ts';
-import type {BecomeSellerDto} from '../../models/user/BecomeSellerDto.ts';
+import type {UpdateUserReq} from '../../models/user/UpdateUserReq.ts';
+import type {BecomeSellerReq} from '../../models/user/BecomeSellerReq.ts';
 import type {UserQueryParams} from '../../models/user/UserQueryParams.ts';
 import type {UserAdminView} from '../../models/user/UserAdminView.ts';
 
@@ -22,12 +22,17 @@ export const getMe = async (): Promise<UserAdminView> => {
     return data;
 };
 
+export const getUnreadMessages = async (): Promise<number> => {
+    const {data} = await api.get(endpoints.users.unreadMessages);
+    return data;
+};
+
 export const stats = async (): Promise<ProfileStats> => {
     const {data} = await api.get(endpoints.users.stats);
     return data;
 };
 
-export const update = async (dto: UpdateUserDto): Promise<UserAdminView> => {
+export const update = async (dto: UpdateUserReq): Promise<UserAdminView> => {
     const {data} = await api.patch(endpoints.users.me, dto);
     return data;
 };
@@ -53,7 +58,7 @@ export const softDelete = async (
     });
 };
 
-export const becomeSeller = async (dto: BecomeSellerDto): Promise<void> => {
+export const becomeSeller = async (dto: BecomeSellerReq): Promise<void> => {
     await api.patch(endpoints.users.becomeSeller, dto);
 };
 

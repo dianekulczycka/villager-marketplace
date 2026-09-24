@@ -21,8 +21,6 @@ const OrderCard: FC<Props> = ({
     const {user: loggedUser} = useAuth();
     const isOwner = loggedUser?.publicId === order.seller.publicId;
 
-    console.log(order);
-
     return (
         <Card
             sx={{

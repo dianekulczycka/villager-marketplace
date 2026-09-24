@@ -3,8 +3,8 @@ import type {ItemView} from '../../models/item/ItemView.ts';
 import {api} from '../api.config.ts';
 import {endpoints} from '../api.endpoints.ts';
 import type {ItemQueryParams} from '../../models/item/ItemQueryParams.ts';
-import type {CreateItemDto} from '../../models/item/CreateItemDto.ts';
-import type {UpdateItemDto} from '../../models/item/UpdateItemDto.ts';
+import type {CreateItem} from '../../models/item/CreateItem.ts';
+import type {UpdateItem} from '../../models/item/UpdateItem.ts';
 import type {ItemAdminView} from '../../models/item/ItemAdminView.ts';
 
 export const getAll = async (
@@ -28,12 +28,12 @@ export const getMy = async (params?: ItemQueryParams): Promise<PaginationView<It
     return data;
 };
 
-export const create = async (dto: CreateItemDto): Promise<ItemView> => {
+export const create = async (dto: CreateItem): Promise<ItemView> => {
     const {data} = await api.post(endpoints.items.root, dto);
     return data;
 };
 
-export const update = async (publicId: string, dto: UpdateItemDto): Promise<ItemView> => {
+export const update = async (publicId: string, dto: UpdateItem): Promise<ItemView> => {
     const {data} = await api.patch(`${endpoints.items.byId(publicId)}`, dto);
     return data;
 };

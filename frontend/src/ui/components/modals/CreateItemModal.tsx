@@ -1,30 +1,30 @@
-import {type FC} from 'react';
-import type {CreateItemDto} from '../../../models/item/CreateItemDto.ts';
+import React, {type FC} from 'react';
+import type {CreateItem} from '../../../models/item/CreateItem.ts';
 import {type SubmitHandler, useForm} from 'react-hook-form';
 import {useAuth} from '../../../store/helpers/useAuth.ts';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {createItemSchema} from '../../../validation/item.schema.ts';
 import {Backdrop, Box, Button, MenuItem, Modal, TextField, Typography} from '@mui/material';
 import {allowedItemsPerSeller} from '../../../models/enums/AllowedItemsPerSeller.ts';
-import ErrorComponent from '../error/ErrorComponent.tsx';
-import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
+import {useMutation} from "../../../hooks/shared/useMutation.ts";
+import PreloaderComponent from "../shared/PreloaderComponent.tsx";
 
 interface Props {
     open: boolean;
     closeModal: () => void;
-    onCreateItem: SubmitHandler<CreateItemDto>;
+    onCreateItem: SubmitHandler<CreateItem>;
 }
 
 const CreateItemModal: FC<Props> = ({open, closeModal, onCreateItem}) => {
     const {user} = useAuth();
-    const {error, submit} = useFormSubmit();
+    const {fetch, isMutating} = useMutation();
 
     const {
         register,
         handleSubmit,
         reset,
         formState: {errors},
-    } = useForm<CreateItemDto>({
+    } = useForm<CreateItem>({
         resolver: zodResolver(createItemSchema),
         defaultValues: {
             name: undefined,
@@ -39,14 +39,18 @@ const CreateItemModal: FC<Props> = ({open, closeModal, onCreateItem}) => {
         closeModal();
     };
 
-    const onSubmit: SubmitHandler<CreateItemDto> = data =>
-        submit(
+    const handleCreateItem = (
+        data: CreateItem,
+    ): Promise<void> => {
+        return fetch(
             async () => onCreateItem(data),
+            "Item created",
             onClose,
         );
+    };
 
-    if (!user) return null;
-    if (!user?.sellerType) return null;
+    if (!user || !user?.sellerType) return null;
+    if (isMutating) return <PreloaderComponent/>
 
     return (
         <Modal disableScrollLock
@@ -62,7 +66,7 @@ const CreateItemModal: FC<Props> = ({open, closeModal, onCreateItem}) => {
                onClose={onClose}>
             <Box
                 component="form"
-                onSubmit={handleSubmit(onSubmit)}
+                onSubmit={handleSubmit(handleCreateItem)}
                 sx={{
                     position: 'absolute',
                     top: '50%',
@@ -135,9 +139,6 @@ const CreateItemModal: FC<Props> = ({open, closeModal, onCreateItem}) => {
                 <Button onClick={closeModal} sx={{textTransform: 'none'}}>
                     cancel
                 </Button>
-
-                {error && <ErrorComponent error={error}/>}
-
             </Box>
         </Modal>
     );

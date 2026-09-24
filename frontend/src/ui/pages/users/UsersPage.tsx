@@ -7,7 +7,7 @@ import DataStateComponent from '../../components/shared/DataStateComponent.tsx';
 import {Box} from '@mui/material';
 import SortSearchComponent from '../../components/shared/SortSearchComponent.tsx';
 import type {UserAdminView} from '../../../models/user/UserAdminView.ts';
-import type {UpdateUserDto} from '../../../models/user/UpdateUserDto.ts';
+import type {UpdateUserReq} from '../../../models/user/UpdateUserReq.ts';
 import UpdateUserModal from '../../components/modals/UpdateUserModal.tsx';
 import ConfirmDeleteModal from '../../components/modals/ConfirmDeleteModal.tsx';
 import type {QueryParams} from "../../../models/pagiantion/QueryParams.ts";
@@ -17,8 +17,12 @@ import {useModal} from "../../../hooks/shared/useModal.ts";
 import {usePaginatedQuery} from "../../../hooks/shared/usePaginatedQuery.ts";
 import type {PaginationView} from "../../../models/pagiantion/PaginationView.ts";
 import {useMutation} from "../../../hooks/shared/useMutation.ts";
+import UpdateItemModal from "../../components/modals/UpdateItemModal.tsx";
+import {useAuth} from "../../../store/helpers/useAuth.ts";
 
 const UsersPage: FC = () => {
+    const {isAuthority} = useAuth();
+
     const {
         activeModal,
         selected: selectedUser,
@@ -75,7 +79,7 @@ const UsersPage: FC = () => {
     } = useUserActions();
 
     const handleUpdateUser = async (
-        dto: UpdateUserDto,
+        dto: UpdateUserReq,
     ): Promise<void> => {
         if (!selectedUser) return;
 
@@ -191,6 +195,23 @@ const UsersPage: FC = () => {
                     </>
                 )}
             </DataStateComponent>
+
+            {isAuthority &&
+                <>
+                    <UpdateItemModal
+                        open={activeModal === 'updateItem'}
+                        closeModal={closeModal}
+                        updateItem={handleUpdateItem}
+                        selectedItem={selectedItem}
+                    />
+
+                    <ConfirmDeleteModal
+                        open={activeModal === 'deleteItem'}
+                        closeModal={closeModal}
+                        deleteEntity={handleDeleteItem}
+                    />
+                </>
+            }
 
             <UpdateUserModal
                 open={activeModal === 'updateUser'}

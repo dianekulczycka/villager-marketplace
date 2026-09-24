@@ -1,19 +1,20 @@
-import {type FC} from 'react';
-import {type SubmitHandler, useForm} from 'react-hook-form';
+import React, {type FC} from 'react';
+import {useForm} from 'react-hook-form';
 import {Link} from 'react-router';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {alpha, Box, Button, TextField, Typography} from '@mui/material';
 import type {RegisterReq} from '../../../models/auth/RegisterReq.ts';
 import {registerSchema} from '../../../validation/auth.schema.ts';
-import ErrorComponent from '../error/ErrorComponent.tsx';
-import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
+import {useMutation} from "../../../hooks/shared/useMutation.ts";
+import PreloaderComponent from "../shared/PreloaderComponent.tsx";
+import InfoSnackbar from "../shared/InfoSnackbar.tsx";
 
 interface Props {
     onRegister: (data: RegisterReq) => Promise<void>;
 }
 
 const RegisterForm: FC<Props> = ({onRegister}) => {
-    const {error, submit} = useFormSubmit();
+    const {fetch, isMutating, ...snackbar} = useMutation();
 
     const {
         register,
@@ -23,11 +24,17 @@ const RegisterForm: FC<Props> = ({onRegister}) => {
         resolver: zodResolver(registerSchema),
     });
 
-    const onSubmit: SubmitHandler<RegisterReq> = data =>
-        submit(() => {
-            const {email, username, password} = data;
-            return onRegister({email, username, password});
-        });
+    const handleRegister = (
+        data: RegisterReq,
+    ): Promise<void> => {
+        return fetch(
+            () => {
+                return onRegister(data);
+            }
+        );
+    };
+
+    if (isMutating) return <PreloaderComponent/>
 
     return (
         <Box sx={(theme) => ({
@@ -43,7 +50,7 @@ const RegisterForm: FC<Props> = ({onRegister}) => {
         })}>
             <Typography variant="h5"> Register </Typography>
             <form
-                onSubmit={handleSubmit(onSubmit)}
+                onSubmit={handleSubmit(handleRegister)}
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -86,7 +93,12 @@ const RegisterForm: FC<Props> = ({onRegister}) => {
 
             <Typography variant="caption"> Have an account? <Link to="/auth/login"> Log in </Link></Typography>
 
-            {error && <ErrorComponent error={error}/>}
+            <InfoSnackbar
+                open={snackbar.open}
+                setOpen={snackbar.close}
+                text={snackbar.text}
+                status={snackbar.status}
+            />
 
         </Box>
     );

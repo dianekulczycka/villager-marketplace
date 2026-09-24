@@ -1,6 +1,6 @@
 import {ItemName} from '../enums/ItemName.ts';
 
-export interface CreateItemDto {
+export interface CreateItem {
     name: ItemName;
     price: number;
     count: number;

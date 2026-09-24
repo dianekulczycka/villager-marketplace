@@ -33,6 +33,7 @@ const DataStateComponent: FC<Props> = ({
             {node}
         </Box>
     );
+
     if (loading) return msgWrap(<PreloaderComponent/>);
     if (error) return msgWrap(<ErrorComponent error={error.message}/>);
     if (!loading && !data) return msgWrap(<ErrorComponent error="no data fetched"/>);

@@ -11,18 +11,18 @@ import {
 } from '../../services/fetch/admin.service.ts';
 import {becomeSeller, softDelete, update, uploadAvatar} from "../../services/fetch/user.service.ts";
 import type {UserAdminView} from '../../models/user/UserAdminView.ts';
-import type {UpdateUserDto} from "../../models/user/UpdateUserDto.ts";
-import type {BecomeSellerDto} from "../../models/user/BecomeSellerDto.ts";
+import type {UpdateUserReq} from "../../models/user/UpdateUserReq.ts";
+import type {BecomeSellerReq} from "../../models/user/BecomeSellerReq.ts";
 
 export const useUserActions = () => {
     // user
-    const updateProfile = (dto: UpdateUserDto) => update(dto);
+    const updateProfile = (dto: UpdateUserReq) => update(dto);
     const changeAvatar = (file: File) => uploadAvatar(file);
-    const onBecomeSeller = (dto: BecomeSellerDto) => becomeSeller(dto);
+    const onBecomeSeller = (dto: BecomeSellerReq) => becomeSeller(dto);
     const deleteProfile = (password: string) => softDelete(password);
 
     // admin
-    const updateUser = (publicId: string, dto: UpdateUserDto) => adminUpdate(publicId, dto);
+    const updateUser = (publicId: string, dto: UpdateUserReq) => adminUpdate(publicId, dto);
     const deleteUser = (publicId: string, password: string) => adminSoftDelete(publicId, password);
     const hardDeleteUser = (publicId: string, password: string) => hardDelete(publicId, password);
     const toggleBan = (user: UserAdminView) =>

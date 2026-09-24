@@ -2,6 +2,7 @@ import {Box, Card} from '@mui/material';
 import type {FC} from "react";
 import UserInfo from "../user/cards/UserInfo.tsx";
 import type {ChatView} from "../../../models/chats/ChatView.ts";
+import UnreadMessagesChip from "../chips/UnreadMessagesChip.tsx";
 
 interface Props {
     chat: ChatView;
@@ -66,25 +67,7 @@ const ChatComponent: FC<Props> = ({chat, handleChatLoad}) => {
                     />
                 </Box>
 
-                {chat.unreadMessages > 0 && (
-                    <Box
-                        sx={{
-                            width: 26,
-                            height: 26,
-                            borderRadius: '50%',
-                            backgroundColor: 'secondary.main',
-                            color: 'secondary.contrastText',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.8rem',
-                            fontWeight: 600,
-                            flexShrink: 0,
-                        }}
-                    >
-                        {chat.unreadMessages}
-                    </Box>
-                )}
+                {chat.unreadMessages > 0 && <UnreadMessagesChip unreadMessages={chat.unreadMessages}/>}
             </Box>
         </Card>
     );

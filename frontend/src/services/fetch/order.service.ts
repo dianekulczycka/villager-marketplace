@@ -1,11 +1,11 @@
 import type {PaginationView} from "../../models/pagiantion/PaginationView.ts";
 import {api} from "../api.config.ts";
 import {endpoints} from "../api.endpoints.ts";
-import type {OrderRequestDto} from "../../models/order/OrderRequestDto.ts";
+import type {OrderReq} from "../../models/order/OrderReq.ts";
 import type {OrderView} from "../../models/order/OrderView.ts";
 import type {OrderQueryParams} from "../../models/order/OrderQueryParams.ts";
 
-export const order = async (itemPublicId: string, dto: OrderRequestDto): Promise<OrderView> => {
+export const order = async (itemPublicId: string, dto: OrderReq): Promise<OrderView> => {
     return api.post(endpoints.orders.order(itemPublicId), dto);
 };
 

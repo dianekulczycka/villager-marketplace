@@ -2,6 +2,7 @@ import {createBrowserRouter, Navigate} from 'react-router-dom';
 import {QueryParamProvider} from 'use-query-params';
 import {ReactRouter6Adapter} from 'use-query-params/adapters/react-router-6';
 import {AuthProvider} from '../store/providers/AuthProvider.tsx';
+import {ChatProvider} from '../store/providers/ChatProvider.tsx';
 import PublicLayout from '../ui/layouts/PublicLayout.tsx';
 import LoginPage from '../ui/pages/auth/LoginPage.tsx';
 import RegisterPage from '../ui/pages/auth/RegisterPage.tsx';
@@ -19,60 +20,74 @@ export const router = createBrowserRouter([
     {
         element: (
             <QueryParamProvider adapter={ReactRouter6Adapter}>
-                <AuthProvider/>
+                <AuthProvider />
             </QueryParamProvider>
         ),
         children: [
             {
-                path: routes.auth.root,
-                element: <PublicLayout/>,
-                children: [
-                    {path: routes.auth.login, element: <LoginPage/>},
-                    {path: routes.auth.register, element: <RegisterPage/>},
-                ],
-            },
-            {
-                element: <BasicLayout/>,
+                element: <ChatProvider />,
                 children: [
                     {
-                        index: true,
-                        element: <Navigate to={routes.items.root} replace/>,
-                    },
-                    {
-                        path: routes.items.root,
+                        path: routes.auth.root,
+                        element: <PublicLayout />,
                         children: [
-                            {index: true, element: <ItemsPage/>},
-                            {path: routes.items.byId, element: <ItemDetailsPage/>},
+                            {path: routes.auth.login, element: <LoginPage />},
+                            {path: routes.auth.register, element: <RegisterPage />},
                         ],
                     },
                     {
-                        path: routes.orders.root,
+                        element: <BasicLayout />,
                         children: [
-                            {index: true, element: <OrdersPage/>},
+                            {
+                                index: true,
+                                element: <Navigate to={routes.items.root} replace />,
+                            },
+                            {
+                                path: routes.items.root,
+                                children: [
+                                    {index: true, element: <ItemsPage />},
+                                    {
+                                        path: routes.items.byId,
+                                        element: <ItemDetailsPage />,
+                                    },
+                                ],
+                            },
+                            {
+                                path: routes.orders.root,
+                                children: [
+                                    {index: true, element: <OrdersPage />},
+                                ],
+                            },
+                            {
+                                path: routes.users.root,
+                                children: [
+                                    {index: true, element: <UsersPage />},
+                                    {
+                                        path: routes.users.me,
+                                        element: <UserProfilePage />,
+                                    },
+                                ],
+                            },
+                            {
+                                path: routes.chats.root,
+                                children: [
+                                    {index: true, element: <ChatsPage />},
+                                    {
+                                        path: routes.chats.byId,
+                                        element: <ChatsPage />,
+                                    },
+                                ],
+                            },
                         ],
                     },
                     {
-                        path: routes.users.root,
+                        element: <PublicLayout />,
                         children: [
-                            {index: true, element: <UsersPage/>},
-                            {path: routes.users.me, element: <UserProfilePage/>},
+                            {
+                                path: '*',
+                                element: <ErrorPage404 />,
+                            },
                         ],
-                    },
-                    {
-                        path: routes.chats.root,
-                        children: [
-                            {index: true, element: <ChatsPage/>},
-                            {path: routes.chats.byId, element: <ChatsPage/>},
-                        ],
-                    },
-                ],
-            },
-            {
-                element: <PublicLayout/>,
-                children: [
-                    {
-                        path: "*",
-                        element: <ErrorPage404/>,
                     },
                 ],
             },

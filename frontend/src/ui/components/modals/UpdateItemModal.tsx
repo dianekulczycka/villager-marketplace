@@ -1,18 +1,18 @@
 import {useAuth} from '../../../store/helpers/useAuth.ts';
-import {type FC, useEffect} from 'react';
-import type {UpdateItemDto} from '../../../models/item/UpdateItemDto.ts';
+import React, {type FC, useEffect} from 'react';
+import type {UpdateItem} from '../../../models/item/UpdateItem.ts';
 import {type SubmitHandler, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {updateItemSchema} from '../../../validation/item.schema.ts';
 import {Backdrop, Box, Button, Modal, TextField, Typography} from '@mui/material';
-import ErrorComponent from '../error/ErrorComponent.tsx';
 import type {ItemView} from '../../../models/item/ItemView.ts';
-import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
+import {useMutation} from "../../../hooks/shared/useMutation.ts";
+import PreloaderComponent from "../shared/PreloaderComponent.tsx";
 
 interface Props {
     open: boolean;
     closeModal: () => void;
-    updateItem: (dto: UpdateItemDto) => Promise<void>;
+    updateItem: (dto: UpdateItem) => Promise<void>;
     selectedItem: ItemView | null;
 }
 
@@ -29,7 +29,7 @@ const UpdateItemModal: FC<Props> = ({
                                         selectedItem,
                                     }) => {
     const {user} = useAuth();
-    const {error, submit} = useFormSubmit();
+    const {fetch, isMutating} = useMutation();
 
     const {
         register,
@@ -50,20 +50,24 @@ const UpdateItemModal: FC<Props> = ({
         }
     }, [open, selectedItem, reset]);
 
-    if (!user || !selectedItem) return null;
+    const onClose = () => {
+        reset();
+        closeModal();
+    };
 
-    const onSubmit: SubmitHandler<UpdateItemForm> = data =>
-        submit(
-            () =>
-                updateItem({
-                    ...data,
-                    description: data.description?.trim() || undefined,
-                }),
-            () => {
-                reset();
-                closeModal();
-            },
+    const handleUpdateItem: SubmitHandler<UpdateItemForm> = data => {
+        return fetch(
+            () => updateItem({
+                ...data,
+                description: data.description?.trim() || undefined,
+            }),
+            "Item updated",
+            onClose,
         );
+    };
+
+    if (isMutating) return <PreloaderComponent/>
+    if (!selectedItem || !user) return null;
 
     return (
         <Modal
@@ -81,7 +85,7 @@ const UpdateItemModal: FC<Props> = ({
         >
             <Box
                 component="form"
-                onSubmit={handleSubmit(onSubmit)}
+                onSubmit={handleSubmit(handleUpdateItem)}
                 sx={{
                     position: 'absolute',
                     top: '50%',
@@ -149,8 +153,6 @@ const UpdateItemModal: FC<Props> = ({
                 >
                     cancel
                 </Button>
-
-                {error && <ErrorComponent error={error}/>}
             </Box>
         </Modal>
     );

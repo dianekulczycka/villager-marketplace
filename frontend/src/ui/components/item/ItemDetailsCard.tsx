@@ -3,13 +3,13 @@ import {Box, Button, Card, Chip, Typography} from '@mui/material';
 import type {ItemAdminView} from '../../../models/item/ItemAdminView.ts';
 import {useAuth} from "../../../store/helpers/useAuth.ts";
 import Alert from "@mui/material/Alert";
-import type {OrderRequestDto} from "../../../models/order/OrderRequestDto.ts";
+import type {OrderReq} from "../../../models/order/OrderReq.ts";
 import UserSmallCard from "../user/cards/UserSmallCard.tsx";
 import {routes} from "../../../routes/routes.ts";
 
 interface Props {
     item: ItemAdminView;
-    order: (dto: OrderRequestDto) => Promise<void>;
+    order: (dto: OrderReq) => Promise<void>;
     openModal: () => void;
 }
 

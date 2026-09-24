@@ -23,6 +23,8 @@ import { ModerationPipe } from '../moderation/moderation.pipe.service';
 import { TokenService } from '../security/token/token.service';
 import { ApiErrorResponses } from '../shared/filters/dto/api-error-response.decorator';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
+import { AUTH_ERRORS } from '../shared/errors/auth.errors';
+import { AccountRecoveryResponseDto } from './dto/account-recovery-response.dto';
 
 @ApiErrorResponses()
 @Controller('auth')
@@ -52,7 +54,7 @@ export class AuthController {
     return user;
   }
 
-  @Throttle({ default: { limit: 60, ttl: 60000 } })
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @HttpCode(201)
   @Post('login')
   async login(
@@ -89,15 +91,16 @@ export class AuthController {
     this.tokenService.clearAuthCookies(res);
   }
 
-  @Throttle({ default: { limit: 1, ttl: 60000 } })
+  @Throttle({ default: { limit: 2, ttl: 60000 } })
   @HttpCode(204)
   @Post('account-recovery')
   async requestRecovery(
     @Body() accountRecoveryRequestDto: AccountRecoveryRequestDto,
-  ): Promise<void> {
+  ): Promise<AccountRecoveryResponseDto> {
     const data = await this.moderationService.requestRecovery(
       accountRecoveryRequestDto,
     );
-    await this.mailService.sendRecoveryRequest(data);
+    if (data) await this.mailService.sendRecoveryRequest(data);
+    return { message: AUTH_ERRORS.RECOVERY_REQUEST_ACCEPTED };
   }
 }

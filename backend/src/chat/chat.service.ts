@@ -171,6 +171,16 @@ export class ChatService {
     };
   }
 
+  async getTotalUnreadCount(request: UserRequest): Promise<number> {
+    const { userId } = request.user;
+    return this.prisma.message.count({
+      where: {
+        recipientId: userId,
+        isRead: false,
+      },
+    });
+  }
+
   private async getUnreadCountFromUser(
     senderId: number,
     recipientId: number,

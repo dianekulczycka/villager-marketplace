@@ -1,31 +1,30 @@
-import {type FC, useEffect} from 'react';
-import type {UpdateUserDto} from '../../../models/user/UpdateUserDto.ts';
+import React, {type FC, useEffect} from 'react';
+import type {UpdateUserReq} from '../../../models/user/UpdateUserReq.ts';
 import type {UserSelfView} from '../../../models/user/UserSelfView.ts';
 import type {UserAdminView} from '../../../models/user/UserAdminView.ts';
 import {type SubmitHandler, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {updateUserSchema} from '../../../validation/user.schema.ts';
 import {Backdrop, Box, Button, Modal, TextField, Typography} from '@mui/material';
-import ErrorComponent from '../error/ErrorComponent.tsx';
-import {useFormSubmit} from "../../../hooks/shared/useFormSubmit.ts";
-
+import {useMutation} from "../../../hooks/shared/useMutation.ts";
+import PreloaderComponent from "../shared/PreloaderComponent.tsx";
 
 interface Props {
     open: boolean;
     closeModal: () => void;
-    onUpdateUser: (dto: UpdateUserDto) => Promise<void>;
+    onUpdateUser: (dto: UpdateUserReq) => Promise<void>;
     selectedUser: UserSelfView | UserAdminView | null;
 }
 
 const UpdateUserModal: FC<Props> = ({open, closeModal, onUpdateUser, selectedUser}) => {
-    const {error, submit} = useFormSubmit();
+    const {fetch, isMutating} = useMutation();
 
     const {
         register,
         handleSubmit,
         reset,
         formState: {errors},
-    } = useForm<UpdateUserDto>({
+    } = useForm<UpdateUserReq>({
         resolver: zodResolver(updateUserSchema),
     });
 
@@ -37,16 +36,20 @@ const UpdateUserModal: FC<Props> = ({open, closeModal, onUpdateUser, selectedUse
         }
     }, [open, selectedUser, reset]);
 
-    if (!selectedUser) return null;
+    const onClose = () => {
+        reset();
+        closeModal();
+    };
 
-    const onSubmit: SubmitHandler<UpdateUserDto> = data =>
-        submit(
+    const handleUpdateUser: SubmitHandler<UpdateUserReq> = data => {
+        return fetch(
             () => onUpdateUser(data),
-            () => {
-                reset();
-                closeModal();
-            },
+            "User updated",
+            onClose,
         );
+    }
+
+    if (isMutating) return <PreloaderComponent/>
 
     return (
         <Modal disableScrollLock
@@ -62,7 +65,7 @@ const UpdateUserModal: FC<Props> = ({open, closeModal, onUpdateUser, selectedUse
                onClose={closeModal}>
             <Box
                 component="form"
-                onSubmit={handleSubmit(onSubmit)}
+                onSubmit={handleSubmit(handleUpdateUser)}
                 sx={{
                     position: 'absolute',
                     top: '50%',
@@ -102,8 +105,6 @@ const UpdateUserModal: FC<Props> = ({open, closeModal, onUpdateUser, selectedUse
                 <Button onClick={closeModal} sx={{textTransform: 'none'}}>
                     cancel
                 </Button>
-
-                {error && <ErrorComponent error={error}/>}
             </Box>
         </Modal>
 
