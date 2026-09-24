@@ -53,7 +53,7 @@ export const useWsChat = (userPublicId?: string) => {
                 queryKey: ['chats'],
             });
 
-            loadTotalUnread();
+            loadTotalUnread()
         };
 
         chatWsService.onChatOpened(handleChatOpened);

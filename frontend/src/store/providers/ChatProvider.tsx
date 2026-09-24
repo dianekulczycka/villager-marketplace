@@ -1,4 +1,4 @@
-import {FC, useEffect, useState} from 'react';
+import {type FC, useEffect, useState} from 'react';
 import {Outlet} from 'react-router-dom';
 import {ChatContext} from '../context/chat.context.ts';
 import {getUnreadMessages} from "../../services/fetch/user.service.ts";

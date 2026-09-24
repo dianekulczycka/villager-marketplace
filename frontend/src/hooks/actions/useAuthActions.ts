@@ -9,18 +9,19 @@ import {useChat} from "../../store/helpers/useChat.ts";
 
 export const useAuthActions = () => {
     const {loadUser, logoutUser, setUser} = useAuth();
-    const {setTotalUnread} = useChat();
+    const {setTotalUnread, loadTotalUnread} = useChat();
     const navigate = useNavigate();
 
     const registerUser = async (dto: RegisterReq) => {
         await signIn(dto);
-        loadUser();
+        await loadUser();
         navigate(routes.items.root);
     };
 
     const loginUser = async (dto: LoginReq) => {
         await login(dto);
-        loadUser();
+        await loadUser();
+        await loadTotalUnread();
         navigate(routes.items.root);
     };
 

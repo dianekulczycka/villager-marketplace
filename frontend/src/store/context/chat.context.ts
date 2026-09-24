@@ -9,7 +9,9 @@ export interface ChatContext {
 
 export const ChatContext = createContext<ChatContext>({
     totalUnread: null,
-    setTotalUnread: () => {},
-    loadTotalUnread: async () => {},
+    setTotalUnread: () => {
+    },
+    loadTotalUnread: async () => {
+    },
     isLoaded: false,
 });

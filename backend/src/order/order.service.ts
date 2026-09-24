@@ -122,30 +122,37 @@ export class OrderService {
 
     this.validateOrder(order, request.user.userId);
 
-    const item = validateExists(
-      await this.prisma.item.findFirst({
+    await this.prisma.$transaction(async (tx) => {
+      const result = await tx.item.updateMany({
         where: {
           id: order.itemId,
+          count: {
+            gte: order.amount,
+          },
         },
-      }),
-      ITEM_ERRORS.NOT_FOUND,
-    );
+        data: {
+          count: {
+            decrement: order.amount,
+          },
+        },
+      });
 
-    if (item.count < order.amount)
-      throw new BadRequestException(ITEM_ERRORS.INVALID_AMOUNT);
+      if (result.count !== 1)
+        throw new BadRequestException(ITEM_ERRORS.INVALID_AMOUNT);
 
-    const newCount = item.count - order.amount;
+      const orderResult = await tx.order.updateMany({
+        where: {
+          publicId,
+          status: order_status.PENDING,
+        },
+        data: {
+          status: order_status.CONFIRMED,
+        },
+      });
 
-    await this.prisma.$transaction([
-      this.prisma.item.update({
-        where: { id: item.id },
-        data: { count: newCount },
-      }),
-      this.prisma.order.update({
-        where: { publicId },
-        data: { status: order_status.CONFIRMED },
-      }),
-    ]);
+      if (orderResult.count !== 1)
+        throw new BadRequestException(ORDER_ERRORS.NOT_ALLOWED);
+    });
 
     return {
       buyerEmail: order.buyer.email,
@@ -165,7 +172,7 @@ export class OrderService {
     this.validateOrder(order, request.user.userId);
 
     await this.prisma.order.update({
-      where: { publicId },
+      where: { publicId, status: order_status.PENDING },
       data: { status: order_status.REJECTED },
     });
   }
