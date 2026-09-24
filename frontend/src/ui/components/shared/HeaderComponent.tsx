@@ -1,5 +1,5 @@
 import {type FC} from 'react';
-import {AppBar, Avatar, Button, Link, Toolbar, Box} from '@mui/material';
+import {AppBar, Avatar, Box, Button, Link, Toolbar} from '@mui/material';
 import {useAuth} from '../../../store/helpers/useAuth.ts';
 import {Link as RouterLink} from 'react-router';
 import ErrorComponent from '../error/ErrorComponent.tsx';
@@ -11,7 +11,7 @@ import UnreadMessagesChip from "../chips/UnreadMessagesChip.tsx";
 export const HeaderComponent: FC = () => {
     const {user, isAuthority} = useAuth();
     const {logout} = useAuthActions();
-    const {totalUnread} = useChat();
+    const {totalUnread, isLoaded} = useChat();
 
     if (!user) return <ErrorComponent error="no user"/>;
 
@@ -71,9 +71,8 @@ export const HeaderComponent: FC = () => {
                             >
                                 Chats
                             </Link>
-
-                            {totalUnread > 0 && (
-                                <UnreadMessagesChip unreadMessages={totalUnread} />
+                            {isLoaded && totalUnread !== null && totalUnread > 0 && (
+                                <UnreadMessagesChip unreadMessages={totalUnread}/>
                             )}
                         </Box>
                     </>

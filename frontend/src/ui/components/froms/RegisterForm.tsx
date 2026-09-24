@@ -1,37 +1,35 @@
-import React, {type FC} from 'react';
+import {type FC} from 'react';
 import {useForm} from 'react-hook-form';
 import {Link} from 'react-router';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {alpha, Box, Button, TextField, Typography} from '@mui/material';
 import type {RegisterReq} from '../../../models/auth/RegisterReq.ts';
 import {registerSchema} from '../../../validation/auth.schema.ts';
-import {useMutation} from "../../../hooks/shared/useMutation.ts";
 import PreloaderComponent from "../shared/PreloaderComponent.tsx";
-import InfoSnackbar from "../shared/InfoSnackbar.tsx";
 
 interface Props {
-    onRegister: (data: RegisterReq) => Promise<void>;
+    handleRegister: (data: RegisterReq) => Promise<void>;
+    isMutating: boolean;
 }
 
-const RegisterForm: FC<Props> = ({onRegister}) => {
-    const {fetch, isMutating, ...snackbar} = useMutation();
+type RegisterFormData = RegisterReq & {
+    repeatPassword: string;
+};
 
+const RegisterForm: FC<Props> = ({handleRegister, isMutating}) => {
     const {
         register,
         handleSubmit,
         formState: {errors},
-    } = useForm<RegisterReq & { repeatPassword: string }>({
+    } = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema),
     });
 
-    const handleRegister = (
-        data: RegisterReq,
-    ): Promise<void> => {
-        return fetch(
-            () => {
-                return onRegister(data);
-            }
-        );
+    const onSubmit = (data: RegisterFormData): Promise<void> => {
+        const registerData = Object.fromEntries(
+            Object.entries(data).filter(([key]) => key !== 'repeatPassword'),
+        ) as RegisterReq;
+        return handleRegister(registerData);
     };
 
     if (isMutating) return <PreloaderComponent/>
@@ -50,7 +48,7 @@ const RegisterForm: FC<Props> = ({onRegister}) => {
         })}>
             <Typography variant="h5"> Register </Typography>
             <form
-                onSubmit={handleSubmit(handleRegister)}
+                onSubmit={handleSubmit(onSubmit)}
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -92,14 +90,6 @@ const RegisterForm: FC<Props> = ({onRegister}) => {
             </form>
 
             <Typography variant="caption"> Have an account? <Link to="/auth/login"> Log in </Link></Typography>
-
-            <InfoSnackbar
-                open={snackbar.open}
-                setOpen={snackbar.close}
-                text={snackbar.text}
-                status={snackbar.status}
-            />
-
         </Box>
     );
 };

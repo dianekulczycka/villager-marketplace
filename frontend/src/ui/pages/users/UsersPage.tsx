@@ -17,7 +17,6 @@ import {useModal} from "../../../hooks/shared/useModal.ts";
 import {usePaginatedQuery} from "../../../hooks/shared/usePaginatedQuery.ts";
 import type {PaginationView} from "../../../models/pagiantion/PaginationView.ts";
 import {useMutation} from "../../../hooks/shared/useMutation.ts";
-import UpdateItemModal from "../../components/modals/UpdateItemModal.tsx";
 import {useAuth} from "../../../store/helpers/useAuth.ts";
 
 const UsersPage: FC = () => {
@@ -195,44 +194,30 @@ const UsersPage: FC = () => {
                     </>
                 )}
             </DataStateComponent>
-
             {isAuthority &&
                 <>
-                    <UpdateItemModal
-                        open={activeModal === 'updateItem'}
+                    <UpdateUserModal
+                        open={activeModal === 'updateUser'}
                         closeModal={closeModal}
-                        updateItem={handleUpdateItem}
-                        selectedItem={selectedItem}
+                        onUpdateUser={handleUpdateUser}
+                        selectedUser={selectedUser}
                     />
 
                     <ConfirmDeleteModal
-                        open={activeModal === 'deleteItem'}
+                        open={
+                            activeModal === 'deleteUser' ||
+                            activeModal === 'hardDeleteUser'
+                        }
                         closeModal={closeModal}
-                        deleteEntity={handleDeleteItem}
+                        deleteEntity={
+                            activeModal === 'deleteUser'
+                                ? handleDeleteUser
+                                : handleHardDeleteUser
+                        }
                     />
                 </>
+
             }
-
-            <UpdateUserModal
-                open={activeModal === 'updateUser'}
-                closeModal={closeModal}
-                onUpdateUser={handleUpdateUser}
-                selectedUser={selectedUser}
-            />
-
-            <ConfirmDeleteModal
-                open={
-                    activeModal === 'deleteUser' ||
-                    activeModal === 'hardDeleteUser'
-                }
-                closeModal={closeModal}
-                deleteEntity={
-                    activeModal === 'deleteUser'
-                        ? handleDeleteUser
-                        : handleHardDeleteUser
-                }
-            />
-
             <InfoSnackbar
                 open={open}
                 setOpen={close}

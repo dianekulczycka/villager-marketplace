@@ -1,4 +1,4 @@
-import React, {type FC} from "react";
+import {type FC, useState} from "react";
 import {Backdrop, Box, Button, Modal, TextField} from "@mui/material";
 import {type SubmitHandler, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
@@ -6,6 +6,7 @@ import type {OrderReq} from "../../../models/order/OrderReq.ts";
 import {orderSchema} from "../../../validation/order.schema.ts";
 import {useMutation} from "../../../hooks/shared/useMutation.ts";
 import PreloaderComponent from "../shared/PreloaderComponent.tsx";
+import ErrorComponent from "../error/ErrorComponent.tsx";
 
 interface Props {
     open: boolean;
@@ -16,6 +17,7 @@ interface Props {
 
 const OrderModal: FC<Props> = ({open, closeModal, order, itemCount}) => {
     const {fetch, isMutating} = useMutation();
+    const [error, setError] = useState<string | null>(null);
 
     const {
         register,
@@ -36,7 +38,7 @@ const OrderModal: FC<Props> = ({open, closeModal, order, itemCount}) => {
 
     const handleOrder: SubmitHandler<OrderReq> = data => {
         if (data.amount > itemCount) {
-            showError(new Error(`Only ${itemCount} available`));
+            setError(`Only ${itemCount} available`);
             return;
         }
 
@@ -98,6 +100,7 @@ const OrderModal: FC<Props> = ({open, closeModal, order, itemCount}) => {
                 <Button onClick={closeModal} sx={{textTransform: 'none'}}>
                     cancel
                 </Button>
+                {error && <ErrorComponent error={error}/>}
             </Box>
         </Modal>
     );

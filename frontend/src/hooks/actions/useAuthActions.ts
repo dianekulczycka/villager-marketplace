@@ -6,6 +6,7 @@ import {routes} from "../../routes/routes.ts";
 import type {RecoverReq} from "../../models/auth/RecoverReq.ts";
 import type {RegisterReq} from "../../models/auth/RegisterReq.ts";
 import {useChat} from "../../store/helpers/useChat.ts";
+import type {RecoverResp} from "../../models/auth/RecoverResp.ts";
 
 export const useAuthActions = () => {
     const {loadUser, logoutUser, setUser} = useAuth();
@@ -37,8 +38,8 @@ export const useAuthActions = () => {
         }
     };
 
-    const handleRequestRecovery = async (dto: RecoverReq) => {
-        await requestRecovery(dto);
+    const handleRequestRecovery = async (dto: RecoverReq): Promise<RecoverResp> => {
+        return requestRecovery(dto);
     };
 
     return {

@@ -1,5 +1,5 @@
 import {useAuth} from '../../../store/helpers/useAuth.ts';
-import React, {type FC, useEffect} from 'react';
+import {type FC, useEffect} from 'react';
 import type {UpdateItem} from '../../../models/item/UpdateItem.ts';
 import {type SubmitHandler, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';

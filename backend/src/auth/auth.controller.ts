@@ -92,7 +92,6 @@ export class AuthController {
   }
 
   @Throttle({ default: { limit: 2, ttl: 60000 } })
-  @HttpCode(204)
   @Post('account-recovery')
   async requestRecovery(
     @Body() accountRecoveryRequestDto: AccountRecoveryRequestDto,

@@ -1,4 +1,4 @@
-import React, {type FC, useEffect} from 'react';
+import {type FC, useEffect} from 'react';
 import type {UpdateUserReq} from '../../../models/user/UpdateUserReq.ts';
 import type {UserSelfView} from '../../../models/user/UserSelfView.ts';
 import type {UserAdminView} from '../../../models/user/UserAdminView.ts';

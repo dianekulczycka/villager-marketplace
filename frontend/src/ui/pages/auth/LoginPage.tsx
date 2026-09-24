@@ -6,38 +6,56 @@ import RequestRecoveryModal from '../../components/modals/RequestRecoveryModal.t
 import InfoSnackbar from "../../components/shared/InfoSnackbar.tsx";
 import {useAuthActions} from "../../../hooks/actions/useAuthActions.ts";
 import {useLoggedUserRedirect} from "../../../hooks/shared/useLoggedUserRedirect.ts";
+import {useMutation} from "../../../hooks/shared/useMutation.ts";
+import type {LoginReq} from "../../../models/auth/LoginReq.ts";
 
 const LoginPage: FC = () => {
-    const [openSnackbar, setOpenSnackbar] = useState(false);
     const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+    const {fetch, isMutating, ...snackbar} = useMutation();
     useLoggedUserRedirect();
 
     const {
         loginUser,
-        handleRequestRecovery,
+        handleRequestRecovery: requestRecovery,
     } = useAuthActions();
 
     const openModal = () => setActiveModal('restore');
     const closeModal = () => setActiveModal(null);
 
-    const onRequestRecovery = async (dto: RecoverReq) => {
-        await handleRequestRecovery(dto);
-        setOpenSnackbar(true);
+    const handleLogin = (data: LoginReq): Promise<void> => {
+        return fetch(() => loginUser(data));
+    };
+
+    const handleRequestRecovery = (
+        data: RecoverReq,
+    ): Promise<void> => {
+        return fetch(
+            () => requestRecovery(data),
+            response => response.message,
+            closeModal,
+        );
     };
 
     return (
         <>
-            <LoginForm login={loginUser} openModal={openModal}/>
+            <LoginForm
+                handleLogin={handleLogin}
+                openModal={openModal}
+                isMutating={isMutating}
+            />
+
             <RequestRecoveryModal
                 open={activeModal === 'restore'}
                 closeModal={closeModal}
-                requestRecovery={onRequestRecovery}
+                handleRequestRecovery={handleRequestRecovery}
+                isMutating={isMutating}
             />
+
             <InfoSnackbar
-                open={openSnackbar}
-                setOpen={setOpenSnackbar}
-                text="Request successful, please wait to be restored"
-                status="success"
+                open={snackbar.open}
+                setOpen={snackbar.close}
+                text={snackbar.text}
+                status={snackbar.status}
             />
         </>
     );

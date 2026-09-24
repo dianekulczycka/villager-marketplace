@@ -1,4 +1,4 @@
-import React, {type FC} from 'react';
+import {type FC} from 'react';
 import {Backdrop, Box, Button, MenuItem, Modal, TextField, Typography} from '@mui/material';
 import {SellerTypes} from '../../../models/enums/SellerType.ts';
 import {type SubmitHandler, useForm} from 'react-hook-form';
@@ -35,7 +35,7 @@ const BecomeSellerModal: FC<Props> = ({open, closeModal, onBecomeSeller}) => {
         data: BecomeSellerReq,
     ): Promise<void> => {
         return fetch(
-            () => onBecomeSeller(data),
+            async () => onBecomeSeller(data),
             "You are now a seller",
             onClose,
         );

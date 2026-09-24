@@ -1,21 +1,19 @@
-import {type SubmitHandler, useForm} from 'react-hook-form';
-import React, {type FC} from 'react';
+import {useForm} from 'react-hook-form';
+import {type FC} from 'react';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Backdrop, Box, Button, MenuItem, Modal, TextField, Typography} from '@mui/material';
 import type {RecoverReq} from '../../../models/auth/RecoverReq.ts';
 import {recoverySchema} from '../../../validation/auth.schema.ts';
-import {useMutation} from "../../../hooks/shared/useMutation.ts";
 import PreloaderComponent from "../shared/PreloaderComponent.tsx";
 
 interface Props {
     open: boolean;
+    isMutating: boolean;
     closeModal: () => void;
-    requestRecovery: SubmitHandler<RecoverReq>;
+    handleRequestRecovery: (data: RecoverReq) => Promise<void>;
 }
 
-const RequestRecoveryModal: FC<Props> = ({open, closeModal, requestRecovery}) => {
-    const {fetch, isMutating} = useMutation();
-
+const RequestRecoveryModal: FC<Props> = ({open, isMutating, closeModal, handleRequestRecovery}) => {
     const {
         register,
         handleSubmit,
@@ -28,14 +26,6 @@ const RequestRecoveryModal: FC<Props> = ({open, closeModal, requestRecovery}) =>
     const onClose = () => {
         reset();
         closeModal();
-    };
-
-    const handleRequestRecovery: SubmitHandler<RecoverReq> = data => {
-        return fetch(
-            () => requestRecovery(data),
-            response => response.message,
-            onClose,
-        );
     };
 
     if (isMutating) return <PreloaderComponent/>

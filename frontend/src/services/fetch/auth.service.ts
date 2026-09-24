@@ -22,5 +22,4 @@ export const logout = async (): Promise<void> => {
 
 export const requestRecovery = async (data: RecoverReq): Promise<RecoverResp> => {
     const response = await api.post(endpoints.auth.recovery, data);
-    return response.data;
-};
+    return response.data};

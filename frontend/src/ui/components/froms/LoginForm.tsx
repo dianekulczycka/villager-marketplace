@@ -1,21 +1,19 @@
-import React, {type FC} from 'react';
+import {type FC} from 'react';
 import {useForm} from 'react-hook-form';
 import {Link} from 'react-router';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {alpha, Box, Button, TextField, Typography} from '@mui/material';
 import type {LoginReq} from '../../../models/auth/LoginReq.ts';
 import {loginSchema} from '../../../validation/auth.schema.ts';
-import InfoSnackbar from "../shared/InfoSnackbar.tsx";
-import {useMutation} from "../../../hooks/shared/useMutation.ts";
 import PreloaderComponent from "../shared/PreloaderComponent.tsx";
 
 interface Props {
-    login: (data: LoginReq) => Promise<void>;
+    handleLogin: (data: LoginReq) => Promise<void>;
     openModal: () => void;
+    isMutating: boolean;
 }
 
-const LoginForm: FC<Props> = ({login, openModal}) => {
-    const {fetch, isMutating, ...snackbar} = useMutation();
+const LoginForm: FC<Props> = ({openModal, handleLogin, isMutating}) => {
     const {
         register,
         handleSubmit,
@@ -23,14 +21,6 @@ const LoginForm: FC<Props> = ({login, openModal}) => {
     } = useForm<LoginReq>({
         resolver: zodResolver(loginSchema),
     });
-
-    const handleLogin = (
-        data: LoginReq,
-    ): Promise<void> => {
-        return fetch(
-            () => login(data)
-        );
-    };
 
     if (isMutating) return <PreloaderComponent/>
 
@@ -99,13 +89,6 @@ const LoginForm: FC<Props> = ({login, openModal}) => {
             >
                 Restore account
             </Button>
-
-            <InfoSnackbar
-                open={snackbar.open}
-                setOpen={snackbar.close}
-                text={snackbar.text}
-                status={snackbar.status}
-            />
         </Box>
     );
 };

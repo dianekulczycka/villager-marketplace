@@ -1,4 +1,4 @@
-import React, {type FC} from 'react';
+import {type FC} from 'react';
 import type {CreateItem} from '../../../models/item/CreateItem.ts';
 import {type SubmitHandler, useForm} from 'react-hook-form';
 import {useAuth} from '../../../store/helpers/useAuth.ts';

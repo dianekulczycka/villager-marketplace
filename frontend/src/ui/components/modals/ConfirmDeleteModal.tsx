@@ -1,4 +1,4 @@
-import React, {type FC} from 'react';
+import {type FC} from 'react';
 import {Backdrop, Box, Button, Modal, TextField, Typography} from '@mui/material';
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
