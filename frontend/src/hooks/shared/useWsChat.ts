@@ -2,11 +2,9 @@ import {useEffect} from "react";
 import {useQueryClient} from "@tanstack/react-query";
 import {chatWsService} from "../../services/websocket/chat.service.ts";
 import type {MessageView} from "../../models/chats/MessageView.ts";
-import {useChat} from "../../store/helpers/useChat.ts";
 
 export const useWsChat = (userPublicId?: string) => {
     const queryClient = useQueryClient();
-    const {loadTotalUnread} = useChat();
 
     useEffect(() => {
         chatWsService.connect();
@@ -52,8 +50,6 @@ export const useWsChat = (userPublicId?: string) => {
             queryClient.invalidateQueries({
                 queryKey: ['chats'],
             });
-
-            loadTotalUnread()
         };
 
         chatWsService.onChatOpened(handleChatOpened);
@@ -61,7 +57,7 @@ export const useWsChat = (userPublicId?: string) => {
         return () => {
             chatWsService.offChatOpened(handleChatOpened);
         };
-    }, [queryClient, loadTotalUnread]);
+    }, [queryClient]);
 
     const sendMessage = (body: string) => {
         if (!userPublicId) return;

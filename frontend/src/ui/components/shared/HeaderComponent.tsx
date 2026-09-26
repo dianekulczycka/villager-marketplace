@@ -5,13 +5,10 @@ import {Link as RouterLink} from 'react-router';
 import ErrorComponent from '../error/ErrorComponent.tsx';
 import {routes} from '../../../routes/routes.ts';
 import {useAuthActions} from "../../../hooks/actions/useAuthActions.ts";
-import {useChat} from "../../../store/helpers/useChat.ts";
-import UnreadMessagesChip from "../chips/UnreadMessagesChip.tsx";
 
 export const HeaderComponent: FC = () => {
     const {user, isAuthority} = useAuth();
     const {logout} = useAuthActions();
-    const {totalUnread, isLoaded} = useChat();
 
     if (!user) return <ErrorComponent error="no user"/>;
 
@@ -71,9 +68,6 @@ export const HeaderComponent: FC = () => {
                             >
                                 Chats
                             </Link>
-                            {isLoaded && totalUnread !== null && totalUnread > 0 && (
-                                <UnreadMessagesChip unreadMessages={totalUnread}/>
-                            )}
                         </Box>
                     </>
                 }

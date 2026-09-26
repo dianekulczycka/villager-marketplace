@@ -22,11 +22,6 @@ export const getMe = async (): Promise<UserAdminView> => {
     return data;
 };
 
-export const getUnreadMessages = async (): Promise<number> => {
-    const {data} = await api.get(endpoints.users.unreadMessages);
-    return data;
-};
-
 export const stats = async (): Promise<ProfileStats> => {
     const {data} = await api.get(endpoints.users.stats);
     return data;

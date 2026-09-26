@@ -5,12 +5,10 @@ import {login, requestRecovery, signIn} from "../../services/fetch/auth.service.
 import {routes} from "../../routes/routes.ts";
 import type {RecoverReq} from "../../models/auth/RecoverReq.ts";
 import type {RegisterReq} from "../../models/auth/RegisterReq.ts";
-import {useChat} from "../../store/helpers/useChat.ts";
 import type {RecoverResp} from "../../models/auth/RecoverResp.ts";
 
 export const useAuthActions = () => {
     const {loadUser, logoutUser, setUser} = useAuth();
-    const {setTotalUnread, loadTotalUnread} = useChat();
     const navigate = useNavigate();
 
     const registerUser = async (dto: RegisterReq) => {
@@ -22,7 +20,6 @@ export const useAuthActions = () => {
     const loginUser = async (dto: LoginReq) => {
         await login(dto);
         await loadUser();
-        await loadTotalUnread();
         navigate(routes.items.root);
     };
 
@@ -33,7 +30,6 @@ export const useAuthActions = () => {
             console.log(e);
         } finally {
             setUser(null);
-            setTotalUnread(null);
             navigate(routes.auth.login);
         }
     };

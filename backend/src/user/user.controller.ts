@@ -35,7 +35,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ImageUploadPipe } from '../shared/pipes/image-upload.pipe';
 import { Throttle } from '@nestjs/throttler';
 import { ConfirmPasswordDto } from '../shared/dto/confirm-password.dto';
-import { ChatService } from '../chat/chat.service';
 
 @ApiErrorResponses()
 @UseGuards(AuthGuard('jwt'))
@@ -44,7 +43,6 @@ export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly tokenService: TokenService,
-    private readonly chatService: ChatService,
   ) {}
 
   @Get()
@@ -65,13 +63,6 @@ export class UserController {
     @Request() request: userRequestInterface.UserRequest,
   ): Promise<UserSelfDto> {
     return this.userService.findSelf(request);
-  }
-
-  @Get('profile/unread')
-  async getUnreadCount(
-    @Request() request: userRequestInterface.UserRequest,
-  ): Promise<number> {
-    return await this.chatService.getTotalUnreadCount(request);
   }
 
   @UseGuards(AllowedRolesGuard)
